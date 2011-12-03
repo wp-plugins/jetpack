@@ -4,7 +4,7 @@
  * Plugin Name: Jetpack Compatibility Test
  * Description: Tests your site's compatibily with Jetpack.
  * Plugin URI: http://jetpack.me/
- * Version: 1.1
+ * Version: 1.2
  * Author: Automattic
  * Author URI: http://automattic.com/
  * License: GPL2+
@@ -36,7 +36,6 @@ class Jetpack_Compatibility_Test {
 	function admin_page_load() {
 		add_action( 'admin_head', array( $this, 'admin_head' ) );
 		$self_xml_rpc_url = site_url( 'xmlrpc.php' );
-		$self_xml_rpc_url = preg_replace( '/^http:/', 'https:', $self_xml_rpc_url );
 
 		$this->tests['wp_generate_password'] = $this->wp_generate_password();
 		$this->tests['http']  = wp_remote_get(  'http://jetpack.wordpress.com/jetpack.test/1/' );
