@@ -4,7 +4,7 @@
  * Plugin Name: Jetpack Compatibility Test
  * Description: Tests your site's compatibily with Jetpack.
  * Plugin URI: http://jetpack.me/
- * Version: 1.2
+ * Version: 1.3
  * Author: Automattic
  * Author URI: http://automattic.com/
  * License: GPL2+
@@ -38,6 +38,7 @@ class Jetpack_Compatibility_Test {
 		$self_xml_rpc_url = site_url( 'xmlrpc.php' );
 
 		$this->tests['wp_generate_password'] = $this->wp_generate_password();
+		$this->tests['wp_rand'] = $this->wp_rand();
 		$this->tests['http']  = wp_remote_get(  'http://jetpack.wordpress.com/jetpack.test/1/' );
 		$this->tests['https'] = wp_remote_get( 'https://jetpack.wordpress.com/jetpack.test/1/' );
 		if ( preg_match( '/^https:/', $self_xml_rpc_url ) ) {
@@ -54,8 +55,37 @@ class Jetpack_Compatibility_Test {
 			$password = wp_generate_password( $length, false );
 			$r[] = sprintf( '%2d -> %2d:%s', $length, strlen( $password ), $password );
 		}
+		$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+		$r['random_password'] = apply_filters( 'random_password', $chars );
+		$r['steps'] = array();
+		for ( $i = 0; $i < 32; $i++ ) {
+			$format = $i < 10 ? '%3d' : '%2d';
+			$rand = wp_rand( 0, 61 );
+			$r['steps'][] = sprintf( "$format -> %s", $rand, substr($chars, $rand, 1) );
+		}
 		if ( class_exists( 'ReflectionFunction' ) && is_callable( 'ReflectionFunction', 'export' ) ) {
 			$r['ReflectionFunction'] = "\n" . ReflectionFunction::export( 'wp_generate_password', true );
+		} else {
+			$r['ReflectionFunction'] = null;
+		}
+		return $r;
+	}
+
+	function wp_rand() {
+		$r = array(
+			var_export( $GLOBALS['rnd_value'], 1 ),
+		);
+		$rands = array();
+		for ( $i = 1; $i <= 20; $i++ ) {
+			$format = $i < 10 ? '%3d' : '%2d';
+			$rand = wp_rand( 0, 61 );
+			$rands[] = $rand;
+			$r[] = sprintf( "$format:%s", $rand, strrev( $GLOBALS['rnd_value'] ) );
+		}
+		$r['MIN'] = min( $rands );
+		$r['MAX'] = max( $rands );
+		if ( class_exists( 'ReflectionFunction' ) && is_callable( 'ReflectionFunction', 'export' ) ) {
+			$r['ReflectionFunction'] = "\n" . ReflectionFunction::export( 'wp_rand', true );
 		} else {
 			$r['ReflectionFunction'] = null;
 		}
@@ -98,6 +128,9 @@ jQuery( function( $ ) {
 	<div id="jetpack-compatibility-test-wrapper">
 <h3>TEST: <code>wp_generate_password()</code></h3>
 <?php $this->output( $this->tests['wp_generate_password'] ); ?>
+
+<h3>TEST: <code>wp_rand()</code></h3>
+<?php $this->output( $this->tests['wp_rand'] ); ?>
 
 <h3>TEST: HTTP Connection</h3>
 <?php $this->output( $this->tests['http'] ); ?>
