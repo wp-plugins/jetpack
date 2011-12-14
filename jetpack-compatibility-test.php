@@ -4,7 +4,7 @@
  * Plugin Name: Jetpack Compatibility Test
  * Description: Tests your site's compatibily with Jetpack.
  * Plugin URI: http://jetpack.me/
- * Version: 1.3
+ * Version: 1.4
  * Author: Automattic
  * Author URI: http://automattic.com/
  * License: GPL2+
@@ -37,6 +37,7 @@ class Jetpack_Compatibility_Test {
 		add_action( 'admin_head', array( $this, 'admin_head' ) );
 		$self_xml_rpc_url = site_url( 'xmlrpc.php' );
 
+		$this->tests['integer_tests'] = $this->integer_tests();
 		$this->tests['wp_generate_password'] = $this->wp_generate_password();
 		$this->tests['wp_rand'] = $this->wp_rand();
 		$this->tests['http']  = wp_remote_get(  'http://jetpack.wordpress.com/jetpack.test/1/' );
@@ -92,6 +93,46 @@ class Jetpack_Compatibility_Test {
 		return $r;
 	}
 
+	function prepend_type( $value ) {
+		$type = gettype( $value );
+		return "($type) $value";
+	}
+
+	function integer_tests() {
+		$r = array();
+
+		$value = "d0000000";
+		$r['$value = "d0000000";'] = $this->prepend_type( $value );
+
+		$value = hexdec( $value );
+		$r['$value = hexdec( $value );'] = $this->prepend_type( $value );
+
+		$value = abs( $value );
+		$r['$value = abs( $value );'] = $this->prepend_type( $value );
+
+		$min = 0;
+		$r['$min = 0;'] = $this->prepend_type( $min );
+
+		$max = 61;
+		$r['$max = 61;'] = $this->prepend_type( $max );
+
+		$r['4294967295 + 1'] = $this->prepend_type( 4294967295 + 1 );
+		$r['$value / (4294967295 + 1)'] = $this->prepend_type( $value / (4294967295 + 1) );
+		$r['$max - $min + 1'] = $this->prepend_type( $max - $min + 1 );
+		$r['($max - $min + 1) * ($value / (4294967295 + 1))'] = $this->prepend_type( ($max - $min + 1) * ($value / (4294967295 + 1)) );
+
+		$out = $min + (($max - $min + 1) * ($value / (4294967295 + 1)));
+		$r['$out = $min + (($max - $min + 1) * ($value / (4294967295 + 1)));'] = $this->prepend_type( $out );
+
+		$out = intval( $out );
+		$r['$out = intval( $out );'] = $this->prepend_type( $out );
+
+		$out = abs( $out );
+		$r['$out = abs( $out );'] = $this->prepend_type( $out );
+
+		return $r;
+	}
+
 	function admin_head() {
 ?>
 <style type="text/css">
@@ -126,6 +167,9 @@ jQuery( function( $ ) {
 	<h2>Jetpack Compatibility Test <a id="jetpack-compatibility-test-select-all" class="button" href="#">Select All</a></h2>
 
 	<div id="jetpack-compatibility-test-wrapper">
+<h3>TEST: Integer Tests</h3>
+<?php $this->output( $this->tests['integer_tests'] ); ?>
+
 <h3>TEST: <code>wp_generate_password()</code></h3>
 <?php $this->output( $this->tests['wp_generate_password'] ); ?>
 
