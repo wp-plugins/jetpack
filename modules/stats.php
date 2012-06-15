@@ -23,6 +23,21 @@ function stats_load() {
 	Jetpack::module_configuration_head( __FILE__, 'stats_configuration_head' );
 	Jetpack::module_configuration_screen( __FILE__, 'stats_configuration_screen' );
 
+	$jetpack = Jetpack::init();
+	// Tell HQ about changed settings
+	$jetpack->sync->options(
+		'home',
+		'siteurl',
+		'blogname',
+		'blogdescription',
+		'gmt_offset',
+		'timezone_string',
+		'page_on_front',
+		'permalink_structure',
+		'category_base',
+		'tag_base'
+	);
+
 	// Generate the tracking code after wp() has queried for posts.
 	add_action( 'template_redirect', 'stats_template_redirect', 1 );
 
@@ -31,19 +46,6 @@ function stats_load() {
 	add_action( 'jetpack_admin_menu', 'stats_admin_menu' );
 
 	add_action( 'wp_dashboard_setup', 'stats_register_dashboard_widget' );
-
-	// Tell HQ about changed settings
-	add_action( 'update_option_home', 'stats_update_blog' );
-	add_action( 'update_option_siteurl', 'stats_update_blog' );
-	add_action( 'update_option_blogname', 'stats_update_blog' );
-	add_action( 'update_option_blogdescription', 'stats_update_blog' );
-	add_action( 'update_option_timezone_string', 'stats_update_blog' );
-	add_action( 'add_option_timezone_string', 'stats_update_blog' );
-	add_action( 'update_option_gmt_offset', 'stats_update_blog' );
-	add_action( 'update_option_page_on_front', 'stats_update_blog' );
-	add_action( 'update_option_permalink_structure', 'stats_update_blog' );
-	add_action( 'update_option_category_base', 'stats_update_blog' );
-	add_action( 'update_option_tag_base', 'stats_update_blog' );
 
 	// Tell HQ about changed posts
 	add_action( 'save_post', 'stats_update_post', 10, 1 );

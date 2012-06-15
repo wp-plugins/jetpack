@@ -11,6 +11,17 @@ add_action( 'jetpack_modules_loaded', 'jetpack_subscriptions_load' );
 function jetpack_subscriptions_load() {
 	Jetpack::enable_module_configurable( __FILE__ );
 	Jetpack::module_configuration_load( __FILE__, 'jetpack_subscriptions_configuration_load' );
+
+	$jetpack = Jetpack::init();
+	$jetpack->sync->options(
+		'home',
+		'blogname',
+		'siteurl',
+		'page_on_front',
+		'permalink_structure',
+		'category_base',
+		'tag_base' 
+	);
 }
 
 function jetpack_subscriptions_configuration_load() {

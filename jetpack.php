@@ -5,7 +5,7 @@
  * Plugin URI: http://wordpress.org/extend/plugins/jetpack/
  * Description: Bring the power of the WordPress.com cloud to your self-hosted WordPress. Jetpack enables you to connect your blog to a WordPress.com account to use the powerful features normally only available to WordPress.com users.
  * Author: Automattic
- * Version: 1.4.1
+ * Version: 1.4.2-alpha-sync
  * Author URI: http://jetpack.me
  * License: GPL2+
  * Text Domain: jetpack
@@ -17,7 +17,7 @@ define( 'JETPACK__API_VERSION', 1 );
 define( 'JETPACK__MINIMUM_WP_VERSION', '3.2' );
 defined( 'JETPACK_CLIENT__AUTH_LOCATION' ) or define( 'JETPACK_CLIENT__AUTH_LOCATION', 'header' );
 defined( 'JETPACK_CLIENT__HTTPS' ) or define( 'JETPACK_CLIENT__HTTPS', 'AUTO' );
-define( 'JETPACK__VERSION', '1.4.1' );
+define( 'JETPACK__VERSION', '1.4.2-alpha-sync' );
 define( 'JETPACK__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 /*
 Options:
@@ -145,6 +145,8 @@ class Jetpack {
 	 */
 	function Jetpack() {
 		$this->sync =& new Jetpack_Sync;
+
+		$this->sync->options( 'home', 'siteurl', 'blogname', 'gmt_offset', 'timezone_string' );
 
 		if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST && isset( $_GET['for'] ) && 'jetpack' == $_GET['for'] ) {
 			require_once dirname( __FILE__ ) . '/class.jetpack-xmlrpc-server.php';
@@ -3060,6 +3062,33 @@ class Jetpack_Sync {
 		add_action( 'transition_post_status', array( $this, 'track_post_transition' ), 1, 3 );
 	}
 
+	function deleted_option( $option ) {
+		$this->register( 'delete_option', $option, null, true );
+
+		// Make sure update_option() ... delete_option() ends up as a delete
+		unset( $this->sync['option'][$option] );
+	}
+
+	function updated_option( $old_value, $new_value ) {
+		// The value of $option isn't passed to the filter
+		// Calculate it
+		$option = current_filter();
+		$prefix = 'update_option_';
+		if ( 0 !== strpos( $option, $prefix ) ) {
+			return;
+		}
+		$option = substr( $option, strlen( $prefix ) );
+
+		$this->added_option( $option, $new_value );
+	}
+
+	function added_option( $option, $new_value ) {
+		$this->register( 'option', $option, $new_value, true );
+
+		// Make sure delete_option() ... update_option() ends up as an update
+		unset( $this->sync['delete_option'][$option] );
+	}
+
 	function track_post_transition( $new_status, $old_status, $post ) {
 		if ( empty( $post->ID ) ) {
 			return;
@@ -3080,27 +3109,31 @@ class Jetpack_Sync {
 	 * @param int $id Unique identifier
 	 * @param array $specifics Specific fields/elements of that object to sync. Defaults to syncing all data for the $object
 	 */
-	function register( $object, $id = false, $specifics = true ) {
+	function register( $object, $id = false, $specifics = true, $raw = false ) {
 		// Since we've registered something for sync, hook it up to execute on shutdown if we haven't already
 		if ( !$this->sync ) {
 			ignore_user_abort( true );
 			add_action( 'shutdown', array( $this, 'sync' ), 9 ); // Right before async XML-RPC
 		}
 
-		$this->add_to_array( $this->sync, $object, $id, $specifics );
+		$this->add_to_array( $this->sync, $object, $id, $specifics, $raw );
 		return true;
 	}
 
-	function add_to_array( &$array, $object, $id, $data ) {
+	function add_to_array( &$array, $object, $id, $data, $raw = false ) {
 		if ( !isset( $array[$object] ) ) {
 			$array[$object] = array( $id => $data );
 		} else if ( !isset( $array[$object][$id] ) ) {
 			$array[$object][$id] = $data;
 		} else {
-			if ( true === $array[$object][$id] || true === $data )
-				$array[$object][$id] = true;
-			else
-				$array[$object][$id] = array_merge( $array[$object][$id], $data );
+			if ( $raw ) {
+				$array[$object][$id] = $data;
+			} else {
+				if ( true === $array[$object][$id] || true === $data )
+					$array[$object][$id] = true;
+				else
+					$array[$object][$id] = array_merge( $array[$object][$id], $data );
+			}
 		}
 	}
 
@@ -3182,6 +3215,12 @@ class Jetpack_Sync {
 				case 'delete_category':
 					foreach ( $data as $taxonomy => $columns ) {
 						$sync_data['delete_category'][$taxonomy] = $columns;
+					}
+					break;
+				case 'option' :
+				case 'delete_option' :
+					foreach ( $data as $option => $value ) {
+						$sync_data[$obj][$option] = $value;
 					}
 					break;
 				}
@@ -3284,6 +3323,16 @@ class Jetpack_Sync {
 	 */
 	function delete_comment( $id ) {
 		return $this->register( 'delete_comment', (int) $id, true );
+	}
+
+	function options( $file ) {
+		$options = func_get_args();
+
+		foreach ( $options as $option ) {
+			add_action( "delete_option_{$option}", array( $this, 'deleted_option' ) );
+			add_action( "update_option_{$option}", array( $this, 'updated_option' ), 10, 2 );
+			add_action( "add_option_{$option}",    array( $this, 'added_option'   ), 10, 2 );
+		}
 	}
 }
 
