@@ -12,8 +12,7 @@ function jetpack_subscriptions_load() {
 	Jetpack::enable_module_configurable( __FILE__ );
 	Jetpack::module_configuration_load( __FILE__, 'jetpack_subscriptions_configuration_load' );
 
-	$jetpack = Jetpack::init();
-	$jetpack->sync->options(
+	Jetpack_Sync::sync_options( __FILE__,
 		'home',
 		'blogname',
 		'siteurl',
@@ -22,12 +21,23 @@ function jetpack_subscriptions_load() {
 		'category_base',
 		'tag_base' 
 	);
+
+	Jetpack_Sync::sync_posts( __FILE__, array(
+		'post_types' => array( 'post', 'page' ),
+		'post_stati' => array( 'publish' ),
+	) );
+
+	Jetpack_Sync::sync_comments( __FILE__, array(
+		'post_types' => array( 'post', 'page' ),
+		'post_stati' => array( 'publish' ),
+	) );
 }
 
 function jetpack_subscriptions_configuration_load() {
 	wp_safe_redirect( admin_url( 'options-discussion.php#jetpack-subscriptions-settings' ) );
 	exit;
 }
+
 class Jetpack_Subscriptions {
 	var $jetpack = false;
 
@@ -54,22 +64,6 @@ class Jetpack_Subscriptions {
 
 		// Add Configuration Page
 		add_action( 'admin_init', array( $this, 'configure' ) );
-		
-		// Handle Posts
-		add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
-		add_action( 'trashed_post', array( $this, 'delete_post' ) );
-		add_action( 'delete_post', array( $this, 'delete_post' ) );
-		
-		// Handle Taxonomy
-		add_action( 'created_term', array( $this, 'save_taxonomy'), 10, 3);
-		add_action( 'edited_term',  array( $this, 'save_taxonomy'), 10, 3 );
-		add_action( 'delete_term',  array( $this, 'delete_taxonomy'),   10, 3 );
-
-		// Handle Comments
-		add_action( 'wp_insert_comment', array( $this, 'save_comment' ), 10, 2 );
-		add_action( 'transition_comment_status', array( $this, 'transition_comment_status' ), 10, 3 );
-		add_action( 'trashed_comment', array( $this, 'delete_comment' ) );
-		add_action( 'delete_comment', array( $this, 'delete_comment' ) );
 
 		// Set up the subscription widget.
 		add_action( 'widgets_init', array( $this, 'widget_init' ) );
@@ -91,73 +85,6 @@ class Jetpack_Subscriptions {
 		}
 
 		return 'publish' === $post->post_status && strlen( (string) $post->post_password ) < 1;
-	}
-
-	function transition_post_status( $new, $old, $the_post ) {
-		if ( 'publish' == $old && 'publish' != $new ) {
-			// A published post was trashed or something else
-			$this->delete_post( $the_post->ID );
-			return;
-		}
-
-		clean_post_cache( $the_post->ID );
-
-		// Publish a new post
-		if (
-			'publish' != $old
-		&&
-			$this->post_is_public( $the_post->ID )
-		&&
-			( 'post' == $the_post->post_type || 'page' == $the_post->post_type )
-		) {
-			$this->jetpack->sync->post( $the_post->ID );
-		}
-	}
-	
-	function save_taxonomy( $term, $tt_id, $taxonomy = null ) {
-		if ( is_null( $taxonomy ) )
-			return;
-
-		$tax = get_term_by( 'id', $term, $taxonomy );
-		$this->jetpack->sync->taxonomy( $tax->slug, true, $taxonomy );
-	}
-
-	function delete_taxonomy( $term, $tt_id, $taxonomy ) {
-		$tags = get_terms( $taxonomy, array( 'hide_empty' => 0 ) ); // since we can't figure out what the slug is... we will do an array comparison on the remote site and remove old taxonomy...
-		$this->jetpack->sync->delete_taxonomy( $tags, $taxonomy );
-	}
-	
-	function delete_post( $id ) {
-		$the_post = get_post( $id );
-		if ( 'post' == $the_post->post_type || 'page' == $the_post->post_type )
-			$this->jetpack->sync->delete_post( $id );
-	}
-
-	function save_comment( $id, $comment ) {
-		if ( !$this->post_is_public( $comment->comment_post_ID ) ) {
-			return;
-		}
-
-		if ( 1 == $comment->comment_approved ) {
-			$this->jetpack->sync->comment( $id );
-		}
-	}
-
-	function transition_comment_status( $new, $old, $the_comment ) {
-		if ( !$this->post_is_public( $the_comment->comment_post_ID ) ) {
-			return;
-		}
-
-		if ( 'approved' == $new ) {
-			$this->jetpack->sync->comment( $the_comment->comment_ID );
-		} else if ( 'approved' == $old && 'approved' != $new ) {
-			// Delete comments that are changing to anything but approved
-			$this->jetpack->sync->delete_comment( $the_comment->comment_ID );
-		}
-	}
-
-	function delete_comment( $id ) {
-		$this->jetpack->sync->delete_comment( $id );
 	}
 
 	/**

@@ -23,9 +23,8 @@ function stats_load() {
 	Jetpack::module_configuration_head( __FILE__, 'stats_configuration_head' );
 	Jetpack::module_configuration_screen( __FILE__, 'stats_configuration_screen' );
 
-	$jetpack = Jetpack::init();
 	// Tell HQ about changed settings
-	$jetpack->sync->options(
+	Jetpack_Sync::sync_options( __FILE__,
 		'home',
 		'siteurl',
 		'blogname',
@@ -38,6 +37,20 @@ function stats_load() {
 		'tag_base'
 	);
 
+	// Tell HQ about changed posts
+	Jetpack_Sync::sync_posts( __FILE__, array(
+		'include_password_protected' => true, // users want stats on their password protected posts (but Jetpack won't grab the password or content)
+		'remove_fields' => array(
+			// Don't want these fields
+			'post_content',
+			'post_excerpt',
+			'post_content_filtered',
+			'post_password',
+			'meta',
+		),
+		'sync_when_status_stays_the_same' => true, // Sync pre-Jetpack posts
+	) );
+
 	// Generate the tracking code after wp() has queried for posts.
 	add_action( 'template_redirect', 'stats_template_redirect', 1 );
 
@@ -46,9 +59,6 @@ function stats_load() {
 	add_action( 'jetpack_admin_menu', 'stats_admin_menu' );
 
 	add_action( 'wp_dashboard_setup', 'stats_register_dashboard_widget' );
-
-	// Tell HQ about changed posts
-	add_action( 'save_post', 'stats_update_post', 10, 1 );
 
 	add_filter( 'jetpack_xmlrpc_methods', 'stats_xmlrpc_methods' );
 
@@ -576,14 +586,6 @@ function stats_admin_bar_menu( &$wp_admin_bar ) {
 
 function stats_update_blog() {
 	Jetpack::xmlrpc_async_call( 'jetpack.updateBlog', stats_get_blog() );
-}
-
-function stats_update_post( $post ) {
-	if ( !$stats_post = stats_get_post( $post ) )
-		return;
-
-	$jetpack = Jetpack::init();
-	$jetpack->sync->post( $stats_post->ID, array_keys( get_object_vars( $stats_post ) ) );
 }
 
 function stats_get_blog() {

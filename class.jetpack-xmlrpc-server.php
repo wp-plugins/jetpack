@@ -183,12 +183,12 @@ class Jetpack_XMLRPC_Server {
 		}
 
 		$jetpack = Jetpack::init();
-		$post = $jetpack->get_post( $id );
+		$post = $jetpack->sync->get_post( $id );
 
-		if ( $jetpack->is_post_public( $post ) )
-			return $post;
+		if ( !$jetpack->sync->is_post_public( $post ) )
+			return false;
 
-		return false;
+		return $post;
 	}
 	
 	function get_comment( $id ) {
@@ -197,7 +197,7 @@ class Jetpack_XMLRPC_Server {
 		}
 
 		$jetpack = Jetpack::init();
-		$comment = $jetpack->get_comment( $id );
+		$comment = $jetpack->sync->get_comment( $id );
 
 		if ( !is_array( $comment ) )
 			return false;

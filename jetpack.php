@@ -139,9 +139,19 @@ class Jetpack {
 	 * Constructor.  Initializes WordPress hooks
 	 */
 	function Jetpack() {
-		$this->sync = new Jetpack_Sync;
+		$this->sync = new Jetpack_Sync( $this );
 
-		$this->sync->options( 'home', 'siteurl', 'blogname', 'gmt_offset', 'timezone_string' );
+		// Modules should do Jetpack_Sync::sync_options( __FILE__, $option, ... ); instead
+		// We access the "internal" method here only because the Jetpack object isn't instantiated yet
+		$this->sync->options(
+			__FILE__,
+
+			'home',
+			'siteurl',
+			'blogname',
+			'gmt_offset',
+			'timezone_string'
+		);
 
 		if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST && isset( $_GET['for'] ) && 'jetpack' == $_GET['for'] ) {
 			require_once dirname( __FILE__ ) . '/class.jetpack-xmlrpc-server.php';
@@ -285,144 +295,6 @@ class Jetpack {
 	}
 
 	/**
-	 * Get a post and associated data in the standard JP format.
-	 * Cannot be called statically
-	 *
-	 * @param int $id Post ID
-	 * @param bool|array $columns Columns/fields to get.
-	 * @return Array containing full post details
-	 */
-	function get_post( $id, $columns = true ) {
-		$post_obj = get_post( $id );
-		if ( !$post_obj )
-			return false;
-		$post = get_object_vars( $post_obj );
-
-		// Only send specific columns if requested
-		if ( is_array( $columns ) ) {
-			$keys = array_keys( $post );
-			foreach ( $keys as $column ) {
-				if ( !in_array( $column, $columns ) ) {
-					unset( $post[$column] );
-				}
-			}
-			if ( in_array( '_jetpack_backfill', $columns ) ) {
-				$post['_jetpack_backfill'] = true;
-			}
-		}
-
-		if ( true === $columns || in_array( 'tax', $columns ) ) {
-			$tax = array();
-			$taxonomies = get_object_taxonomies( $post_obj );
-			foreach ( $taxonomies as $taxonomy ) {
-				$t = get_taxonomy( $taxonomy );
-				$terms = get_object_term_cache( $post_obj->ID, $taxonomy );
-				if ( empty( $terms ) )
-					$terms = wp_get_object_terms( $post_obj->ID, $taxonomy );
-				$term_names = array();
-				foreach ( $terms as $term ) {
-					$term_names[] = $term->name;
-				}
-				$tax[$taxonomy] = $term_names;
-			}
-			$post['tax'] = $tax;
-		}
-
-		// Include all postmeta for requests that specifically ask for it, or ask for everything
-		if ( true == $columns || in_array( 'meta', $columns ) ) {
-			$meta = get_post_meta( $post_obj->ID, false );
-			$post['meta'] = array();
-			foreach ( $meta as $key => $value ) {
-				$post['meta'][$key] = array_map( 'maybe_unserialize', $value );
-			}
-		}
-
-		$post['extra'] = array(
-			'author' => get_the_author_meta( 'display_name', $post_obj->post_author ),
-			'author_email' => get_the_author_meta( 'email', $post_obj->post_author ),
-		);
-
-		$post['permalink'] = get_permalink( $post_obj->ID );
-		return $post;
-	}
-
-	/**
-	 * Decide whether a post/page/attachment is visible to the public.
-	 *
-	 * @param array $post
-	 * @return bool
-	 */
-	function is_post_public( $post ) {
-		if ( ! is_array( $post ) )
-			return false;
-		if ( ! empty( $post['post_password'] ) )
-			return false;
-		if ( ! in_array( $post['post_type'], get_post_types( array( 'public' => true ) ) ) )
-			return false;
-		$post_status = get_post_status( $post['ID'] ); // Inherited status is resolved here.
-		if ( ! in_array( $post_status, get_post_stati( array( 'public' => true ) ) ) )
-			return false;
-		return true;
-	}
-
-	/**
-	 * Get a comment and associated data in the standard JP format.
-	 * Cannot be called statically
-	 *
-	 * @param int $id Comment ID
-	 * @param array $columns Columns/fields to get.
-	 * @return Array containing full comment details
-	 */
-	function get_comment( $id, $columns = true ) {
-		$comment_obj = get_comment( $id );
-		if ( !$comment_obj )
-			return false;
-		$comment = get_object_vars( $comment_obj );
-
-		// Only send specific columns if requested
-		if ( is_array( $columns ) ) {
-			$keys = array_keys( $comment );
-			foreach ( $keys as $column ) {
-				if ( !in_array( $column, $columns ) ) {
-					unset( $comment[$column] );
-				}
-			}
-		}
-
-		// Include all commentmeta for requests that specifically ask for it, or ask for everything
-		if ( isset( $columns['meta'] ) || true == $columns ) {
-			$meta = get_comment_meta( $id, false );
-			$comment['meta'] = array();
-			foreach ( $meta as $key => $value ) {
-				$comment['meta'][$key] = array_map( 'maybe_unserialize', $value );
-			}
-		}
-
-		return $comment;
-	}
-
-	function get_taxonomy( $id, $columns = true, $type ) {
-		$taxonomy_obj = get_term_by( 'slug', $id, $type );
-
-		if ( !$taxonomy_obj )
-			return false;
-		$taxonomy = get_object_vars( $taxonomy_obj );
-
-		// Only send specific columns if requested
-		if ( is_array( $columns ) ) {
-			$keys = array_keys( $taxonomy );
-			foreach ( $keys as $column ) {
-				if ( !in_array( $column, $columns ) ) {
-					unset( $taxonomy[$column] );
-				}
-			}
-		}
-
-		$taxonomy['type'] = $type;
-		return $taxonomy;
-	}
-
-	/**
 	 * Updates the single given option.  Updates jetpack_options or jetpack_$name as appropriate.
  	 *
 	 * @param string $name  Option name
@@ -500,7 +372,7 @@ class Jetpack {
 				unset( $options[$name] );
 			}
 
-			return update_option( 'jetpack_options', $options );;
+			return update_option( 'jetpack_options', $options );
 		}
 
 		return true;
@@ -2976,94 +2848,110 @@ class Jetpack_Client_Server {
  * Jetpack server for remote processing/notifications/etc
  */
 class Jetpack_Sync {
+	var $jetpack;
+
+	var $sync_conditions = array( 'posts' => array(), 'comments' => array() );
 	var $sync = array();
 	var $post_transitions = array();
 
-	function Jetpack_Sync() {
-		add_action( 'transition_post_status', array( $this, 'track_post_transition' ), 1, 3 );
+/* Static Methods for Modules */
+
+	static function sync_posts( $file, array $settings = null ) {
+		$jetpack = Jetpack::init();
+		return call_user_func_array( array( $jetpack->sync, 'posts' ), func_get_args() );
 	}
 
-	function deleted_option( $option ) {
-		$this->register( 'delete_option', $option, null, true );
-
-		// Make sure update_option() ... delete_option() ends up as a delete
-		unset( $this->sync['option'][$option] );
+	static function sync_comments( $file, array $settings = null ) {
+		$jetpack = Jetpack::init();
+		return call_user_func_array( array( $jetpack->sync, 'comments' ), func_get_args() );
 	}
 
-	function updated_option( $old_value, $new_value ) {
-		// The value of $option isn't passed to the filter
-		// Calculate it
-		$option = current_filter();
-		$prefix = 'update_option_';
-		if ( 0 !== strpos( $option, $prefix ) ) {
-			return;
-		}
-		$option = substr( $option, strlen( $prefix ) );
-
-		$this->added_option( $option, $new_value );
+	static function sync_options( $file, $option /*, $option, ... */ ) {
+		$jetpack = Jetpack::init();
+		return call_user_func_array( array( $jetpack->sync, 'options' ), func_get_args() );
 	}
 
-	function added_option( $option, $new_value ) {
-		$this->register( 'option', $option, $new_value, true );
+/* Internal Methods */
 
-		// Make sure delete_option() ... update_option() ends up as an update
-		unset( $this->sync['delete_option'][$option] );
-	}
-
-	function track_post_transition( $new_status, $old_status, $post ) {
-		if ( empty( $post->ID ) ) {
-			return;
-		}
-
-		if ( isset( $this->post_transitions[$post->ID] ) ) {
-			$this->post_transitions[$post->ID][0] = $new_status;
-			return;
-		}
-
-		$this->post_transitions[$post->ID] = array( $new_status, $old_status );
+	function __construct( Jetpack $jetpack ) {
+		$this->jetpack = $jetpack;
 	}
 
 	/**
 	 * Create a sync object/request
 	 *
-	 * @param string $object Type of object to sync -- [ post | comment ]
+	 * @param string $object Type of object to sync -- [ post | comment | option ]
 	 * @param int $id Unique identifier
-	 * @param array $specifics Specific fields/elements of that object to sync. Defaults to syncing all data for the $object
+	 * @param array $settings
 	 */
-	function register( $object, $id = false, $specifics = true, $raw = false ) {
+	function register( $object, $id = false, array $settings = null ) {
 		// Since we've registered something for sync, hook it up to execute on shutdown if we haven't already
 		if ( !$this->sync ) {
 			ignore_user_abort( true );
 			add_action( 'shutdown', array( $this, 'sync' ), 9 ); // Right before async XML-RPC
 		}
 
-		$this->add_to_array( $this->sync, $object, $id, $specifics, $raw );
-		return true;
-	}
+		$defaults = array(
+			'raw'          => false,   // Overwrite previous sync settings?
+			'sync'         => true,    // What to sync (post or comment fields, or option value)
+			'on_behalf_of' => array(), // What modules want this data
+		);
+		$settings = wp_parse_args( $settings, $defaults );
 
-	function add_to_array( &$array, $object, $id, $data, $raw = false ) {
-		if ( !isset( $array[$object] ) ) {
-			$array[$object] = array( $id => $data );
-		} else if ( !isset( $array[$object][$id] ) ) {
-			$array[$object][$id] = $data;
+		if ( !isset( $this->sync[$object] ) ) {
+			$this->sync[$object] = array();
+		}
+
+		// Store the settings for this object
+		if (
+			// First time for this object
+			!isset( $this->sync[$object][$id] )
+		||
+			// raw overwrites
+			$settings['raw']
+		) {
+			// Easy: store the current settings
+
+			$this->sync[$object][$id] = $settings;
 		} else {
-			if ( $raw ) {
-				$array[$object][$id] = $data;
+			// Not as easy:  we have to manually merge the settings from previous runs for this object with the settings for this run
+
+			$this->sync[$object][$id]['on_behalf_of'] = array_unique( array_merge( $this->sync[$object][$id]['on_behalf_of'], $settings['on_behalf_of'] ) );
+
+			if ( true === $this->sync[$object][$id]['sync'] || true === $settings['sync'] ) {
+				// We want everything
+				$this->sync[$object][$id]['sync'] = true;
 			} else {
-				if ( true === $array[$object][$id] || true === $data )
-					$array[$object][$id] = true;
-				else
-					$array[$object][$id] = array_merge( $array[$object][$id], $data );
+				// We want only some things.  Merge them.
+				$this->sync[$object][$id]['sync'] = array_unique( array_merge( $this->sync[$object][$id]['sync'], $settings['sync'] ) );
 			}
 		}
+
+		$delete_prefix = 'delete_';
+		if ( 0 === strpos( $object, $delete_prefix ) ) {
+			$unset_object = substr( $object, strlen( $delete_prefix ) );
+		} else {
+			$unset_object = "{$delete_prefix}{$object}";
+		}
+
+		// Ensure post ... delete_post yields a delete operation
+		// Ensure delete_post ... post yields a sync post operation
+		// Ensure update_option() ... delete_option() ends up as a delete
+		// Ensure delete_option() ... update_option() ends up as an update
+		// Etc.
+		unset( $this->sync[$unset_object][$id] );
+
+		error_log( "REGISTER {$object}: " . print_r( $settings, 1 ) );
+		return true;
 	}
 
 	/**
 	 * Set up all the data and queue it for the outgoing XML-RPC request
 	 */
 	function sync() {
-		global $wpdb;
-		$jetpack = Jetpack::init();
+		if ( !$this->sync ) {
+			return false;
+		}
 
 		$available_modules = Jetpack::get_available_modules();
 		$active_modules = Jetpack::get_active_modules();
@@ -3073,187 +2961,558 @@ class Jetpack_Sync {
 		}
 		$modules['vaultpress'] = class_exists( 'VaultPress' ) || function_exists( 'vaultpress_contact_service' );
 
-		$sync_data = compact( 'modules' );
+		$sync_data = array(
+			'modules' => $modules,
+			'version' => JETPACK__VERSION,
+		);
 
-		if ( count( $this->sync ) ) {
-			foreach ( $this->sync as $obj => $data ) {
-				switch ( $obj ) {
-				case 'post':
-					$global_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
-					$GLOBALS['post'] = null;
-					foreach ( $data as $post => $columns ) {
-						$sync_data['post'][$post] = $jetpack->get_post( $post, $columns );
-						if ( isset( $this->post_transitions[$post] ) ) {
-							$sync_data['post'][$post]['transitions'] = $this->post_transitions[$post];
-						} else {
-							$sync_data['post'][$post]['transitions'] = array( false, false );
-						}
+		foreach ( $this->sync as $sync_operation_type => $sync_operations ) {
+			switch ( $sync_operation_type ) {
+			case 'post':
+				$global_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+				$GLOBALS['post'] = null;
+				foreach ( $sync_operations as $post_id => $settings ) {
+					$sync_data['post'][$post_id] = $this->get_post( $post_id, $settings['sync'] );
+					if ( isset( $this->post_transitions[$post_id] ) ) {
+						$sync_data['post'][$post_id]['transitions'] = $this->post_transitions[$post_id];
+					} else {
+						$sync_data['post'][$post_id]['transitions'] = array( false, false );
 					}
-					$GLOBALS['post'] = $global_post;
-					unset( $global_post );
-					break;
-
-				case 'delete_post':
-					foreach ( $data as $post => $true ) {
-						$sync_data['delete_post'][$post] = true;
-					}
-					break;
-
-				case 'comment':
-					$global_comment = isset( $GLOBALS['comment'] ) ? $GLOBALS['comment'] : null;
-					unset( $GLOBALS['comment'] );
-					foreach ( $data as $comment => $columns ) {
-						$sync_data['comment'][$comment] = $jetpack->get_comment( $comment, $columns );
-					}
-					$GLOBALS['comment'] = $global_comment;
-					unset( $global_comment );
-					break;
-
-				case 'delete_comment':
-					foreach ( $data as $comment => $true ) {
-						$sync_data['delete_comment'][$comment] = true;
-					}
-					break;
-
-				case 'tag':
-					foreach ( $data as $taxonomy => $columns ) {
-						$sync_data['tag'][$taxonomy] = $jetpack->get_taxonomy( $taxonomy, $columns, 'post_tag' );
-					}
-					break;
-
-				case 'delete_tag':
-					foreach ( $data as $taxonomy => $columns ) {
-						$sync_data['delete_tag'][$taxonomy] = $columns;
-					}
-					break;
-
-				case 'category':
-					foreach ( $data as $taxonomy => $columns ) {
-						$sync_data['category'][$taxonomy] = $jetpack->get_taxonomy( $taxonomy, $columns, 'category' );
-					}
-					break;
-
-				case 'delete_category':
-					foreach ( $data as $taxonomy => $columns ) {
-						$sync_data['delete_category'][$taxonomy] = $columns;
-					}
-					break;
-				case 'option' :
-				case 'delete_option' :
-					foreach ( $data as $option => $value ) {
-						$sync_data[$obj][$option] = $value;
-					}
-					break;
+					$sync_data['post'][$post_id]['on_behalf_of'] = $settings['on_behalf_of'];
 				}
+				$GLOBALS['post'] = $global_post;
+				unset( $global_post );
+				break;
+			case 'comment':
+				$global_comment = isset( $GLOBALS['comment'] ) ? $GLOBALS['comment'] : null;
+				unset( $GLOBALS['comment'] );
+				foreach ( $sync_operations as $comment_id => $settings ) {
+					$sync_data['comment'][$comment_id] = $this->get_comment( $comment_id, $settings['sync'] );
+				}
+				$GLOBALS['comment'] = $global_comment;
+				unset( $global_comment );
+				break;
+			case 'option' :
+				foreach ( $sync_operations as $option => $settings ) {
+					$sync_data['option'][$option] = array( 'value' => $settings['sync'] );
+				}
+				break;
+
+			case 'delete_post':
+			case 'delete_comment':
+				foreach ( $sync_operations as $object_id => $settings ) {
+					$sync_data[$sync_operation_type][$object_id] = array( 'on_behalf_of' => $settings['on_behalf_of'] );
+				}
+				break;
+			case 'delete_option' :
+				foreach ( $sync_operations as $object_id => $settings ) {
+					$sync_data[$sync_operation_type][$object_id] = true;
+				}
+				break;
 			}
-
-			Jetpack::xmlrpc_async_call( 'jetpack.syncContent', $sync_data );
-		}
-	}
-
-	function taxonomy( $slug, $fields = true, $type ) {
-		if ( !get_term_by( 'slug', $slug, $type ) ) {
-			return false;
 		}
 
-		if ( 'post_tag' == $type )
-			return $this->register( 'tag', $slug, $fields );
-		else
-			return $this->register( 'category', $slug, $fields );
+		Jetpack::xmlrpc_async_call( 'jetpack.syncContent', $sync_data );
 	}
 
 	/**
-	 * Request that a post be deleted remotely
-	 *
-	 * @param int $id The post_ID
-	 */
-	function delete_taxonomy( $slugs, $type ) {
-		if ( 'post_tag' == $type )
-			return $this->register( 'delete_tag', 1, $slugs );
-		else
-			return $this->register( 'delete_category', 1, $slugs );
-	}
-
-	/**
-	 * Helper method for easily requesting a sync of a post.
+	 * Helper method for registering a post for sync
 	 *
 	 * @param int $id wp_posts.ID
-	 * @param array $fields Array containing field/column names to sync (optional, defaults to all fields)
+	 * @param array $settings Sync data
 	 */
-	function post( $id, $fields = true ) {
-		if ( !$id = (int) $id ) {
+	function register_post( $id, array $settings = null ) {
+		$id = (int) $id;
+		if ( !$id ) {
 			return false;
 		}
 
-		if ( false === $fields ) {
-			$fields = array( '_jetpack_backfill' );
-		}
-		if ( is_array( $fields ) ) {
-			$fields = array_merge( $fields, array( 'ID', 'post_title', 'post_name', 'guid', 'post_date', 'post_date_gmt', 'post_parent', 'post_type', 'post_status' ) );
-		}
-
-		if ( !$post = get_post( $id ) ) {
+		$post = get_post( $id );
+		if ( !$post || !$this->is_post_public( $post ) ) {
 			return false;
 		}
 
-		if (
-			!empty( $post->post_password )
-		||
-			!in_array( $post->post_type, get_post_types( array( 'public' => true ) ) )
-		||
-			!in_array( $post->post_status, get_post_stati( array( 'public' => true ) ) )
-		) {
-			return false;
+		$settings = wp_parse_args( $settings, array(
+			'sync' => true,
+			'on_behalf_of' => array(),
+		) );
+
+		if ( is_array( $settings['sync'] ) ) {
+			$settings['sync'] = array_merge(
+				$settings['sync'],
+				array( 'ID', 'post_title', 'post_name', 'guid', 'post_date', 'post_date_gmt', 'post_parent', 'post_type', 'post_status' )
+			);
 		}
 
-		return $this->register( 'post', (int) $id, $fields );
+		return $this->register( 'post', $id, $settings );
 	}
 
 	/**
-	 * Request that a post be deleted remotely
+	 * Helper method for registering a comment for sync
 	 *
-	 * @param int $id The post_ID
+	 * @param int $id wp_comments.comment_ID
+	 * @param array $settings Sync data
 	 */
-	function delete_post( $id ) {
-		return $this->register( 'delete_post', (int) $id, true );
+	function register_comment( $id, array $settings = null ) {
+		$id = (int) $id;
+		if ( !$id ) {
+			return false;
+		}
+
+		$comment = get_comment( $id );
+		if ( !$comment || empty( $comment->comment_post_ID ) ) {
+			return false;
+		}
+
+		$post = get_post( $comment->comment_post_ID );
+		if ( !$post || !$this->is_post_public( $post ) ) {
+			return false;
+		}
+
+		return $this->register( 'comment', $id, $settings );
+	}
+
+/* Posts Sync */
+
+	function posts( $file, array $settings = null ) {
+		$module_slug = Jetpack::get_module_slug( $file );
+
+		$defaults = array(
+			// ::is_post_public() restricts post syncs to public posts
+			// The following two settings allow modules to further restrict syncs
+			'post_stati' => get_post_stati( array( 'public' => true ) ),
+			'post_types' => get_post_types( array( 'public' => true ) ),
+			'remove_fields' => false,
+			'sync_when_status_stays_the_same' => false, // Stats sets this to true, Subscriptions leaves it false.  Can it always be true?
+		);
+
+		$this->sync_conditions['posts'][$module_slug] = wp_parse_args( $settings, $defaults );
+
+		add_action( 'transition_post_status', array( $this, 'transition_post_status_action' ), 10, 3 );
+		add_action( 'delete_post', array( $this, 'delete_post_action' ) );
+	}
+
+	function delete_post_action( $post_id ) {
+		$post = get_post( $post_id );
+		if ( !$post ) {
+			return $this->register( 'delete_post', (int) $id );
+		}
+
+		$this->transition_post_status_action( 'delete', $post->post_status, $post );
+	}
+
+	function transition_post_status_action( $new_status, $old_status, $post ) {
+		$sync = $this->get_post_sync_operation( $new_status, $old_status, $post, $this->sync_conditions['posts'] );
+		if ( !$sync ) {
+			// No module wants to sync this post
+			return false;
+		}
+
+		// Track post transitions
+		if ( isset( $this->post_transitions[$post->ID] ) ) {
+			// status changed more than once - keep tha most recent $new_status
+			$this->post_transitions[$post->ID][0] = $new_status;
+		} else {
+			$this->post_transitions[$post->ID] = array( $new_status, $old_status );
+		}
+
+		$operation = $sync['operation'];
+		unset( $sync['operation'] );
+
+		switch ( $operation ) {
+		case 'delete' :
+			return $this->register( 'delete_post', (int) $post->ID, $sync );
+		case 'submit' :
+			return $this->register_post( (int) $post->ID, $sync );
+		}
+	}
+
+	function get_post_sync_operation( $new_status, $old_status, $post, $module_conditions ) {
+		$delete = false;
+		$remove_fields = null;
+		$delete_on_behalf_of = array();
+		$submit_on_behalf_of = array();
+		$delete_stati = array( 'trash', 'delete' );
+
+		foreach ( $module_conditions as $module => $conditions ) {
+			if ( !in_array( $post->post_type, $conditions['post_types'] ) ) {
+				continue;
+			}
+
+			$deleted_post = in_array( $new_status, $delete_stati );
+
+			if ( $deleted_post ) {
+				$delete = true;
+				$delete_on_behalf_of[] = $module;
+			}
+
+			if ( !$conditions['sync_when_status_stays_the_same'] && $old_status == $new_status ) {
+				// No status change - keep moving
+				// This is after the $deleted_post check so that Jetpack always deletes deleted content
+				continue;
+			}
+
+			if ( !$deleted_post ) {
+				clean_post_cache( $post->ID );
+				$new_status = get_post_status( $post->ID ); // Inherited status is resolved here
+			}
+
+			$old_status_in_stati = in_array( $old_status, $conditions['post_stati'] );
+			$new_status_in_stati = in_array( $new_status, $conditions['post_stati'] );
+
+			if ( $old_status_in_stati && !$new_status_in_stati ) {
+				// Jetpack no longer needs the post
+				if ( !$deleted_post ) {
+					$delete = true;
+					$delete_on_behalf_of[] = $module;
+				} // else, we've already flagged it above
+				continue;
+			}
+
+			if ( 0 < strlen( $post->post_password ) ) {
+				continue;
+			}
+
+			if ( !in_array( $new_status, $conditions['post_stati'] ) ) {
+				continue;
+			}
+
+			// At this point, we know we want to sync the post, not delete it
+			$delete = false;
+			$submit_on_behalf_of[] = $module;
+
+			if ( false === $conditions['remove_fields'] || false === $remove_fields ) {
+				$remove_fields = false;
+			} elseif ( is_null( $remove_fields ) ) {
+				$remove_fields = $conditions['remove_fields'];
+			} else {
+				$remove_fields = array_values( array_intersect( $remove_fields, $conditions['remove_fields'] ) );
+			}
+		}
+
+		if ( $delete ) {
+			return array( 'operation' => 'delete', 'on_behalf_of' => $delete_on_behalf_of );
+		}
+
+		if ( !$submit_on_behalf_of ) {
+			return false;
+		}
+
+		if ( $remove_fields ) {
+			$fields = array_diff( array(
+				'ID',
+				'post_author',
+				'post_date',
+				'post_date_gmt',
+				'post_content',
+				'post_title',
+				'post_excerpt',
+				'post_status',
+				'comment_status',
+				'ping_status',
+				'post_password',
+				'post_name',
+				'to_ping',
+				'pinged',
+				'post_modified',
+				'post_modified_gmt',
+				'post_content_filtered',
+				'post_parent',
+				'guid',
+				'menu_order',
+				'post_type'	,
+				'post_mime_type',
+				'comment_count',
+
+				'tax',
+				'meta',
+			), $remove_fields );
+		} else {
+			$fields = true;
+		}
+
+		return array( 'operation' => 'submit', 'on_behalf_of' => $submit_on_behalf_of, 'sync' => $fields );
 	}
 
 	/**
-	 * Helper method for easily requesting a sync of a comment.
+	 * Get a post and associated data in the standard JP format.
+	 * Cannot be called statically
 	 *
-	 * @param int $id wp_comments.ID
-	 * @param array $fields Array containing field/column names to sync (optional, defaults to all fields).  Should always use default.
+	 * @param int $id Post ID
+	 * @param bool|array $columns Columns/fields to get.
+	 * @return Array containing full post details
 	 */
-	function comment( $id, $fields = true ) {
-		if ( !$comment = get_comment( $id ) ) {
+	function get_post( $id, $columns = true ) {
+		$post_obj = get_post( $id );
+		if ( !$post_obj )
 			return false;
+		$post = get_object_vars( $post_obj );
+
+		$post['has_post_password'] = 0 < strlen( $post['post_password'] );
+
+		// Only send specific columns if requested
+		if ( is_array( $columns ) ) {
+			$keys = array_keys( $post );
+			foreach ( $keys as $column ) {
+				if ( !in_array( $column, $columns ) ) {
+					unset( $post[$column] );
+				}
+			}
+			if ( in_array( '_jetpack_backfill', $columns ) ) {
+				$post['_jetpack_backfill'] = true;
+			}
 		}
-		if ( !$comment->comment_post_ID ) {
-			return false;
+
+		unset(
+			$post['filter'], $post['ancestors'], // local optimizations
+			$post['post_password'] // we never want to know this
+		);
+
+		if ( true === $columns || in_array( 'tax', $columns ) ) {
+			$tax = array();
+			$taxonomies = get_object_taxonomies( $post_obj );
+			foreach ( $taxonomies as $taxonomy ) {
+				$t = get_taxonomy( $taxonomy );
+				$terms = get_object_term_cache( $post_obj->ID, $taxonomy );
+				if ( empty( $terms ) )
+					$terms = wp_get_object_terms( $post_obj->ID, $taxonomy );
+				$term_names = array();
+				foreach ( $terms as $term ) {
+					$term_names[] = $term->name;
+				}
+				$tax[$taxonomy] = $term_names;
+			}
+			$post['tax'] = $tax;
 		}
-		if ( !$this->post( $comment->comment_post_ID, false ) ) {
-			return false;
+
+		// Include all postmeta for requests that specifically ask for it, or ask for everything
+		if ( true == $columns || in_array( 'meta', $columns ) ) {
+			$meta = get_post_meta( $post_obj->ID, false );
+			$post['meta'] = array();
+			foreach ( $meta as $key => $value ) {
+				$post['meta'][$key] = array_map( 'maybe_unserialize', $value );
+			}
 		}
-		return $this->register( 'comment', (int) $id, $fields );
+
+		$post['extra'] = array(
+			'author' => get_the_author_meta( 'display_name', $post_obj->post_author ),
+			'author_email' => get_the_author_meta( 'email', $post_obj->post_author ),
+		);
+
+		$post['permalink'] = get_permalink( $post_obj->ID );
+		return $post;
 	}
 
 	/**
-	 * Request that a comment be deleted remotely
+	 * Decide whether a post/page/attachment is visible to the public.
 	 *
-	 * @param int $id The comment_ID
+	 * @param array $post
+	 * @return bool
 	 */
-	function delete_comment( $id ) {
-		return $this->register( 'delete_comment', (int) $id, true );
+	function is_post_public( $post ) {
+		if ( !is_array( $post ) ) {
+			$post = (array) $post;
+		}
+
+		if ( 0 < strlen( $post['post_password'] ) )
+			return false;
+		if ( !empty( $post['has_post_password'] ) )
+			return false;
+		if ( ! in_array( $post['post_type'], get_post_types( array( 'public' => true ) ) ) )
+			return false;
+		$post_status = get_post_status( $post['ID'] ); // Inherited status is resolved here.
+		if ( ! in_array( $post_status, get_post_stati( array( 'public' => true ) ) ) )
+			return false;
+		return true;
 	}
 
-	function options( $file ) {
+/* Comments Sync */
+
+	function comments( $file, array $settings = null ) {
+		$module_slug = Jetpack::get_module_slug( $file );
+
+		$defaults = array(
+			'post_stati' => get_post_stati( array( 'public' => true ) ),        // For what post types will we sync comments?
+			'post_types' => get_post_types( array( 'public' => true ) ),        // For what post stati will we sync comments?
+			'comment_types' => array( '', 'comment', 'trackback', 'pingback' ), // What comment types will we sync?
+			'comment_stati' => array( 'approved' ),                             // What comment stati will we sync?
+		);
+
+		$settings = wp_parse_args( $settings, $defaults );
+		$settings['remove_fields'] = false;                   // not supported
+		$settings['sync_when_status_stays_the_same'] = false; // not supported
+
+		$this->sync_conditions['comments'][$module_slug] = $settings;
+
+		add_action( 'wp_insert_comment',         array( $this, 'wp_insert_comment_action' ),         10, 2 );
+		add_action( 'transition_comment_status', array( $this, 'transition_comment_status_action' ), 10, 3 );
+//		add_action( 'edit_comment',              array( $this, 'edit_comment_action' ) ); // need this and some hackery if we ever support sync_when_status_stays_the_same
+	}
+
+	function wp_insert_comment_action( $comment_id, $comment ) {
+		$this->transition_comment_status_action( $comment->comment_approved, 'new', $comment );
+	}
+
+	function transition_comment_status_action( $new_status, $old_status, $comment ) {
+		$post = get_post( $comment->comment_post_ID );
+		if ( !$post ) {
+			return false;
+		}
+
+		foreach ( array( 'new_status', 'old_status' ) as $_status ) {
+			switch ( $$_status ) {
+			case 0 :
+			case 'hold' :
+				$$_status = 'unapproved';
+				break;
+			case 1 :
+			case 'approve' :
+				$$_status = 'approved';
+				break;
+			}
+		}
+
+		$post_sync = $this->get_post_sync_operation( $post->post_status, '_jetpack_test_sync', $post, $this->sync_conditions['comments'] );
+
+		if ( !$post_sync ) {
+			// No module wants to sync this comment because its post doesn't match any sync conditions
+			return false;
+		}
+
+		if ( 'delete' == $post_sync['operation'] ) {
+			// Had we been looking at post sync operations (instead of comment sync operations),
+			// this comment's post would have been deleted.  Don't sync the comment.
+			return false;
+		}
+
+		$delete = false;
+		$delete_on_behalf_of = array();
+		$submit_on_behalf_of = array();
+		$delete_stati = array( 'trash', 'delete', 'spam' );
+
+		foreach ( $this->sync_conditions['comments'] as $module => $conditions ) {
+			if ( !in_array( $comment->comment_type, $conditions['comment_types'] ) ) {
+				continue;
+			}
+
+			$deleted_comment = in_array( $new_status, $delete_stati );
+
+			if ( $deleted_comment ) {
+				$delete = true;
+				$delete_on_behalf_of[] = $module;
+			}
+
+			if ( $old_status == $new_status ) {
+				// sync_when_status_stays_the_same not supported
+				continue;
+			}
+
+			$old_status_in_stati = in_array( $old_status, $conditions['comment_stati'] );
+			$new_status_in_stati = in_array( $new_status, $conditions['comment_stati'] );
+	
+			if ( $old_status_in_stati && !$new_status_in_stati ) {
+				// Jetpack no longer needs the comment
+				if ( !$deleted_comment ) {
+					$delete = true;
+					$delete_on_behalf_of[] = $module;
+				} // else, we've already flagged it above
+				continue;
+			}
+	
+			if ( 0 < strlen( $post->post_password ) ) {
+				continue;
+			}
+	
+			if ( !in_array( $new_status, $conditions['comment_stati'] ) ) {
+				continue;
+			}
+	
+			// At this point, we know we want to sync the comment, not delete it
+			$delete = false;
+			$submit_on_behalf_of[] = $module;
+		}
+
+		if ( $delete ) {
+			return $this->register( 'delete_comment', $comment->comment_ID, array( 'on_behalf_of' => $delete_on_behalf_of ) );
+		}
+
+		if ( !$submit_on_behalf_of ) {
+			return false;
+		}
+
+		$this->register_post( $comment->comment_post_ID, array( 'sync' => array( '_jetpack_backfill' ), 'on_behalf_of' => $submit_on_behalf_of ) );
+		return $this->register_comment( $comment->comment_ID, array( 'on_behalf_of' => $submit_on_behalf_of ) );
+	}
+
+	/**
+	 * Get a comment and associated data in the standard JP format.
+	 * Cannot be called statically
+	 *
+	 * @param int $id Comment ID
+	 * @param array $columns Columns/fields to get.
+	 * @return Array containing full comment details
+	 */
+	function get_comment( $id, $columns = true ) {
+		$comment_obj = get_comment( $id );
+		if ( !$comment_obj )
+			return false;
+		$comment = get_object_vars( $comment_obj );
+
+		// Only send specific columns if requested
+		if ( is_array( $columns ) ) {
+			$keys = array_keys( $comment );
+			foreach ( $keys as $column ) {
+				if ( !in_array( $column, $columns ) ) {
+					unset( $comment[$column] );
+				}
+			}
+		}
+
+		// Include all commentmeta for requests that specifically ask for it, or ask for everything
+		if ( isset( $columns['meta'] ) || true == $columns ) {
+			$meta = get_comment_meta( $id, false );
+			$comment['meta'] = array();
+			foreach ( $meta as $key => $value ) {
+				$comment['meta'][$key] = array_map( 'maybe_unserialize', $value );
+			}
+		}
+
+		return $comment;
+	}
+
+/* Options Sync */
+
+	/* Ah... so much simpler than Posts and Comments :) */
+	function options( $file, $option /*, $option, ... */ ) {
 		$options = func_get_args();
+		$file = array_shift( $options ); // $file is actually unused for options.  It's just here to make the API more parallel with the other syncs
 
 		foreach ( $options as $option ) {
-			add_action( "delete_option_{$option}", array( $this, 'deleted_option' ) );
-			add_action( "update_option_{$option}", array( $this, 'updated_option' ), 10, 2 );
-			add_action( "add_option_{$option}",    array( $this, 'added_option'   ), 10, 2 );
+			add_action( "delete_option_{$option}", array( $this, 'deleted_option_action' ) );
+			add_action( "update_option_{$option}", array( $this, 'updated_option_action' ), 10, 2 );
+			add_action( "add_option_{$option}",    array( $this, 'added_option_action'   ), 10, 2 );
 		}
+	}
+
+	function deleted_option_action( $option ) {
+		$this->register( 'delete_option', $option );
+	}
+
+	function updated_option_action( $old_value, $new_value ) {
+		// The value of $option isn't passed to the filter
+		// Calculate it
+		$option = current_filter();
+		$prefix = 'update_option_';
+		if ( 0 !== strpos( $option, $prefix ) ) {
+			return;
+		}
+		$option = substr( $option, strlen( $prefix ) );
+
+		$this->added_option_action( $option, $new_value );
+	}
+
+	function added_option_action( $option, $new_value ) {
+		$this->register( 'option', $option, array( 'sync' => $new_value, 'raw' => true ) );
 	}
 }
 
