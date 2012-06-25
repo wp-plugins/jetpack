@@ -19,10 +19,11 @@ function jetpack_subscriptions_load() {
 		'page_on_front',
 		'permalink_structure',
 		'category_base',
-		'tag_base',
+		'rss_use_excerpt',
 		'subscription_options',
 		'stb_enabled',
-		'stc_enabled'
+		'stc_enabled',
+		'tag_base'
 	);
 
 	Jetpack_Sync::sync_posts( __FILE__, array(
