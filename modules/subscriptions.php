@@ -19,7 +19,10 @@ function jetpack_subscriptions_load() {
 		'page_on_front',
 		'permalink_structure',
 		'category_base',
-		'tag_base' 
+		'tag_base',
+		'subscription_options',
+		'stb_enabled',
+		'stc_enabled'
 	);
 
 	Jetpack_Sync::sync_posts( __FILE__, array(
@@ -142,6 +145,37 @@ class Jetpack_Subscriptions {
 			'discussion',
 			'stc_enabled'
 		);
+		
+		/** Subscription Messaging Options ******************************************************/
+		
+		register_setting( 
+			'reading', 
+			'subscription_options', 
+			array( $this, 'validate_settings' ) 
+		);
+
+		add_settings_section( 
+			'email_settings', 
+			__( 'Follower Settings', 'jetpack' ), 
+			array( $this, 'reading_section' ), 
+			'reading'
+		);
+		
+		add_settings_field(
+			'invitation',
+			__( 'Blog follow email text' , 'jetpack' ), 
+			array( $this, 'setting_invitation' ), 
+			'reading', 
+			'email_settings'
+		);
+
+		add_settings_field(
+			'comment-follow',
+			__( 'Comment follow email text', 'jetpack' ), 
+			array( $this, 'setting_comment_follow' ), 
+			'reading', 
+			'email_settings'
+		);		
 	}
 
 	/**
@@ -187,6 +221,51 @@ class Jetpack_Subscriptions {
 	<?php
 	}
 
+	function validate_settings( $settings ) {
+		global $allowedposttags;
+
+		$default = $this->get_default_settings();
+
+		// Blog Follow
+		$settings['invitation'] = trim( wp_kses( $settings['invitation'], $allowedposttags ) );
+		if ( empty( $settings['invitation'] ) )
+			$settings['invitation'] = $default['invitation'];
+
+		// Comments Follow (single post)
+		$settings['comment_follow'] = trim( wp_kses( $settings['comment_follow'], $allowedposttags ) );
+		if ( empty( $settings['comment_follow'] ) )
+			$settings['comment_follow'] = $default['comment_follow'];
+
+		return $settings;
+	}
+
+	public function reading_section() {
+		_e( 'These settings change emails sent from your blog to followers.' );
+	}
+
+	public function setting_invitation() {
+		$settings = $this->get_settings();
+		echo '<textarea name="subscription_options[invitation]" class="large-text" cols="50" rows="5">'.$settings['invitation'].'</textarea>';
+		echo '<p><span class="description">'.__( 'Introduction text sent when someone follows your blog. (Site and confirmation details will be automatically added for you.)' ).'</span></p>';
+	}
+
+	public function setting_comment_follow() {
+		$settings = $this->get_settings();
+		echo '<textarea name="subscription_options[comment_follow]" class="large-text" cols="50" rows="5">'.$settings['comment_follow'].'</textarea>';
+		echo '<p><span class="description">'.__( 'Introduction text sent when someone follows a post on your blog. (Site and confirmation details will be automatically added for you.)' ).'</span></p>';
+	}
+
+	function get_default_settings() {
+		return array(
+			'invitation'             => __( "Howdy.\n\nYou recently followed this blog's posts. This means you will receive each new post by email.\n\nTo activate, click confirm below. If you believe this is an error, ignore this message and we'll never bother you again." ),
+			'comment_follow'  => __( "Howdy.\n\nYou recently followed one of my posts. This means you will receive an email when new comments are posted.\n\nTo activate, click confirm below. If you believe this is an error, ignore this message and we'll never bother you again." )
+		);
+	}
+		
+	function get_settings() {
+		return wp_parse_args( (array) get_option( 'subscription_options', array() ), $this->get_default_settings() );
+	}
+		
 	/**
 	 * Jetpack_Subscriptions::subscribe()
 	 *
