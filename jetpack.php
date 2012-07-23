@@ -632,6 +632,7 @@ class Jetpack {
 			// Add special cases here for modules to avoid auto-activation
 			switch ( $module ) {
 			case 'comments' :
+			case 'carousel' :
 				continue;
 			default :
 				$return[] = $module;
