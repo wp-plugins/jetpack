@@ -208,7 +208,7 @@
 	}
 
 	/* Media button */
-	#wp-content-media-buttons a.add_media img {
+	#wp-content-media-buttons a.add_media img, #dashboard_quick_press a.add_media img {
 		padding-top: 15px;
 		width: 15px;
 		height: 0;
