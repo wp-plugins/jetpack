@@ -257,5 +257,14 @@
 	#wp_delimgbtn, #wp_delgallery {
 		background: #eee url("images/delete-2x.png") no-repeat center center !important;
 	}
+		
+	/* AJAX loading spinners */
+	img.ajax-loading, img.ajax-feedback {
+		width: 16px;
+		height: 0;
+		padding-top: 19px !important;
+		background: url("images/wpspin_light-2x.gif") no-repeat center center !important;
+		background-size: 16px 16px;
+	}
 
 }
