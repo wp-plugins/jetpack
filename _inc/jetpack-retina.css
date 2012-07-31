@@ -58,5 +58,155 @@
 		background-image: url('images/imgedit-icons-2x.png');
 		background-size: 260px 64px;
 	}
+
+	/* Welcome screen close button */
+	.welcome-panel .welcome-panel-close:before {
+		background-image: url('images/xit-2x.gif');
+		background-size: 20px 10px;
+	}
+
+	/* Dismiss tag buttons */
+	.tagchecklist span a, #bulk-titles div a {
+		background-image: url('images/xit-2x.gif') !important;
+		background-size: 20px 10px !important;
+	}
+	.tagchecklist span a:hover, #bulk-titles div a:hover {
+		background-image: url('images/xit-2x.gif') !important;
+		background-size: 20px 10px !important;
+	}
+
+	/* Pointer dismiss button */
+	.wp-pointer-buttons a.close::before {
+		background-image: url('images/xit-2x.gif');
+		background-size: 20px 10px; 
+	}
+
+	/* Pointer icon */
+	.wp-pointer-content h3::before {
+		background-image: url('images/icon-pointer-flag-2x.png');
+		background-size: 36px 37px;
+	}
+
+	/* Pointer arrow */
+	.wp-pointer-arrow {
+		background-image: url('images/arrow-pointer-blue-2x.png') !important;
+		background-size: 30px 60px !important;
+	}
+
+	/* Screen options links */
+	#screen-meta-links a.show-settings {
+		background-image: url('images/arrows-2x.png') !important;
+		background-size: 15px 123px !important;
+	}
+	body.admin-color-classic #screen-meta-links a.show-settings {
+		background-image: url('images/arrows-vs-2x.png') !important;
+	}
+	
+	/* Collapse button divs */
+	#collapse-button div {
+		background-image: url('images/arrows-2x.png') !important;
+		background-size: 15px 123px !important;
+	}
+	body.admin-color-classic #collapse-button div {
+		background-image: url('images/arrows-vs-2x.png') !important;
+	}
+
+	/* Metabox handle arrows */
+	.meta-box-sortables .postbox:hover .handlediv {
+		background-image: url('images/arrows-2x.png') !important;
+		background-size: 15px 123px !important;
+	}
+	body.admin-color-classic .meta-box-sortables .postbox:hover .handlediv {
+		background-image: url('images/arrows-vs-2x.png') !important;
+	}
+
+	/* Date button */
+	.curtime #timestamp {
+		background-image: url('images/date-button-2x.gif') !important;
+		background-size: 16px 16px;
+		display: inline-block;
+		height: 16px;
+	}
+
+	/* Comments column bubble */
+	.column-comments .vers img {
+		padding-top: 12px;
+		height: 0;
+		width: 12px;
+		background: transparent url('images/comment-grey-bubble-2x.png') no-repeat center center;
+		background-size: 12px 12px;
+	}
+	.post-com-count {
+		background-image: url('images/bubble_bg-2x.png') !important;
+		background-size: 18px 100px;
+	}
+
+	/* Post sorting indicator */
+	.sorting-indicator {
+		background-image: url('images/sort-2x.gif');
+		background-size: 14px 4px;
+	}
+
+	/* Widget arrows */
+	.sidebar-name-arrow {
+		background-image: url('images/arrows-2x.png') !important;
+		background-size: 15px 123px !important;
+	}
+	body.admin-color-classic .sidebar-name-arrow {
+		background-image: url('images/arrows-vs-2x.png') !important;
+	}
+	.sidebar-name:hover .sidebar-name-arrow {
+		background-image: url('images/arrows-dark-2x.png') !important;
+	}
+	body.admin-color-classic .sidebar-name:hover .sidebar-name-arrow {
+		background-image: url('images/arrows-dark-vs-2x.png') !important;
+	}
+	.widget-top a.widget-action {
+		background-image: url('images/arrows-2x.png') !important;
+		background-size: 15px 123px !important;
+	}
+	body.admin-color-classic .widget-top a.widget-action {
+		background-image: url('images/arrows-vs-2x.png') !important;
+	}
+	.widget-top a.widget-action:hover {
+		background-image: url('images/arrows-dark-2x.png') !important;
+	}
+	body.admin-color-classic .widget-top a.widget-action:hover {
+		background-image: url('images/arrows-dark-vs-2x.png') !important;
+	}
+
+	/* Menu editor item arrows */
+	.item-edit {
+		background-image: url('images/arrows-2x.png') !important;
+		background-size: 15px 123px !important;
+	}
+	body.admin-color-classic .item-edit {
+		background-image: url('images/arrows-vs-2x.png') !important;
+	}
+	.item-edit:hover {
+		background-image: url('images/arrows-dark-2x.png') !important;
+		background-size: 15px 123px !important;
+	}
+	body.admin-color-classic .item-edit:hover {
+		background-image: url('images/arrows-dark-vs-2x.png') !important;
+	}
+
+	/* Plugin install star ratings */
+	div.star-holder {
+		background-image: url('images/stars-2x.png');
+		background-size: 21px 37px;
+	}
+	div.star-holder .star-rating {
+		background-image: url('images/stars-2x.png');
+		background-size: 21px 37px;
+	}
+
+	/* Press This bookmarklet icon */
+	.pressthis a span {
+		background-image: url('images/press-this-2x.png');
+		background-size: 24px 20px;
+	}	
+
+
 }
 
