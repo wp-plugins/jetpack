@@ -245,15 +245,18 @@
 		background: url("images/delete-2x.png") no-repeat center center !important;
 		background-size: 24px 24px;
 	}
+
 	#wp_editimgbtn, #wp_delimgbtn, #wp_editgallery, #wp_delgallery {
 		padding-top: 24px !important;
 		height: 0;
 		width: 24px;
 		background-size: 24px 24px;
 	}
+
 	#wp_editimgbtn, #wp_editgallery {
 		background: #eee url("images/image-2x.png") no-repeat center center !important;
 	}
+
 	#wp_delimgbtn, #wp_delgallery {
 		background: #eee url("images/delete-2x.png") no-repeat center center !important;
 	}
@@ -267,4 +270,25 @@
 		background-size: 16px 16px;
 	}
 
+	/* Align buttons (in image properties in the media library) */
+	.image-align-none-label {
+		background: url('images/align-none-2x.png') no-repeat center left;
+		background-size: 21px 15px;
+	}
+
+	.image-align-left-label {
+		background: url('images/align-left-2x.png') no-repeat center left;
+		background-size: 22px 15px;
+	}
+
+	.image-align-center-label {
+		background: url('images/align-center-2x.png') no-repeat center left;
+		background-size: 21px 15px;
+	}
+
+	.image-align-right-label {
+		background: url('images/align-right-2x.png') no-repeat center left;
+		background-size: 22px 15px;
+	}
 }
+
