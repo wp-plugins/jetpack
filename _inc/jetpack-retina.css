@@ -205,8 +205,31 @@
 	.pressthis a span {
 		background-image: url('images/press-this-2x.png');
 		background-size: 24px 20px;
-	}	
+	}
+
+	/* Media button */
+	#wp-content-media-buttons a.add_media img {
+		padding-top: 15px;
+		width: 15px;
+		height: 0;
+		background: url('images/media-button-2x.png') no-repeat center center;
+		background-size: 15px 15px;
+	}
+
+	/* After the Deadline MCE icon */
+	a#content_AtD img {
+		padding-top: 20px;
+		width: 20px;
+		height: 0;
+		background: url('images/atdbuttontr-2x.png') no-repeat center center;
+		background-size: 20px 20px;
+	}
+
+	/* Resize editor */
+	#post-body .wp_themeSkin .mceStatusbar a.mceResize {
+		background-image: url('images/resize-2x.gif') !important;
+		background-size: 11px 11px !important;
+	}
 
 
 }
-
