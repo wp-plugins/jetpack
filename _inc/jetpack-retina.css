@@ -231,5 +231,12 @@
 		background-size: 11px 11px !important;
 	}
 
+	/* MCE dropdowns */
+	.wp_themeSkin .mceListBox .mceOpen span, .wp_themeSkin .mceSplitButton a.mceOpen {
+		background-image: url("images/down_arrow-2x.gif") !important;
+		background-size: 10px 20px;
+	}
 
 }
+
+
