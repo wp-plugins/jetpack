@@ -236,7 +236,26 @@
 		background-image: url("images/down_arrow-2x.gif") !important;
 		background-size: 10px 20px;
 	}
+	
+	/* Img overlay buttons */
+	#wp_editimgbtn, #wp_delimgbtn, #wp_editgallery, #wp_delgallery {
+		padding-top: 24px !important;
+		height: 0;
+		width: 24px;
+		background: url("images/delete-2x.png") no-repeat center center !important;
+		background-size: 24px 24px;
+	}
+	#wp_editimgbtn, #wp_delimgbtn, #wp_editgallery, #wp_delgallery {
+		padding-top: 24px !important;
+		height: 0;
+		width: 24px;
+		background-size: 24px 24px;
+	}
+	#wp_editimgbtn, #wp_editgallery {
+		background: #eee url("images/image-2x.png") no-repeat center center !important;
+	}
+	#wp_delimgbtn, #wp_delgallery {
+		background: #eee url("images/delete-2x.png") no-repeat center center !important;
+	}
 
 }
-
-
