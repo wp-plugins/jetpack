@@ -290,5 +290,16 @@
 		background: url('images/align-right-2x.png') no-repeat center left;
 		background-size: 22px 15px;
 	}
+
+	/* Uploader close button */
+	#TB_closeWindowButton img {
+		background: url('images/tb-close-2x.png') no-repeat center center;
+		padding-top: 15px;
+		width: 15px;
+		height: 0;
+		background-size: 15px 15px;
+	}
+
+
 }
 
