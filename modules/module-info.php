@@ -489,6 +489,8 @@ function jetpack_custom_css_more_info() {
 
 	<h4><?php esc_html_e( 'Custom CSS', 'jetpack' ); ?></h4>
 	<p><?php esc_html_e( "The Custom CSS editor gives you the ability to add to or replace your theme's CSS, all while supplying syntax coloring, auto-indentation, and immediate feedback on the validity of the CSS you're writing.", 'jetpack' ); ?></p>
+	<p><?php printf( __( 'To use the CSS editor, go to Appearance &#8594; <a href="%s">Edit CSS</a>.', 'jetpack' ), admin_url( 'themes.php?page=editcss' ) ); ?></p>
+
 	<?php
 }
 
