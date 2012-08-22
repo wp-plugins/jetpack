@@ -6,6 +6,18 @@
  * First Introduced: 1.1
  */
 
+add_action( 'jetpack_modules_loaded', 'jetpack_notes_load' );
+ 
+function jetpack_notes_load() {
+	Jetpack::enable_module_configurable( __FILE__ );
+	Jetpack::module_configuration_load( __FILE__, 'jetpack_notes_configuration_load' );
+}
+
+function jetpack_notes_configuration_load() {
+	wp_safe_redirect( admin_url( 'options-discussion.php#jetpack-notifications-settings' ) );
+	exit;
+}
+
 class Jetpack_Notifications {
 	var $jetpack = false;
 
@@ -24,6 +36,9 @@ class Jetpack_Notifications {
 	}
 
 	function Jetpack_Notifications() {
+		// Add Configuration Page
+		add_action( 'admin_init', array( &$this, 'configure' ) );
+
 		add_action( 'init', array( &$this, 'action_init' ) );
 	}
 
@@ -67,6 +82,56 @@ class Jetpack_Notifications {
 			),
 			'parent' => 'top-secondary',
 		) );
+	}
+
+	/**
+	 * Jetpack_Notifications::configure()
+	 *
+	 * Jetpack Notifications configuration screen.
+	 */
+	function configure() {	
+		// Create the section
+		add_settings_section(
+			'jetpack_notes',
+			__( 'Jetpack Notifications Settings', 'jetpack' ),
+			array( $this, 'notes_settings_section' ),
+			'discussion'
+		);
+
+		/** Example configurable **********************************************/
+
+		add_settings_field(
+			'jetpack_notes_option_0',
+			__( 'Option 0', 'jetpack' ),
+			array( $this, 'notes_option_0' ),
+			'discussion',
+			'jetpack_notes'
+		);
+
+		register_setting(
+			'discussion',
+			'option0_enabled'
+		);
+	}
+
+	/**
+	 * Discussions setting section blurb
+	 *
+	 */
+	function notes_settings_section() {
+	?>
+		<p id="jetpack-notifications-settings"><?php _e( 'Change how your site interacts with the WordPress.com Notifications System.', 'jetpack' ); ?></p>
+	<?php
+	}
+
+	function notes_option_0() {
+		$option0_enabled = get_option( 'option0_enabled', 1 );
+	?>
+		<p class="description">
+			<input type="checkbox" name="option0_enabled" id="jetpack-notes-option0" value="1" <?php checked( $option0_enabled, 1 ); ?> />
+			<?php _e( "Enable Option #0", 'jetpack' ); ?>
+		</p>
+	<?php
 	}
 }
 

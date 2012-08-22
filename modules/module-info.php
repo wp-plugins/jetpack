@@ -212,6 +212,41 @@ function stats_load_more_link( $description ) {
 add_filter( 'jetpack_learn_more_button_stats', 'stats_load_more_link' );
 
 
+// WordPress.com Notifications
+function notes_more_info() { ?>
+	<div class="jp-info-img">
+		<a href="http://support.wordpress.com/notifications/">
+			<img class="jp-info-img" src="<?php echo plugins_url( basename( dirname( dirname( __FILE__ ) ) ) . '/_inc/images/notes.gif' ) ?>" alt="<?php esc_attr_e( 'WordPress.com Notifications', 'jetpack' ) ?>" width="300" height="144" />
+		</a>
+	</div>
+
+	<h4><?php esc_html_e( 'WordPress.com Notifications' , 'jetpack' ); ?></h4>
+	<p><?php esc_html_e( 'Keep up with the latest happenings on all your WordPress sites and engage with other WordPress.com users.', 'jetpack' ) ?></p>
+<?php
+}
+add_action( 'jetpack_module_more_info_notes', 'notes_more_info' );
+
+function notes_more_info_connected() { ?>
+	<div class="jp-info-img">
+		<a href="http://support.wordpress.com/notifications/">
+			<img class="jp-info-img" src="<?php echo plugins_url( basename( dirname( dirname( __FILE__ ) ) ) . '/_inc/images/notes.gif' ) ?>" alt="<?php esc_attr_e( 'WordPress.com Notifications', 'jetpack' ) ?>" width="300" height="144" />
+		</a>
+	</div>
+
+	<h4><?php esc_html_e( 'WordPress.com Notifications' , 'jetpack' ); ?></h4>
+	<p><?php esc_html_e( 'Keep up with the latest happenings on all your WordPress sites and engage with other WordPress.com users.', 'jetpack' ) ?></p>
+	<p><?php printf( __( 'You can view your notifications in the toolbar and <a href="%s">on WordPress.com</a>.', 'jetpack' ), 'http://wordpress.com/#!/notifications/' ); ?></p>
+<?php
+}
+add_filter( 'jetpack_module_more_info_connected_notes', 'notes_more_info_connected' );
+
+
+function notes_load_more_link( $description ) {
+	echo '<a class="button more-info-link" href="http://support.wordpress.com/notifications/">' . esc_html__( 'Learn More', 'jetpack' ) . '</a>';
+}
+add_filter( 'jetpack_learn_more_button_notes', 'notes_load_more_link' );
+
+
 // LaTeX
 function latex_more_info() { ?>
 	<div class="jp-info-img">
