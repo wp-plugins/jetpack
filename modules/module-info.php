@@ -234,7 +234,7 @@ function notes_more_info_connected() { ?>
 	</div>
 
 	<h4><?php esc_html_e( 'WordPress.com Notifications' , 'jetpack' ); ?></h4>
-	<p><?php esc_html_e( 'Keep up with the latest happenings on all your WordPress sites and engage with other WordPress.com users.', 'jetpack' ) ?></p>
+	<p><?php esc_html_e( 'Keep up with the latest happenings on all your WordPress sites and interact with other WordPress.com users.', 'jetpack' ) ?></p>
 	<p><?php printf( __( 'You can view your notifications in the toolbar and <a href="%s">on WordPress.com</a>.', 'jetpack' ), 'http://wordpress.com/#!/notifications/' ); ?></p>
 <?php
 }
