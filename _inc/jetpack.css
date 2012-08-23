@@ -540,12 +540,15 @@ p.jp-help {
 	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5) {
 		.jetpack-module div.module-image {
 			background-image: url( images/module-icons-sprite-2x.png );
-			background-size: 1450px 50px;
+			background-size: 1660px 50px;
 		}
 	}
 
 		#stats.jetpack-module div.module-image {
 			background-position: -510px 5px;
+		}
+		#notes.jetpack-module div.module-image {
+			background-position: -1570px 5px;
 		}
 		#comments.jetpack-module div.module-image {
 			background-position: -1210px 5px;
