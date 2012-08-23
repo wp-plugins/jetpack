@@ -20,8 +20,18 @@ function jetpack_notes_configuration_load() {
 
 // always show admin bar (optional - default on)
 function notes_login_adminbar( $wp_admin_bar ) {
-	if ( !is_user_logged_in() )
-	$wp_admin_bar->add_menu( array( 'title' => __( 'Log In' ), 'href' => wp_login_url() ) );
+	if ( !is_user_logged_in() ) {
+		$menu = array(
+			'title'  => __( 'Log In' ),
+			'href'   => wp_login_url(),
+			'parent' => 'top-secondary',
+		);
+
+		$blog_name = get_bloginfo('name');
+		$menu[ 'meta' ][ 'title' ] = empty( $blog_name ) ? __( 'Log In' ) : sprintf( __( 'Log In to %s' ), $blog_name );
+
+		$wp_admin_bar->add_menu( $menu );
+	}
 }
 
 if ( get_option( 'always_show_toolbar', 1 ) ) {
