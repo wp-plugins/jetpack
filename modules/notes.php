@@ -18,6 +18,17 @@ function jetpack_notes_configuration_load() {
 	exit;
 }
 
+// always show admin bar (optional - default on)
+function notes_login_adminbar( $wp_admin_bar ) {
+	if ( !is_user_logged_in() )
+	$wp_admin_bar->add_menu( array( 'title' => __( 'Log In' ), 'href' => wp_login_url() ) );
+}
+
+if ( get_option( 'always_show_toolbar', 1 ) ) {
+	add_action( 'admin_bar_menu', 'notes_login_adminbar' );
+	add_filter( 'show_admin_bar', '__return_true' , 1000 );
+}
+
 class Jetpack_Notifications {
 	var $jetpack = false;
 
@@ -98,19 +109,19 @@ class Jetpack_Notifications {
 			'discussion'
 		);
 
-		/** Example configurable **********************************************/
+		/** Optionally always show the Toolbar ********************************/
 
 		add_settings_field(
-			'jetpack_notes_option_0',
-			__( 'Option 0', 'jetpack' ),
-			array( $this, 'notes_option_0' ),
+			'jetpack_notes_option_always_show_toolbar',
+			__( 'Toolbar', 'jetpack' ),
+			array( $this, 'notes_option_always_show_toolbar' ),
 			'discussion',
 			'jetpack_notes'
 		);
 
 		register_setting(
 			'discussion',
-			'option0_enabled'
+			'always_show_toolbar'
 		);
 	}
 
@@ -124,12 +135,11 @@ class Jetpack_Notifications {
 	<?php
 	}
 
-	function notes_option_0() {
-		$option0_enabled = get_option( 'option0_enabled', 1 );
+	function notes_option_always_show_toolbar() {
 	?>
 		<p class="description">
-			<input type="checkbox" name="option0_enabled" id="jetpack-notes-option0" value="1" <?php checked( $option0_enabled, 1 ); ?> />
-			<?php _e( "Enable Option #0", 'jetpack' ); ?>
+			<input type="checkbox" name="always_show_toolbar" id="jetpack-notes-always_show_toolbar" value="1" <?php checked( get_option( 'always_show_toolbar', 1 ) ); ?> />
+			<?php _e( "Always show the Toolbar so visitors can view their notifications from your site", 'jetpack' ); ?>
 		</p>
 	<?php
 	}
