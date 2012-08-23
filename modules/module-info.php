@@ -221,7 +221,7 @@ function notes_more_info() { ?>
 	</div>
 
 	<h4><?php esc_html_e( 'WordPress.com Notifications' , 'jetpack' ); ?></h4>
-	<p><?php esc_html_e( 'Keep up with the latest happenings on all your WordPress sites and engage with other WordPress.com users.', 'jetpack' ) ?></p>
+	<p><?php esc_html_e( 'Keep up with the latest happenings on all your WordPress sites and interact with other WordPress.com users.', 'jetpack' ) ?></p>
 <?php
 }
 add_action( 'jetpack_module_more_info_notes', 'notes_more_info' );
