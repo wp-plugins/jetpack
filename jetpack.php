@@ -542,6 +542,28 @@ class Jetpack {
 	}
 
 	/**
+	 * Enters a user token into the user_tokens option
+	 *
+	 * @param int $user_id
+	 * @param string $token
+	 * return bool
+	 */
+	function update_user_token( $user_id, $token, $is_master_user ) {
+		// not designed for concurrent updates
+		$user_tokens = Jetpack::get_option( 'user_tokens' );
+		if ( ! is_array( $tokens ) )
+			$user_tokens = array();
+		$user_tokens[$user_id] = $token;
+		if ( $is_master_user ) {
+			$master_user = $user_id;
+			$options = compact('user_tokens', 'master_user');
+		} else {
+			$options = compact('user_tokens');
+		}
+		return Jetpack::update_options( $options );
+	}
+
+	/**
 	 * Returns an array of all PHP files in the specified absolute path.
 	 * Equivalent to glob( "$absolute_path/*.php" ).
 	 *
@@ -2962,7 +2984,7 @@ class Jetpack_Client_Server {
 				break;
 			}
 
-			Jetpack::update_option( 'user_token', sprintf( '%s.%d', $token, $current_user_id ), true );
+			Jetpack::update_user_token( $current_user_id, sprintf( '%s.%d', $token, $current_user_id ), JETPACK_MASTER_USER );
 			Jetpack::state( 'message', 'authorized' );
 
 			if ( $active_modules = Jetpack::get_option( 'active_modules' ) ) {
