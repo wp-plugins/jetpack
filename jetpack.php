@@ -21,6 +21,8 @@ define( 'JETPACK__VERSION', '1.7' );
 define( 'JETPACK__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 defined( 'JETPACK__GLOTPRESS_LOCALES_PATH' ) or define( 'JETPACK__GLOTPRESS_LOCALES_PATH', JETPACK__PLUGIN_DIR . 'locales.php' );
 
+define( 'JETPACK_MASTER_USER', true );
+
 /*
 Options:
 jetpack_options (array)
@@ -135,6 +137,22 @@ class Jetpack {
 			}
 		}
 
+		// Upgrade from a single user token to a user_id-indexed array and a master_user ID
+		if ( !Jetpack::get_option( 'user_tokens' ) ) {
+			if ( $user_token = Jetpack::get_option( 'user_token' ) ) {
+				$token_parts = explode( '.', $user_token );
+				if ( isset( $token_parts[2] ) ) {
+					$master_user = $token_parts[2];
+					$user_tokens = array( $master_user => $user_token );
+					Jetpack::update_options( compact( 'master_user', 'user_tokens' ) );
+					Jetpack::delete_option( 'user_token' );
+				} else {
+					// @todo: is this even possible?
+					trigger_error( sprintf( 'Jetpack::plugin_upgrade found no user_id in user_token "%s"', $user_token ), E_USER_WARNING );
+				}
+			}
+		}
+
 		// Future: switch on version? If so, think twice before updating version/old_version.
 	}
 
@@ -197,11 +215,11 @@ class Jetpack {
 	 * Is Jetpack active?
 	 */
 	function is_active() {
-		return (bool) Jetpack_Data::get_access_token( 1 ); // 1 just means user token
+		return (bool) Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
 	}
 
 	function current_user_is_connection_owner() {
-		$user_token = Jetpack_Data::get_access_token( 1 );
+		$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
 		return $user_token && is_object( $user_token ) && isset( $user_token->external_user_id ) && get_current_user_id() === $user_token->external_user_id;
 	}
 
@@ -269,7 +287,9 @@ class Jetpack {
 		return array(
 			'id',                           // (int)    The Client ID/WP.com Blog ID of this site.
 			'blog_token',                   // (string) The Client Secret/Blog Token of this site.
-			'user_token',                   // (string) The User Token of this site.
+			'user_token',                   // (string) The User Token of this site. (deprecated)
+			'master_user',                  // (int)    The local User ID of the user who connected this site to jetpack.wordpress.com.
+			'user_tokens',                  // (array)  User Tokens for each user of this site who has connected to jetpack.wordpress.com.
 			'version',                      // (string) Used during upgrade procedure to auto-activate new modules. version:time
 			'old_version',                  // (string) Used to determine which modules are the most recently added. previous_version:time
 			'fallback_no_verify_ssl_certs', // (int)    Flag for determining if this host must skip SSL Certificate verification due to misconfigured SSL.
@@ -1027,6 +1047,8 @@ p {
 			'register',
 			'blog_token',
 			'user_token',
+			'user_tokens',
+			'master_user',
 			'time_diff',
 			'fallback_no_verify_ssl_certs',
 		) );
@@ -1805,7 +1827,7 @@ p {
 			return false;
 		}
 
-		$token = Jetpack_Data::get_access_token( 0 );
+		$token = Jetpack_Data::get_access_token();
 		if ( !$token || is_wp_error( $token ) ) {
 			return false;
 		}
@@ -2000,10 +2022,20 @@ p {
 		<p><?php esc_html_e( 'This is sensitive information.  Please do not post your BLOG_TOKEN or USER_TOKEN publicly; they are like passwords.', 'jetpack' ); ?></p>
 		<ul>
 		<?php
+		// Extract the current_user's token
+		$user_id = get_current_user_id();
+		$user_tokens = Jetpack::get_option( 'user_tokens' );
+		if ( is_array( $user_tokens ) && array_key_exists( $user_id, $user_tokens ) ) {
+			$user_token = $user_tokens[$user_id];
+		} else {
+			$user_token = '[this user has no token]';
+		}
+		unset( $user_tokens );
+
 		foreach ( array(
 			'CLIENT_ID'   => 'id',
 			'BLOG_TOKEN'  => 'blog_token',
-			'USER_TOKEN'  => 'user_token',
+			'MASTER_USER' => 'master_user',
 			'CERT'        => 'fallback_no_verify_ssl_certs',
 			'TIME_DIFF'   => 'time_diff',
 			'VERSION'     => 'version',
@@ -2012,6 +2044,8 @@ p {
 		?>
 			<li><?php echo esc_html( $label ); ?>: <code><?php echo esc_html( Jetpack::get_option( $option_name ) ); ?></code></li>
 		<?php endforeach; ?>
+			<li>USER_ID: <code><?php echo esc_html( $user_id ); ?></code></li>
+			<li>USER_TOKEN: <code><?php echo esc_html( $user_token ); ?></code></li>
 			<li>PHP_VERSION: <code><?php echo esc_html( PHP_VERSION ); ?></code></li>
 			<li>WORDPRESS_VERSION: <code><?php echo esc_html( $GLOBALS['wp_version'] ); ?></code></li>
 		</ul>
@@ -2627,7 +2661,7 @@ class Jetpack_Client {
 			$args['auth_location'] = 'query_string';
 		}
 
-		$token = Jetpack_Data::get_access_token( $args );
+		$token = Jetpack_Data::get_access_token( $args['user_id'] );
 		if ( !$token ) {
 			return new Jetpack_Error( 'missing_token' );
 		}
@@ -2821,20 +2855,26 @@ class Jetpack_Data {
 	 * @static
 	 * @return object|false
 	 */
-	function get_access_token( $args ) {
-		if ( is_numeric( $args ) ) {
-			$args = array( 'user_id' => $args );
-		}
-
-		if ( $args['user_id'] ) {
-			if ( !$token = Jetpack::get_option( 'user_token' ) ) {
+	function get_access_token( $user_id = false ) {
+		if ( $user_id ) {
+			if ( !$tokens = Jetpack::get_option( 'user_tokens' ) ) {
+				return false;
+			}
+			if ( $user_id === JETPACK_MASTER_USER ) {
+				if ( !$user_id = Jetpack::get_option( 'master_user' ) ) {
+					return false;
+				}
+			}
+			if ( !$token = $tokens[$user_id] ) {
 				return false;
 			}
 			$token_chunks = explode( '.', $token );
 			if ( empty( $token_chunks[1] ) || empty( $token_chunks[2] ) ) {
 				return false;
 			}
-			$args['user_id'] = $token_chunks[2];
+			if ( $user_id != $token_chunks[2] ) {
+				return false;
+			}
 			$token = "{$token_chunks[0]}.{$token_chunks[1]}";
 		} else {
 			$token = Jetpack::get_option( 'blog_token' );
@@ -2845,7 +2885,7 @@ class Jetpack_Data {
 
 		return (object) array(
 			'secret' => $token,
-			'external_user_id' => (int) $args['user_id'],
+			'external_user_id' => (int) $user_id,
 		);
 	}
 }
@@ -2972,7 +3012,7 @@ class Jetpack_Client_Server {
 			return new Jetpack_Error( 'role', __( 'An administrator for this blog must set up the Jetpack connection.', 'jetpack' ) );
 		}
 
-		$client_secret = Jetpack_Data::get_access_token( 0 );
+		$client_secret = Jetpack_Data::get_access_token();
 		if ( !$client_secret ) {
 			return new Jetpack_Error( 'client_secret', __( 'You need to register your Jetpack before connecting it.', 'jetpack' ) );
 		}
