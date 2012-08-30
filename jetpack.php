@@ -218,6 +218,13 @@ class Jetpack {
 		return (bool) Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
 	}
 
+	/**
+	 * Is the current user linked to a WordPress.com user?
+	 */
+	function is_user_connected() {
+		return (bool) Jetpack_Data::get_access_token( get_current_user_id() );
+	}
+
 	function current_user_is_connection_owner() {
 		$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
 		return $user_token && is_object( $user_token ) && isset( $user_token->external_user_id ) && get_current_user_id() === $user_token->external_user_id;
@@ -551,7 +558,7 @@ class Jetpack {
 	function update_user_token( $user_id, $token, $is_master_user ) {
 		// not designed for concurrent updates
 		$user_tokens = Jetpack::get_option( 'user_tokens' );
-		if ( ! is_array( $tokens ) )
+		if ( ! is_array( $user_tokens ) )
 			$user_tokens = array();
 		$user_tokens[$user_id] = $token;
 		if ( $is_master_user ) {
@@ -1109,9 +1116,7 @@ p {
 			Jetpack::plugin_initialize();
 		}
 
-		$is_active = Jetpack::is_active();
-
-		if ( !$is_active ) {
+		if ( Jetpack::is_active() ) {
 			if ( 4 != Jetpack::get_option( 'activated' ) ) {
 				// Show connect notice on dashboard and plugins pages
 				add_action( 'load-index.php', array( $this, 'prepare_connect_notice' ) );
@@ -1134,7 +1139,7 @@ p {
 
 		add_action( 'wp_ajax_jetpack_debug', array( $this, 'ajax_debug' ) );
 
-		if ( $is_active ) {
+		if ( Jetpack::is_active() ) {
 			// Artificially throw errors in certain whitelisted cases during plugin activation
 			add_action( 'activate_plugin', array( $this, 'throw_error_on_activate_plugin' ) );
 
@@ -1506,7 +1511,7 @@ p {
 		if ( isset( $_GET['action'] ) ) {
 			switch ( $_GET['action'] ) {
 			case 'authorize' :
-				if ( Jetpack::is_active() ) {
+				if ( Jetpack::is_active() && Jetpack::is_user_connected() ) {
 					Jetpack::state( 'message', 'already_authorized' );
 					wp_safe_redirect( Jetpack::admin_url() );
 					exit;
@@ -1907,6 +1912,8 @@ p {
 
 		$role = $this->translate_current_user_to_role();
 		$is_connected = Jetpack::is_active();
+		$user_token = Jetpack_Data::get_access_token($current_user->ID);
+		$is_user_connected = $user_token && !is_wp_error($user_token);
 		$module = false;
 	?>
 		<div class="wrap" id="jetpack-settings">
@@ -1957,6 +1964,23 @@ p {
 					</div>
 				</div>
 
+			<?php elseif ( ! $is_user_connected ) : ?>
+
+				<div id="message" class="updated jetpack-message jp-connect">
+					<div class="jetpack-wrap-container">
+						<div class="jetpack-text-container">
+							<h4>
+								<p><?php _e( "To enable all of the Jetpack features you&#8217;ll need to link your account here to your WordPress.com account using the button to the right.", 'jetpack' ) ?></p>
+							</h4>
+						</div>
+						<div class="jetpack-install-container">
+							<p class="submit"><a href="<?php echo $this->build_connect_url() ?>" class="button-connector" id="wpcom-connect"><?php _e( 'Connect to WordPress.com', 'jetpack' ); ?></a></p>
+						</div>
+					</div>
+				</div>
+
+			<?php else /* blog and user are connected */ : ?>
+				<?php /* TODO: if not master user, show user disconnect button? */ ?>
 			<?php endif; ?>
 
 			<?php
@@ -2984,7 +3008,9 @@ class Jetpack_Client_Server {
 				break;
 			}
 
-			Jetpack::update_user_token( $current_user_id, sprintf( '%s.%d', $token, $current_user_id ), JETPACK_MASTER_USER );
+			$is_master_user = ! Jetpack::is_active();
+
+			Jetpack::update_user_token( $current_user_id, sprintf( '%s.%d', $token, $current_user_id ), $is_master_user );
 			Jetpack::state( 'message', 'authorized' );
 
 			if ( $active_modules = Jetpack::get_option( 'active_modules' ) ) {
