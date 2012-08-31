@@ -1485,7 +1485,7 @@ p {
 	 * 8 - Jetpack_Client_Server::authorize()
 	 * 9 - Jetpack_Client_Server::get_token()
 	 * 10- GET https://jetpack.wordpress.com/jetpack.token/1/ with
-	 *     client_id, client_secret, grant_type, code, redirect_uri:action=authorize, state, scope, user_email
+	 *     client_id, client_secret, grant_type, code, redirect_uri:action=authorize, state, scope, user_email, user_login
 	 * 11- which responds with
 	 *     access_token, token_type, scope
 	 * 12- Jetpack_Client_Server::authorize() stores jetpack_options: user_token => access_token.$user_id
@@ -1881,6 +1881,7 @@ p {
 				'state' => $user->ID,
 				'scope' => $signed_role,
 				'user_email' => $user->user_email,
+				'user_login' => $user->user_login,
 			) );
 
 			$url = add_query_arg( $args, Jetpack::api_url( 'authorize' ) );
@@ -3012,6 +3013,11 @@ class Jetpack_Client_Server {
 
 			Jetpack::update_user_token( $current_user_id, sprintf( '%s.%d', $token, $current_user_id ), $is_master_user );
 			Jetpack::state( 'message', 'authorized' );
+
+			if ( ! $is_master_user ) {
+				// Don't activate anything since we are just connecting a user.
+				break;
+			}
 
 			if ( $active_modules = Jetpack::get_option( 'active_modules' ) ) {
 				Jetpack::delete_option( 'active_modules' );
