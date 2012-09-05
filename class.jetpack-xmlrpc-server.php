@@ -14,7 +14,7 @@ class Jetpack_XMLRPC_Server {
 	 * user is not authenticated (->login()) then the methods are never added,
 	 * so they will get a "does not exist" error.
 	 */
-	function xmlrpc_methods() {
+	function xmlrpc_methods( $core_methods ) {
 		if ( !$user = $this->login() ) {
 			return array();
 		}
@@ -27,7 +27,7 @@ class Jetpack_XMLRPC_Server {
 			'jetpack.getPost'           => array( $this, 'get_post' ),
 			'jetpack.getComment'        => array( $this, 'get_comment' ),  
 			'jetpack.jsonAPI'           => array( $this, 'json_api' ),
-		) );
+		), $core_methods );
 	}
 
 	/**
