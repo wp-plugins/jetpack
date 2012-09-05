@@ -2455,11 +2455,16 @@ p {
 
 	function add_nonce( $timestamp, $nonce ) {
 		global $wpdb;
+		static $nonces_used_this_request = array();
+
+		if ( isset( $nonces_used_this_request["$timestamp:$nonce"] ) ) {
+			return $nonces_used_this_request["$timestamp:$nonce"];
+		}
 
 		// This should always have gone through Jetpack_Signature::sign_request() first to check $timestamp an $nonce
 		$timestamp = (int) $timestamp;
 		$nonce     = $wpdb->escape( $nonce );
-		
+
 		// Raw query so we can avoid races: add_option will also update
 		$show_errors = $wpdb->show_errors( false );
 		$return = $wpdb->query( $wpdb->prepare(
@@ -2469,6 +2474,9 @@ p {
 			'no'
 		) );
 		$wpdb->show_errors( $show_errors );
+
+		$nonces_used_this_request["$timestamp:$nonce"] = $return;
+
 		return $return;
 	}
 
