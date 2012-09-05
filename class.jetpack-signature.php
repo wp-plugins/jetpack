@@ -18,11 +18,22 @@ class Jetpack_Signature {
 	}
 
 	function sign_current_request( $override = array() ) {
+		if ( isset( $override['scheme'] ) ) {
+			$scheme = $override['scheme'];
+			if ( !in_array( $scheme, array( 'http', 'https' ) ) ) {
+				return new Jetpack_Error( 'invalid_sheme', 'Invalid URL scheme' );
+			}
+		} else {
+			if ( is_ssl() ) {
+				$scheme = 'https';
+			} else {
+				$scheme = 'http';
+			}
+		}
+
 		if ( is_ssl() ) {
-			$scheme = 'https';
 			$port = JETPACK_SIGNATURE__HTTPS_PORT == $_SERVER['SERVER_PORT'] ? '' : $_SERVER['SERVER_PORT'];
 		} else {
-			$scheme = 'http';
 			$port = JETPACK_SIGNATURE__HTTP_PORT  == $_SERVER['SERVER_PORT'] ? '' : $_SERVER['SERVER_PORT'];
 		}
 
