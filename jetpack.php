@@ -1088,6 +1088,32 @@ p {
 	}
 
 	/**
+	 * Unlinks the current user from the linked WordPress.com user
+	 */
+	function unlink_user() {
+		if ( !$tokens = Jetpack::get_option( 'user_tokens' ) )
+			return false;
+
+		$user_id = get_current_user_id();
+
+		if ( Jetpack::get_option( 'master_user' ) == $user_id )
+			return false;
+
+		if ( !isset( $tokens[$user_id] ) )
+			return false;
+
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client( compact( 'user_id' ) );
+		$xml->query( 'jetpack.unlink_user', $user_id );
+
+		unset( $tokens[$user_id] );
+
+		Jetpack::update_option( 'user_tokens', $tokens );
+
+		return true;
+	}
+
+	/**
 	 * Attempts Jetpack registration.  If it fail, a state flag is set: @see ::admin_page_load()
 	 * @static
 	 */
@@ -1359,14 +1385,15 @@ p {
 
 	function admin_styles() {
 		global $wp_styles;
-		wp_enqueue_style( 'jetpack', plugins_url( basename( dirname( __FILE__ ) ) . '/_inc/jetpack.css' ), false, JETPACK__VERSION . '-20120701' );
+		wp_enqueue_style( 'jetpack', plugins_url( basename( dirname( __FILE__ ) ) . '/_inc/jetpack.css' ), false, JETPACK__VERSION . '-20120805' );
 		$wp_styles->add_data( 'jetpack', 'rtl', true );
 	}
 
 	function admin_scripts() {
-		wp_enqueue_script( 'jetpack-js', plugins_url( basename( dirname( __FILE__ ) ) ) . '/_inc/jetpack.js', array( 'jquery' ), JETPACK__VERSION . '-20111115' );
+		wp_enqueue_script( 'jetpack-js', plugins_url( basename( dirname( __FILE__ ) ) ) . '/_inc/jetpack.js', array( 'jquery' ), JETPACK__VERSION . '-20120805' );
 		wp_localize_script( 'jetpack-js', 'jetpackL10n', array(
 				'ays_disconnect' => "This will deactivate all Jetpack modules.\nAre you sure you want to disconnect?",
+				'ays_unlink'     => "This will stop sending notifications for this user.\nAre you sure you want to unlink?",
 				'ays_dismiss'    => "This will deactivate Jetpack.\nAre you sure you want to deactivate Jetpack?",
 			) );
 		add_action( 'admin_footer', array( $this, 'do_stats' ) );
@@ -1558,6 +1585,12 @@ p {
 				Jetpack::state( 'module', $module );
 				wp_safe_redirect( Jetpack::admin_url() );
 				exit;
+			case 'unlink' :
+				check_admin_referer( 'jetpack-unlink' );
+				$this->unlink_user();
+				Jetpack::state( 'message', 'unlinked' );
+				wp_safe_redirect( Jetpack::admin_url() );
+				exit;
 			}
 		}
 
@@ -1734,6 +1767,16 @@ p {
 			$this->message .= "<br />\n";
 			$this->message .= __( 'The features below are now active. Click the learn more buttons to explore each feature.', 'jetpack' );
 			$this->message .= Jetpack::jetpack_comment_notice();
+			break;
+
+		case 'linked' :
+			$this->message  = __( "<strong>You&#8217;re fueled up and ready to go.</strong> ", 'jetpack' );
+			$this->message .= Jetpack::jetpack_comment_notice();
+			break;
+
+		case 'unlinked' :
+			$user = wp_get_current_user();
+			$this->message = sprintf( __( '<strong>You have unlinked your account (%s) from WordPress.com.</strong>', 'jetpack' ), $user->user_login );
 			break;
 		}
 
@@ -1924,9 +1967,15 @@ p {
 			<div id="jp-header"<?php if ( $is_connected ) : ?> class="small"<?php endif; ?>>
 				<div id="jp-clouds">
 					<?php if ( $is_connected ) : ?>
-					<div id="jp-disconnect">
-						<a href="<?php echo wp_nonce_url( Jetpack::admin_url( array( 'action' => 'disconnect' ) ), 'jetpack-disconnect' ); ?>"><?php _e( 'Connected to WordPress.com', 'jetpack' ); ?></a>
-						<span><?php _e( 'Disconnect from WordPress.com', 'jetpack' ) ?></span>
+					<div id="jp-disconnectors">
+					<div id="jp-disconnect" class="jp-disconnect">
+						<a href="<?php echo wp_nonce_url( Jetpack::admin_url( array( 'action' => 'disconnect' ) ), 'jetpack-disconnect' ); ?>"><div class="deftext"><?php _e( 'Connected to WordPress.com', 'jetpack' ); ?></div><div class="hovertext"><?php _e( 'Disconnect from WordPress.com', 'jetpack' ) ?></div></a>
+					</div>
+						<?php if ( $is_user_connected ) : ?>
+						<div id="jp-unlink" class="jp-disconnect">
+							<a href="<?php echo wp_nonce_url( Jetpack::admin_url( array( 'action' => 'unlink' ) ), 'jetpack-unlink' ); ?>"><div class="deftext"><?php _e( 'User linked to WordPress.com', 'jetpack' ); ?></div><div class="hovertext"><?php _e( 'Unlink user from WordPress.com', 'jetpack' ) ?></div></a>
+						</div>
+						<?php endif; ?>
 					</div>
 					<?php endif; ?>
 					<h3><?php _e( 'Jetpack by WordPress.com', 'jetpack' ) ?></h3>
@@ -1975,7 +2024,7 @@ p {
 							</h4>
 						</div>
 						<div class="jetpack-install-container">
-							<p class="submit"><a href="<?php echo $this->build_connect_url() ?>" class="button-connector" id="wpcom-connect"><?php _e( 'Connect to WordPress.com', 'jetpack' ); ?></a></p>
+							<p class="submit"><a href="<?php echo $this->build_connect_url() ?>" class="button-connector" id="wpcom-connect"><?php _e( 'Link accounts with WordPress.com', 'jetpack' ); ?></a></p>
 						</div>
 					</div>
 				</div>
@@ -3012,9 +3061,12 @@ class Jetpack_Client_Server {
 			$is_master_user = ! Jetpack::is_active();
 
 			Jetpack::update_user_token( $current_user_id, sprintf( '%s.%d', $token, $current_user_id ), $is_master_user );
-			Jetpack::state( 'message', 'authorized' );
 
-			if ( ! $is_master_user ) {
+
+			if ( $is_master_user ) {
+				Jetpack::state( 'message', 'authorized' );
+			} else {
+				Jetpack::state( 'message', 'linked' );
 				// Don't activate anything since we are just connecting a user.
 				break;
 			}
