@@ -1958,6 +1958,7 @@ p {
 		$is_connected = Jetpack::is_active();
 		$user_token = Jetpack_Data::get_access_token($current_user->ID);
 		$is_user_connected = $user_token && !is_wp_error($user_token);
+		$is_master_user = $current_user->ID == Jetpack::get_option( 'master_user' );
 		$module = false;
 	?>
 		<div class="wrap" id="jetpack-settings">
@@ -1971,7 +1972,7 @@ p {
 					<div id="jp-disconnect" class="jp-disconnect">
 						<a href="<?php echo wp_nonce_url( Jetpack::admin_url( array( 'action' => 'disconnect' ) ), 'jetpack-disconnect' ); ?>"><div class="deftext"><?php _e( 'Connected to WordPress.com', 'jetpack' ); ?></div><div class="hovertext"><?php _e( 'Disconnect from WordPress.com', 'jetpack' ) ?></div></a>
 					</div>
-						<?php if ( $is_user_connected ) : ?>
+						<?php if ( $is_user_connected && !$is_master_user ) : ?>
 						<div id="jp-unlink" class="jp-disconnect">
 							<a href="<?php echo wp_nonce_url( Jetpack::admin_url( array( 'action' => 'unlink' ) ), 'jetpack-unlink' ); ?>"><div class="deftext"><?php _e( 'User linked to WordPress.com', 'jetpack' ); ?></div><div class="hovertext"><?php _e( 'Unlink user from WordPress.com', 'jetpack' ) ?></div></a>
 						</div>
