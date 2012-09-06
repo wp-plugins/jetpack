@@ -6,41 +6,9 @@
  * First Introduced: 1.1
  */
 
-add_action( 'jetpack_modules_loaded', 'jetpack_notes_load' );
- 
-function jetpack_notes_load() {
-	Jetpack::enable_module_configurable( __FILE__ );
-	Jetpack::module_configuration_load( __FILE__, 'jetpack_notes_configuration_load' );
-}
-
-function jetpack_notes_configuration_load() {
-	wp_safe_redirect( admin_url( 'options-discussion.php#jetpack-notifications-settings' ) );
-	exit;
-}
-
-// always show admin bar (optional - default on)
-function notes_login_adminbar( $wp_admin_bar ) {
-	if ( !is_user_logged_in() ) {
-		$menu = array(
-			'title'  => __( 'Log In' ),
-			'href'   => wp_login_url(),
-			'parent' => 'top-secondary',
-		);
-
-		$blog_name = get_bloginfo('name');
-		$menu[ 'meta' ][ 'title' ] = empty( $blog_name ) ? __( 'Log In' ) : sprintf( __( 'Log In to %s' ), $blog_name );
-
-		$wp_admin_bar->add_menu( $menu );
-	}
-}
-
-if ( get_option( 'always_show_toolbar', 1 ) ) {
-	add_action( 'admin_bar_menu', 'notes_login_adminbar' );
-	add_filter( 'show_admin_bar', '__return_true' , 1000 );
-}
-
 class Jetpack_Notifications {
 	var $jetpack = false;
+	var $always_show_toolbar = false;
 
 	/**
 	 * Singleton
@@ -57,10 +25,11 @@ class Jetpack_Notifications {
 	}
 
 	function Jetpack_Notifications() {
-		// Add Configuration Page
-		add_action( 'admin_init', array( &$this, 'configure' ) );
-
+		add_action( 'jetpack_modules_loaded', array( &$this, 'enable_configuration' ) );
 		add_action( 'init', array( &$this, 'action_init' ) );
+		$this->always_show_toolbar = get_option( 'jp_notes_always_show_toolbar', 1 );
+		if ( $this->always_show_toolbar )
+			add_filter( 'show_admin_bar', '__return_true' , 1000 );
 	}
 
 	function wpcom_static_url($file) {
@@ -103,6 +72,31 @@ class Jetpack_Notifications {
 			),
 			'parent' => 'top-secondary',
 		) );
+
+		if ( !is_user_logged_in() ) {
+			$menu = array(
+				'title'  => __( 'Log In', 'jetpack' ),
+				'href'   => wp_login_url(),
+				'parent' => 'top-secondary',
+			);
+
+			$blog_name = get_bloginfo('name');
+			$menu[ 'meta' ][ 'title' ] = empty( $blog_name ) ? __( 'Log In', 'jetpack' ) : sprintf( __( 'Log In to %s', 'jetpack' ), $blog_name );
+
+			$wp_admin_bar->add_menu( $menu );
+		}
+	}
+
+	// Add Configuration Page
+	function enable_configuration() {
+		Jetpack::enable_module_configurable( __FILE__ );
+		Jetpack::module_configuration_load( __FILE__, array( &$this, 'load_settings_page' ) );
+		add_action( 'admin_init', array( &$this, 'configure' ) );
+	}
+
+	function load_settings_page() {
+		wp_safe_redirect( admin_url( 'options-discussion.php#jetpack-notifications-settings' ) );
+		exit;
 	}
 
 	/**
@@ -110,7 +104,7 @@ class Jetpack_Notifications {
 	 *
 	 * Jetpack Notifications configuration screen.
 	 */
-	function configure() {	
+	function configure() {
 		// Create the section
 		add_settings_section(
 			'jetpack_notes',
@@ -120,7 +114,6 @@ class Jetpack_Notifications {
 		);
 
 		/** Optionally always show the Toolbar ********************************/
-
 		add_settings_field(
 			'jetpack_notes_option_always_show_toolbar',
 			__( 'Toolbar', 'jetpack' ),
@@ -131,7 +124,7 @@ class Jetpack_Notifications {
 
 		register_setting(
 			'discussion',
-			'always_show_toolbar'
+			'jp_notes_always_show_toolbar'
 		);
 	}
 
@@ -148,7 +141,7 @@ class Jetpack_Notifications {
 	function notes_option_always_show_toolbar() {
 	?>
 		<p class="description">
-			<input type="checkbox" name="always_show_toolbar" id="jetpack-notes-always_show_toolbar" value="1" <?php checked( get_option( 'always_show_toolbar', 1 ) ); ?> />
+			<input type="checkbox" name="jp_notes_always_show_toolbar" id="jetpack-notes-always_show_toolbar" value="1" <?php checked( $this->always_show_toolbar ); ?> />
 			<?php _e( "Always show the Toolbar so visitors can view their notifications from your site", 'jetpack' ); ?>
 		</p>
 	<?php
