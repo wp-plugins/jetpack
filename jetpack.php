@@ -288,6 +288,7 @@ class Jetpack {
 				'activated',
 				'active_modules',
 				'do_activate',
+				'publicize',
 			);
 		}
 
@@ -295,6 +296,7 @@ class Jetpack {
 			'id',                           // (int)    The Client ID/WP.com Blog ID of this site.
 			'blog_token',                   // (string) The Client Secret/Blog Token of this site.
 			'user_token',                   // (string) The User Token of this site. (deprecated)
+			'publicize_connections',        // (array)  An array of Publicize connections from WordPress.com
 			'master_user',                  // (int)    The local User ID of the user who connected this site to jetpack.wordpress.com.
 			'user_tokens',                  // (array)  User Tokens for each user of this site who has connected to jetpack.wordpress.com.
 			'version',                      // (string) Used during upgrade procedure to auto-activate new modules. version:time
@@ -324,6 +326,26 @@ class Jetpack {
 		}
 
 		return $default;
+	}
+	
+	/**
+	* Stores two secrets and a timestamp so WordPress.com can make a request back and verify an action
+	* Does some extra verification so urls (such as those to public-api, register, etc) cant just be crafted
+	* $name must be a registered option name.
+	*/
+	function create_nonce( $name ) {
+		$secret = wp_generate_password( 32, false ) . ':' . wp_generate_password( 32, false ) . ':' . ( time() + 600 );
+		
+		Jetpack::update_option( $name, $secret );
+		@list( $secret_1, $secret_2, $eol ) = explode( ':', Jetpack::get_option( $name ) );
+		if ( empty( $secret_1 ) || empty( $secret_2 ) || $eol < time() )
+			return new Jetpack_Error( 'missing_secrets' );
+			
+		return array(
+			'secret_1' => $secret_1,
+			'secret_2' => $secret_2,
+			'eol'      => $eol,
+		);
 	}
 
 	/**
