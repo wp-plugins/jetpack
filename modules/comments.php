@@ -17,9 +17,7 @@ function jetpack_comments_load() {
 	Jetpack::enable_module_configurable( __FILE__ );
 	Jetpack::module_configuration_load( __FILE__, 'jetpack_comments_configuration_load' );
 
-	Jetpack_Sync::sync_options(
-		__FILE__,
-
+	Jetpack_Sync::sync_options( __FILE__,
 		'comment_registration',
 		'require_name_email',
 		'show_avatars',

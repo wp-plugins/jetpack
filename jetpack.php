@@ -160,13 +160,11 @@ class Jetpack {
 	 * Constructor.  Initializes WordPress hooks
 	 */
 	function Jetpack() {
-		$this->sync = new Jetpack_Sync( $this );
+		$this->sync = new Jetpack_Sync;
 
 		// Modules should do Jetpack_Sync::sync_options( __FILE__, $option, ... ); instead
 		// We access the "internal" method here only because the Jetpack object isn't instantiated yet
-		$this->sync->options(
-			__FILE__,
-
+		$this->sync->options( __FILE__,
 			'home',
 			'siteurl',
 			'blogname',
@@ -3099,10 +3097,6 @@ class Jetpack_Sync {
 
 /* Internal Methods */
 
-	function __construct( Jetpack $jetpack ) {
-		$this->jetpack = $jetpack;
-	}
-
 	/**
 	 * Create a sync object/request
 	 *
@@ -3472,7 +3466,14 @@ class Jetpack_Sync {
 		$post_obj = get_post( $id );
 		if ( !$post_obj )
 			return false;
-		$post = get_object_vars( $post_obj );
+
+		if ( is_callable( $post, 'to_array' ) ) {
+			// WP >= 3.5
+			$post = $post->to_array();
+		} else {
+			// WP < 3.5
+			$post = get_object_vars( $post_obj );
+		}
 
 		$post['has_post_password'] = 0 < strlen( $post['post_password'] );
 
