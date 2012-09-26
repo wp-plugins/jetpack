@@ -39,7 +39,7 @@ function stats_load() {
 
 	// Tell HQ about changed posts
 	Jetpack_Sync::sync_posts( __FILE__, array(
-		'include_password_protected' => true, // users want stats on their password protected posts (but Jetpack won't grab the password or content)
+		'include_password_protected' => true, // users want stats on their password protected posts (but Jetpack won't grab the password or content).  Not currently implemented.
 		'remove_fields' => array(
 			// Don't want these fields
 			'post_content',
