@@ -153,7 +153,14 @@ class Jetpack {
 			}
 		}
 
-		// Future: switch on version? If so, think twice before updating version/old_version.
+		$version = get_option( 'version' );
+		if ( $version == JETPACK__VERSION ) {
+			return;
+		}
+
+		if ( version_compare( $version, '1.8', '<' ) ) {
+			add_action( 'jetpack_modules_loaded', array( $this->sync, 'sync_all_registered_options' ), 1000 );
+		}
 	}
 
 	/**
@@ -3090,9 +3097,14 @@ class Jetpack_Client_Server {
  */
 class Jetpack_Sync {
 	var $sync_conditions = array( 'posts' => array(), 'comments' => array() );
+	var $sync_options = array();
 
 	var $sync = array();
 	var $post_transitions = array();
+
+	function __construct() {
+		add_action( 'jetpack_sync_all_registered_options', array( $this, 'sync_all_registered_options' ) );
+	}
 
 /* Static Methods for Modules */
 
@@ -3175,7 +3187,7 @@ class Jetpack_Sync {
 		// Etc.
 		unset( $this->sync[$unset_object][$id] );
 
-		error_log( "REGISTER {$object}: " . print_r( $settings, 1 ) );
+//		error_log( "REGISTER {$object}: " . print_r( $settings, 1 ) );
 		return true;
 	}
 
@@ -3729,6 +3741,7 @@ class Jetpack_Sync {
 		$file = array_shift( $options ); // $file is actually unused for options.  It's just here to make the API more parallel with the other syncs
 
 		foreach ( $options as $option ) {
+			$this->sync_options[] = $option;
 			add_action( "delete_option_{$option}", array( $this, 'deleted_option_action' ) );
 			add_action( "update_option_{$option}", array( $this, 'updated_option_action' ), 10, 2 );
 			add_action( "add_option_{$option}",    array( $this, 'added_option_action'   ), 10, 2 );
@@ -3754,6 +3767,16 @@ class Jetpack_Sync {
 
 	function added_option_action( $option, $new_value ) {
 		$this->register( 'option', $option, array( 'sync' => $new_value, 'overwrite' => true ) );
+	}
+
+	function sync_all_registered_options( $options = array() ) {
+		if ( 'jetpack_sync_all_registered_options' == current_filter() ) {
+			foreach ( $this->sync_options as $option ) {
+				$this->added_option_action( $option, get_option( $option ) );
+			}
+		} else {
+			wp_schedule_single_event( time(), 'jetpack_sync_all_registered_options', array( $this->sync_options ) );
+		}
 	}
 }
 
