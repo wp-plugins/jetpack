@@ -3089,9 +3089,8 @@ class Jetpack_Client_Server {
  * Jetpack server for remote processing/notifications/etc
  */
 class Jetpack_Sync {
-	var $jetpack;
-
 	var $sync_conditions = array( 'posts' => array(), 'comments' => array() );
+
 	var $sync = array();
 	var $post_transitions = array();
 
@@ -3129,7 +3128,7 @@ class Jetpack_Sync {
 		}
 
 		$defaults = array(
-			'raw'          => false,   // Overwrite previous sync settings?
+			'overwrite'    => false,   // Overwrite previous sync settings?
 			'sync'         => true,    // What to sync (post or comment fields, or option value)
 			'on_behalf_of' => array(), // What modules want this data
 		);
@@ -3143,19 +3142,17 @@ class Jetpack_Sync {
 		if (
 			// First time for this object
 			!isset( $this->sync[$object][$id] )
-		||
-			// raw overwrites
-			$settings['raw']
 		) {
 			// Easy: store the current settings
-
 			$this->sync[$object][$id] = $settings;
 		} else {
 			// Not as easy:  we have to manually merge the settings from previous runs for this object with the settings for this run
 
 			$this->sync[$object][$id]['on_behalf_of'] = array_unique( array_merge( $this->sync[$object][$id]['on_behalf_of'], $settings['on_behalf_of'] ) );
 
-			if ( true === $this->sync[$object][$id]['sync'] || true === $settings['sync'] ) {
+			if ( $settings['overwrite'] ) {
+				$this->sync[$object][$id]['sync'] = $settings['sync'];
+			} else if ( true === $this->sync[$object][$id]['sync'] || true === $settings['sync'] ) {
 				// We want everything
 				$this->sync[$object][$id]['sync'] = true;
 			} else {
@@ -3225,6 +3222,7 @@ class Jetpack_Sync {
 				unset( $GLOBALS['comment'] );
 				foreach ( $sync_operations as $comment_id => $settings ) {
 					$sync_data['comment'][$comment_id] = $this->get_comment( $comment_id, $settings['sync'] );
+					$sync_data['comment'][$comment_id]['on_behalf_of'] = $settings['on_behalf_of'];
 				}
 				$GLOBALS['comment'] = $global_comment;
 				unset( $global_comment );
@@ -3516,7 +3514,6 @@ class Jetpack_Sync {
 			$tax = array();
 			$taxonomies = get_object_taxonomies( $post_obj );
 			foreach ( $taxonomies as $taxonomy ) {
-				$t = get_taxonomy( $taxonomy );
 				$terms = get_object_term_cache( $post_obj->ID, $taxonomy );
 				if ( empty( $terms ) )
 					$terms = wp_get_object_terms( $post_obj->ID, $taxonomy );
@@ -3756,7 +3753,7 @@ class Jetpack_Sync {
 	}
 
 	function added_option_action( $option, $new_value ) {
-		$this->register( 'option', $option, array( 'sync' => $new_value, 'raw' => true ) );
+		$this->register( 'option', $option, array( 'sync' => $new_value, 'overwrite' => true ) );
 	}
 }
 
