@@ -57,12 +57,16 @@ function minileven_configuration_screen() {
 			<input type="submit" class="button-primary" value="<?php esc_attr_e( __( 'Save configuration', 'jetpack' ) ); ?>" />
 		</p>
 	</form>
+	<h3><?php _e( 'Mobile Apps', 'jetpack' ); ?></h3>
+	<p><?php _e( 'Take WordPress with you.', 'jetpack' ); ?></p>
+	<a href="http://wordpress.org/extend/mobile/"><img src="<?php echo plugin_dir_url( __FILE__ ); ?>/minileven/images/wp-app-devices.png" width="332" height="73" /></a>
+	<p><?php printf( __( 'We have apps for <a href="%s">iOS (iPhone, iPad, iPod Touch)</a>, <a href="%s">Android</a>, <a href="%s">BlackBerry</a>, <a href="%s">Windows Phone</a>, and <a href="%s">more</a>!', 'jetpack' ), 'http://ios.wordpress.org/', 'http://android.wordpress.org/', 'http://blackberry.wordpress.org/', 'http://windowsphone.wordpress.org/', 'http://wordpress.org/extend/mobile/' ); ?></p>
 	<?php
 }
 
 function minileven_theme_root( $theme_root ) {
 	if ( jetpack_check_mobile() ) {
-		return dirname( __FILE__ ) . '/theme';
+		return dirname( __FILE__ ) . '/minileven/theme';
 	}
 
 	return $theme_root;
@@ -72,7 +76,7 @@ add_filter( 'theme_root', 'minileven_theme_root' );
 
 function minileven_theme_root_uri( $theme_root_uri ) {
 	if ( jetpack_check_mobile() ) {
-		return plugins_url( 'minileven/theme', dirname( __FILE__ ) );
+		return plugins_url( 'modules/minileven/theme', dirname( __FILE__ ) );
 	}
 
 	return $theme_root_uri;

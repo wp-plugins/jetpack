@@ -32,8 +32,9 @@ function jetpack_subscriptions_load() {
 	) );
 
 	Jetpack_Sync::sync_comments( __FILE__, array(
-		'post_types' => array( 'post', 'page' ),
-		'post_stati' => array( 'publish' ),
+		'post_types'    => array( 'post', 'page' ),
+		'post_stati'    => array( 'publish' ),
+		'comment_stati' => array( 'approved', 'unapproved' ), // unapproved for comment notifications
 	) );
 }
 
