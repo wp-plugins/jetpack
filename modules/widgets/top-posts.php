@@ -23,7 +23,7 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 			)
 		);
 
-		$this->default_title =  __( 'Top Posts &amp; Pages' );
+		$this->default_title =  __( 'Top Posts &amp; Pages', 'jetpack' );
 
 		if ( is_active_widget( false, false, $this->id_base ) ) {
 			add_action( 'wp_print_styles', array( $this, 'enqueue_style' ) );
@@ -146,7 +146,7 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 		if ( !$posts ) {
 			if ( current_user_can( 'edit_theme_options' ) ) {
 				echo '<p>' . sprintf(
-					__( 'There are no posts to display. <a href="%s">Want more traffic?</a>' ),
+					__( 'There are no posts to display. <a href="%s">Want more traffic?</a>', 'jetpack' ),
 					'http://en.support.wordpress.com/getting-more-site-traffic/'
 				) . '</p>';
 			}
@@ -213,7 +213,7 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 		if ( false === $post_views ) {
 			$post_views = array_shift( stats_get_csv( 'post_views', "days=2&limit=10" ) );
 			unset( $post_views[0] );
-			wp_cache_add( "get_top_posts_$number", $post_views, 'stats', 1200);
+			wp_cache_add( "get_top_posts_$count", $post_views, 'stats', 1200);
 		}
 
 		if ( ! empty( $post_views ) )

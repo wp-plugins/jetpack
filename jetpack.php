@@ -5,7 +5,7 @@
  * Plugin URI: http://wordpress.org/extend/plugins/jetpack/
  * Description: Bring the power of the WordPress.com cloud to your self-hosted WordPress. Jetpack enables you to connect your blog to a WordPress.com account to use the powerful features normally only available to WordPress.com users.
  * Author: Automattic
- * Version: 1.7
+ * Version: 1.8
  * Author URI: http://jetpack.me
  * License: GPL2+
  * Text Domain: jetpack
@@ -17,7 +17,7 @@ define( 'JETPACK__API_VERSION', 1 );
 define( 'JETPACK__MINIMUM_WP_VERSION', '3.2' );
 defined( 'JETPACK_CLIENT__AUTH_LOCATION' ) or define( 'JETPACK_CLIENT__AUTH_LOCATION', 'header' );
 defined( 'JETPACK_CLIENT__HTTPS' ) or define( 'JETPACK_CLIENT__HTTPS', 'AUTO' );
-define( 'JETPACK__VERSION', '1.7' );
+define( 'JETPACK__VERSION', '1.8' );
 define( 'JETPACK__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 defined( 'JETPACK__GLOTPRESS_LOCALES_PATH' ) or define( 'JETPACK__GLOTPRESS_LOCALES_PATH', JETPACK__PLUGIN_DIR . 'locales.php' );
 
@@ -162,6 +162,8 @@ class Jetpack {
 	function Jetpack() {
 		$this->sync = new Jetpack_Sync;
 
+		require_once dirname( __FILE__ ) . '/class.jetpack-user-agent.php';
+
 		if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST && isset( $_GET['for'] ) && 'jetpack' == $_GET['for'] ) {
 			@ini_set( 'display_errors', false ); // Display errors can cause the XML to be not well formed.
 
@@ -191,6 +193,8 @@ class Jetpack {
 
 		add_action( 'jetpack_clean_nonces', array( $this, 'clean_nonces' ) );
 
+		add_filter( 'xmlrpc_blog_options', array( $this, 'xmlrpc_options' ) );
+		
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'admin_init', array( $this, 'dismiss_jetpack_notice' ) );
@@ -699,6 +703,7 @@ class Jetpack {
 			switch ( $module ) {
 			case 'comments' :
 			case 'carousel' :
+			case 'minileven':
 				continue;
 			default :
 				$return[] = $module;
@@ -1142,7 +1147,7 @@ p {
 			Jetpack::plugin_initialize();
 		}
 
-		if ( Jetpack::is_active() ) {
+		if ( !Jetpack::is_active() ) {
 			if ( 4 != Jetpack::get_option( 'activated' ) ) {
 				// Show connect notice on dashboard and plugins pages
 				add_action( 'load-index.php', array( $this, 'prepare_connect_notice' ) );
@@ -2103,7 +2108,7 @@ p {
 			</div>
 
 			<div id="jetpack-configuration" style="display:none;">
-				<p><img src="<?php echo esc_url( admin_url( 'images/wpspin_dark.gif' ) ); ?>" alt="Loading ..." /></p>
+				<p><img width="16" src="<?php echo esc_url( plugins_url( '_inc/images/wpspin_light-2x.gif', __FILE__ ) ); ?>" alt="Loading ..." /></p>
 			</div>
 		</div>
 	<?php
@@ -2585,6 +2590,21 @@ p {
 	function xmlrpc_methods( $methods ) {
 		$this->HTTP_RAW_POST_DATA = $GLOBALS['HTTP_RAW_POST_DATA'];
 		return $methods;
+	}
+	
+	function xmlrpc_options( $options ) {
+		$options['jetpack_version'] = array(
+				'desc'          => __( 'Jetpack Plugin Version' , 'jetpack'),
+				'readonly'      => true,
+				'value'         => JETPACK__VERSION,
+		);
+	
+		$options['jetpack_client_id'] = array(
+				'desc'          => __( 'The Client ID/WP.com Blog ID of this site' , 'jetpack'),
+				'readonly'      => true,
+				'value'         => $this->get_option( 'id' ),
+		);
+		return $options;
 	}
 
 	function clean_nonces( $all = false ) {
