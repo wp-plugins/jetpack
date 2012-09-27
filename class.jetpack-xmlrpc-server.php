@@ -14,18 +14,20 @@ class Jetpack_XMLRPC_Server {
 	 * user is not authenticated (->login()) then the methods are never added,
 	 * so they will get a "does not exist" error.
 	 */
-	function xmlrpc_methods() {
+	function xmlrpc_methods( $core_methods ) {
 		if ( !$user = $this->login() ) {
 			return array();
 		}
 
 		return apply_filters( 'jetpack_xmlrpc_methods', array(
 			'jetpack.testConnection'    => array( $this, 'test_connection' ),
+			'jetpack.testAPIUserCode'   => array( $this, 'test_api_user_code' ),
 			'jetpack.featuresAvailable' => array( $this, 'features_available' ),
 			'jetpack.featuresEnabled'   => array( $this, 'features_enabled' ),
 			'jetpack.getPost'           => array( $this, 'get_post' ),
 			'jetpack.getComment'        => array( $this, 'get_comment' ),  
-		) );
+			'jetpack.jsonAPI'           => array( $this, 'json_api' ),
+		), $core_methods );
 	}
 
 	/**
@@ -132,7 +134,47 @@ class Jetpack_XMLRPC_Server {
 	 * @return bool|IXR_Error
 	 */
 	function test_connection() {
-		return true;
+		return JETPACK__VERSION;
+	}
+	
+	function test_api_user_code( $args ) {
+		$client_id = (int) $args[0];
+		$user_id   = (int) $args[1];
+		$nonce     = (string) $args[2];
+		$verify    = (string) $args[3];
+
+		if ( !$client_id || !$user_id || !strlen( $nonce ) || 32 !== strlen( $verify ) ) {
+			return false;
+		}
+
+		if ( !get_user_by( 'id', $user_id ) ) {
+			return false;
+		}
+
+		error_log( "CLIENT: $client_id" );
+		error_log( "USER:   $user_id" );
+		error_log( "NONCE:  $nonce" );
+		error_log( "VERIFY: $verify" );
+
+		$jetpack_token = Jetpack_Data::get_access_token( 1 );
+
+		$api_user_code = get_user_meta( $user_id, "jetpack_json_api_$client_id", true );
+		if ( !$api_user_code ) {
+			return false;
+		}
+
+		$hmac = hash_hmac( 'md5', json_encode( (object) array(
+			'client_id' => (int) $client_id,
+			'user_id'   => (int) $user_id,
+			'nonce'     => (string) $nonce,
+			'code'      => (string) $api_user_code,
+		) ), $jetpack_token->secret );
+
+		if ( $hmac !== $verify ) {
+			return false;
+		}
+
+		return $user_id;
 	}
 
 	/**
@@ -194,5 +236,63 @@ class Jetpack_XMLRPC_Server {
 			return false;
 
 		return $comment;
+	}
+	
+	function json_api( $args = array() ) {
+		$json_api_args = $args[0];
+		$verify_api_user_args = $args[1];
+
+		$method    = $json_api_args[0];
+		$url       = $json_api_args[1];
+		$post_body = $json_api_args[2];
+		$my_id     = $json_api_args[3];
+
+		$user_id = call_user_func( array( $this, 'test_api_user_code' ), $verify_api_user_args );
+
+		/* debugging
+		error_log( "-- begin json api via jetpack debugging -- " );
+		error_log( "METHOD: $method" );
+		error_log( "URL: $url" );
+		error_log( "POST BODY: $post_body" );
+		error_log( "MY JETPACK ID: $my_id" );
+		error_log( "VERIFY_ARGS: " . print_r( $verify_api_user_args, 1 ) );
+		error_log( "VERIFIED USER_ID: " . (int) $user_id );
+		error_log( "-- end json api via jetpack debugging -- " );
+		*/
+
+		if ( !$user_id ) {
+			return false;
+		}
+
+		$old_user = wp_get_current_user();
+		wp_set_current_user( $user_id );
+
+		define( 'REST_API_REQUEST', true );
+		define( 'WPCOM_JSON_API__BASE', 'public-api.wordpress.com/rest/v1' );
+
+		// needed?
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+
+		require_once dirname( __FILE__ ) . '/class.json-api.php';
+		$api = WPCOM_JSON_API::init( $method, $url, $post_body );
+		require_once dirname( __FILE__ ) . '/class.json-api-endpoints.php';
+
+		$display_errors = ini_set( 'display_errors', 0 );
+		ob_start();
+		$content_type = $api->serve( false );
+		$output = ob_get_clean();
+		ini_set( 'display_errors', $display_errors );
+
+		$nonce = wp_generate_password( 10, false );
+		$token = Jetpack_Data::get_access_token( 1 );
+		$hmac  = hash_hmac( 'md5', $nonce . $output, $token->secret );
+
+		wp_set_current_user( isset( $old_user->ID ) ? $old_user->ID : 0 );
+
+		return array(
+			(string) $output,
+			(string) $nonce,
+			(string) $hmac,
+		);
 	}
 }

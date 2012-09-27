@@ -90,6 +90,11 @@ class Jetpack {
 	 * Jetpack_Sync object
 	 */
 	var $sync;
+	
+	/**
+	 * Verified data for JSON authorization request
+	 */
+	var $json_api_authorization_request = array();
 
 	/**
 	 * Singleton
@@ -161,7 +166,7 @@ class Jetpack {
 	 */
 	function Jetpack() {
 		$this->sync = new Jetpack_Sync;
-
+		
 		require_once dirname( __FILE__ ) . '/class.jetpack-user-agent.php';
 
 		if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST && isset( $_GET['for'] ) && 'jetpack' == $_GET['for'] ) {
@@ -189,7 +194,11 @@ class Jetpack {
 
 			// Now that no one can authenticate, and we're whitelisting all XML-RPC methods, force enable_xmlrpc on.
 			add_filter( 'pre_option_enable_xmlrpc', '__return_true' );
-		}
+		} else {
+			if ( $this->is_active() ) { 
+				add_action( 'login_form_jetpack_json_api_authorization', array( &$this, 'login_form_json_api_authorization' ) ); 
+			} 
+ 		}
 
 		add_action( 'jetpack_clean_nonces', array( $this, 'clean_nonces' ) );
 
@@ -2557,7 +2566,10 @@ p {
 			return $user;
 		}
 
-		if ( !$this->add_nonce( $_GET['timestamp'], $_GET['nonce'] ) ) {
+		$timestamp = (int) $_GET['timestamp'];
+		$nonce     = stripslashes( (string) $_GET['nonce'] );
+
+		if ( !$this->add_nonce( $timestamp, $nonce ) ) {
 			return $user;
 		}
 
@@ -2568,8 +2580,15 @@ p {
 
 	function add_nonce( $timestamp, $nonce ) {
 		global $wpdb;
+		static $nonces_used_this_request = array();
+
+		if ( isset( $nonces_used_this_request["$timestamp:$nonce"] ) ) {
+			return $nonces_used_this_request["$timestamp:$nonce"];
+		}
 
 		// This should always have gone through Jetpack_Signature::sign_request() first to check $timestamp an $nonce
+		$timestamp = (int) $timestamp;
+		$nonce     = $wpdb->escape( $nonce );
 
 		// Raw query so we can avoid races: add_option will also update
 		$show_errors = $wpdb->show_errors( false );
@@ -2580,6 +2599,9 @@ p {
 			'no'
 		) );
 		$wpdb->show_errors( $show_errors );
+
+		$nonces_used_this_request["$timestamp:$nonce"] = $return;
+
 		return $return;
 	}
 
@@ -2748,6 +2770,140 @@ p {
 		srand(); // this resets everything that relies on this, like array_rand() and shuffle()
 
 		return preg_replace( '|://[^/]+?/|', "://s$static_counter.wp.com/", $url );
+	}
+	
+/* JSON API Authorization */
+
+	/**
+	 * Handles the login action for Authorizing the JSON API
+	 */
+	function login_form_json_api_authorization() {
+		$this->verify_json_api_authorization_request();
+
+		add_action( 'wp_login', array( &$this, 'store_json_api_authorization_token' ), 10, 2 );
+
+		add_action( 'login_message', array( &$this, 'login_message_json_api_authorization' ) );
+		add_action( 'login_form', array( &$this, 'preserve_action_in_login_form_for_json_api_authorization' ) );
+		add_filter( 'site_url', array( &$this, 'post_login_form_to_signed_url' ), 10, 3 );
+	}
+
+	// Make sure the login form is POSTed to the signed URL so we can reverify the request
+	function post_login_form_to_signed_url( $url, $path, $scheme ) {
+		if ( 'wp-login.php' !== $path || 'login_post' !== $scheme ) {
+			return $url;
+		}
+
+		return "$url?{$_SERVER['QUERY_STRING']}";
+	}
+
+	// Make sure the POSTed request is handled by the same action
+	function preserve_action_in_login_form_for_json_api_authorization() {
+		echo "<input type='hidden' name='action' value='jetpack_json_api_authorization' />\n";
+	}
+
+	// If someone logs in to approve API access, store the Access Code in usermeta
+	function store_json_api_authorization_token( $user_login, $user ) {
+		add_filter( 'login_redirect', array( &$this, 'add_token_to_login_redirect_json_api_authorization' ), 10, 3 );
+		add_filter( 'allowed_redirect_hosts', array( &$this, 'allow_wpcom_public_api_domain' ) );
+		$token = wp_generate_password( 32, false );
+		update_user_meta( $user->ID, 'jetpack_json_api_' . $this->json_api_authorization_request['client_id'], $token );
+	}
+
+	// Add public-api.wordpress.com to the safe redirect whitelist - only added when someone allows API access
+	function allow_wpcom_public_api_domain( $domains ) {
+		$domains[] = 'public-api.wordpress.com';
+		return $domains;
+	}
+
+	// Add the Access Code details to the public-api.wordpress.com redirect
+	function add_token_to_login_redirect_json_api_authorization( $redirect_to, $original_redirect_to, $user ) {
+		return add_query_arg( urlencode_deep( array(
+			'jetpack-code'    => get_user_meta( $user->ID, 'jetpack_json_api_' . $this->json_api_authorization_request['client_id'], true ),
+			'jetpack-user-id' => (int) $user->ID,
+			'jetpack-state'   => $this->json_api_authorization_request['state'],
+		) ), $redirect_to );
+	}
+
+	// Verifies the request by checking the signature
+	function verify_json_api_authorization_request() {
+		require_once dirname( __FILE__ ) . '/class.jetpack-signature.php';
+
+		$token = Jetpack_Data::get_access_token( 1 );
+		if ( !$token || empty( $token->secret ) ) {
+			wp_die( __( 'You must connect your Jetpack plugin to WordPress.com to use this feature.' ) );
+		}
+
+		$die_error = __( 'Someone may be trying to trick you into giving them access to your site.  Or it could be you just encountered a bug :).  Either way, please close this window.', 'jetpack' );
+
+		$jetpack_signature =& new Jetpack_Signature( $token->secret, (int) Jetpack::get_option( 'time_diff' ) );
+		$signature = $jetpack_signature->sign_current_request( array( 'body' => null, 'method' => 'GET' ) );
+		if ( !$signature ) {
+			wp_die( $die_error );
+		} else if ( is_wp_error( $signature ) ) {
+			wp_die( $die_error );
+		} else if ( $signature !== $_GET['signature'] ) {
+			if ( is_ssl() ) {
+				// If we signed an HTTP request on the Jetpack Servers, but got redirected to HTTPS by the local blog, check the HTTP signature as well
+				$signature = $jetpack_signature->sign_current_request( array( 'scheme' => 'http', 'body' => null, 'method' => 'GET' ) );
+				if ( !$signature || is_wp_error( $signature ) || $signature !== $_GET['signature'] ) {
+					wp_die( $die_error );
+				}
+			} else {
+				wp_die( $die_error );
+			}
+		}
+
+		$timestamp = (int) $_GET['timestamp'];
+		$nonce     = stripslashes( (string) $_GET['nonce'] );
+
+		if ( !$this->add_nonce( $timestamp, $nonce ) ) {
+			// De-nonce the nonce, at least for 5 minutes.
+			// We have to reuse this nonce at least once (used the first time when the initial request is made, used a second time when the login form is POSTed)
+			$old_nonce_time = get_option( "jetpack_nonce_{$timestamp}_{$nonce}" );
+			if ( $old_nonce_time < time() - 300 ) {
+				wp_die( __( 'The authorization process expired.  Please go back and try again.' ) );
+			}
+		}
+
+		$data = json_decode( base64_decode( stripslashes( $_GET['data'] ) ) );
+		$data_filters = array(
+			'state'        => 'opaque',
+			'client_id'    => 'int',
+			'client_title' => 'string',
+			'client_image' => 'url',
+		);
+
+		foreach ( $data_filters as $key => $sanitation ) {
+			if ( !isset( $data->$key ) ) {
+				wp_die( $die_error );
+			}
+
+			switch ( $sanitation ) {
+			case 'int' :
+				$this->json_api_authorization_request[$key] = (int) $data->$key;
+				break;
+			case 'opaque' :
+				$this->json_api_authorization_request[$key] = (string) $data->$key;
+				break;
+			case 'string' :
+				$this->json_api_authorization_request[$key] = wp_kses( (string) $data->$key, array() );
+				break;
+			case 'url' :
+				$this->json_api_authorization_request[$key] = esc_url_raw( (string) $data->$key );
+				break;
+			}
+		}
+
+		if ( empty( $this->json_api_authorization_request['client_id'] ) ) {
+			wp_die( $die_error );
+		}
+	}
+
+	function login_message_json_api_authorization( $message ) {
+		return '<p class="message">' . sprintf(
+			esc_html__( '%s wants to access your site&#8217;s data.  Log in to authorize that access.' ),
+			'<strong>' . esc_html( $this->json_api_authorization_request['client_title'] ) . '</strong>'
+		) . '<img src="' . esc_url( $this->json_api_authorization_request['client_image'] ) . '" /></p>';
 	}
 }
 
