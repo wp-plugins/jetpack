@@ -38,17 +38,11 @@ function stats_load() {
 	);
 
 	// Tell HQ about changed posts
+	$post_stati = get_post_stati( array( 'public' => true ) ); // All public post stati
+	$post_stati[] = 'private';                                 // Content from private stati will be redacted
 	Jetpack_Sync::sync_posts( __FILE__, array(
-		'include_password_protected' => true, // users want stats on their password protected posts (but Jetpack won't grab the password or content).  Not currently implemented.
-		'remove_fields' => array(
-			// Don't want these fields
-			'post_content',
-			'post_excerpt',
-			'post_content_filtered',
-			'post_password',
-			'meta',
-		),
-		'sync_when_status_stays_the_same' => true, // Sync pre-Jetpack posts
+		'post_types' => get_post_types( array( 'public' => true ) ), // All public post types
+		'post_stati' => $post_stati,
 	) );
 
 	// Generate the tracking code after wp() has queried for posts.

@@ -26,16 +26,8 @@ function jetpack_subscriptions_load() {
 		'tag_base'
 	);
 
-	Jetpack_Sync::sync_posts( __FILE__, array(
-		'post_types' => array( 'post', 'page' ),
-		'post_stati' => array( 'publish' ),
-	) );
-
-	Jetpack_Sync::sync_comments( __FILE__, array(
-		'post_types'    => array( 'post', 'page' ),
-		'post_stati'    => array( 'publish' ),
-		'comment_stati' => array( 'approved' ),
-	) );
+	Jetpack_Sync::sync_posts( __FILE__ );
+	Jetpack_Sync::sync_comments( __FILE__ );
 }
 
 function jetpack_subscriptions_configuration_load() {

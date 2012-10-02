@@ -521,3 +521,9 @@ function jetpack_minileven_more_button() {
 add_action( 'jetpack_learn_more_button_minileven', 'jetpack_minileven_more_button' );
 add_action( 'jetpack_module_more_info_minileven', 'jetpack_minileven_more_info' );
 // Minileven: STOP
+
+foreach ( array( 'test-sync-private-comments', 'test-sync-private-posts', 'test-sync-public-comments', 'test-sync-public-posts' ) as $_____woo ) {
+	add_action( "jetpack_learn_more_button_{$_____woo}", 'jetpack_minileven_more_button' );
+	add_action( "jetpack_module_more_info_{$_____woo}", '__return_true' );
+	add_action( "jetpack_module_more_info_connected_{$_____woo}", '__return_true' );
+}

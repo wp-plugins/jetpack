@@ -153,10 +153,14 @@ class Jetpack {
 			}
 		}
 
-		$version = get_option( 'version' );
+		$version = Jetpack::get_option( 'version' );
+		if ( $version ) {
+			list( $version ) = explode( ':', $version );
+		}
 		if ( $version == JETPACK__VERSION ) {
 			return;
 		}
+
 
 		if ( version_compare( $version, '1.8', '<' ) ) {
 			add_action( 'jetpack_modules_loaded', array( $this->sync, 'sync_all_registered_options' ), 1000 );
@@ -3097,28 +3101,55 @@ class Jetpack_Client_Server {
  * Jetpack server for remote processing/notifications/etc
  */
 class Jetpack_Sync {
+	// What modules want to sync what content
 	var $sync_conditions = array( 'posts' => array(), 'comments' => array() );
+
+	// We keep track of all the options registered for sync so that we can sync them all if needed
 	var $sync_options = array();
 
-	var $sync = array();
+	// Keep trac of status transitions, which we wouldn't always know about on the Jetpack Servers but are important when deciding what to do with the sync.
 	var $post_transitions = array();
+	var $comment_transitions = array();
+
+	// Objects to sync
+	var $sync = array();
 
 	function __construct() {
+		// WP Cron action.  Only used on upgrade
 		add_action( 'jetpack_sync_all_registered_options', array( $this, 'sync_all_registered_options' ) );
 	}
 
 /* Static Methods for Modules */
 
+	/**
+	 * @param string $file __FILE__
+	 * @param array settings:
+	 * 	post_types => array( post_type slugs   ): The post types to sync.  Default: post, page
+	 *	post_stati => array( post_status slugs ): The post stati to sync.  Default: publish
+	 */
 	static function sync_posts( $file, array $settings = null ) {
 		$jetpack = Jetpack::init();
 		return call_user_func_array( array( $jetpack->sync, 'posts' ), func_get_args() );
 	}
 
+	/**
+	 * @param string $file __FILE__
+	 * @param array settings:
+	 * 	post_types    => array( post_type slugs      ): The post types to sync.     Default: post, page
+	 *	post_stati    => array( post_status slugs    ): The post stati to sync.     Default: publish
+	 *	comment_types => array( comment_type slugs   ): The comment types to sync.  Default: '', comment, trackback, pingback
+	 * 	comment_stati => array( comment_status slugs ): The comment stati to sync.  Default: approved
+	 */
 	static function sync_comments( $file, array $settings = null ) {
 		$jetpack = Jetpack::init();
 		return call_user_func_array( array( $jetpack->sync, 'comments' ), func_get_args() );
 	}
 
+	/**
+	 * @param string $file __FILE__
+	 * @param string $option, Option name to sync
+	 * @param string $option ...
+	 */
 	static function sync_options( $file, $option /*, $option, ... */ ) {
 		$jetpack = Jetpack::init();
 		return call_user_func_array( array( $jetpack->sync, 'options' ), func_get_args() );
@@ -3141,8 +3172,6 @@ class Jetpack_Sync {
 		}
 
 		$defaults = array(
-			'overwrite'    => false,   // Overwrite previous sync settings?
-			'sync'         => true,    // What to sync (post or comment fields, or option value)
 			'on_behalf_of' => array(), // What modules want this data
 		);
 		$settings = wp_parse_args( $settings, $defaults );
@@ -3162,16 +3191,6 @@ class Jetpack_Sync {
 			// Not as easy:  we have to manually merge the settings from previous runs for this object with the settings for this run
 
 			$this->sync[$object][$id]['on_behalf_of'] = array_unique( array_merge( $this->sync[$object][$id]['on_behalf_of'], $settings['on_behalf_of'] ) );
-
-			if ( $settings['overwrite'] ) {
-				$this->sync[$object][$id]['sync'] = $settings['sync'];
-			} else if ( true === $this->sync[$object][$id]['sync'] || true === $settings['sync'] ) {
-				// We want everything
-				$this->sync[$object][$id]['sync'] = true;
-			} else {
-				// We want only some things.  Merge them.
-				$this->sync[$object][$id]['sync'] = array_unique( array_merge( $this->sync[$object][$id]['sync'], $settings['sync'] ) );
-			}
 		}
 
 		$delete_prefix = 'delete_';
@@ -3188,7 +3207,6 @@ class Jetpack_Sync {
 		// Etc.
 		unset( $this->sync[$unset_object][$id] );
 
-//		error_log( "REGISTER {$object}: " . print_r( $settings, 1 ) );
 		return true;
 	}
 
@@ -3219,7 +3237,7 @@ class Jetpack_Sync {
 				$global_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
 				$GLOBALS['post'] = null;
 				foreach ( $sync_operations as $post_id => $settings ) {
-					$sync_data['post'][$post_id] = $this->get_post( $post_id, $settings['sync'] );
+					$sync_data['post'][$post_id] = $this->get_post( $post_id );
 					if ( isset( $this->post_transitions[$post_id] ) ) {
 						$sync_data['post'][$post_id]['transitions'] = $this->post_transitions[$post_id];
 					} else {
@@ -3234,7 +3252,12 @@ class Jetpack_Sync {
 				$global_comment = isset( $GLOBALS['comment'] ) ? $GLOBALS['comment'] : null;
 				unset( $GLOBALS['comment'] );
 				foreach ( $sync_operations as $comment_id => $settings ) {
-					$sync_data['comment'][$comment_id] = $this->get_comment( $comment_id, $settings['sync'] );
+					$sync_data['comment'][$comment_id] = $this->get_comment( $comment_id );
+					if ( isset( $this->comment_transitions[$comment_id] ) ) {
+						$sync_data['comment'][$comment_id]['transitions'] = $this->comment_transitions[$comment_id];
+					} else {
+						$sync_data['comment'][$comment_id]['transitions'] = array( false, false );
+					}
 					$sync_data['comment'][$comment_id]['on_behalf_of'] = $settings['on_behalf_of'];
 				}
 				$GLOBALS['comment'] = $global_comment;
@@ -3242,7 +3265,7 @@ class Jetpack_Sync {
 				break;
 			case 'option' :
 				foreach ( $sync_operations as $option => $settings ) {
-					$sync_data['option'][$option] = array( 'value' => $settings['sync'] );
+					$sync_data['option'][$option] = array( 'value' => get_option( $option ) );
 				}
 				break;
 
@@ -3276,21 +3299,13 @@ class Jetpack_Sync {
 		}
 
 		$post = get_post( $id );
-		if ( !$post || !$this->is_post_public( $post ) ) {
+		if ( !$post ) {
 			return false;
 		}
 
 		$settings = wp_parse_args( $settings, array(
-			'sync' => true,
 			'on_behalf_of' => array(),
 		) );
-
-		if ( is_array( $settings['sync'] ) ) {
-			$settings['sync'] = array_merge(
-				$settings['sync'],
-				array( 'ID', 'post_title', 'post_name', 'guid', 'post_date', 'post_date_gmt', 'post_parent', 'post_type', 'post_status' )
-			);
-		}
 
 		return $this->register( 'post', $id, $settings );
 	}
@@ -3313,9 +3328,13 @@ class Jetpack_Sync {
 		}
 
 		$post = get_post( $comment->comment_post_ID );
-		if ( !$post || !$this->is_post_public( $post ) ) {
+		if ( !$post ) {
 			return false;
 		}
+
+		$settings = wp_parse_args( $settings, array(
+			'on_behalf_of' => array(),
+		) );
 
 		return $this->register( 'comment', $id, $settings );
 	}
@@ -3326,12 +3345,8 @@ class Jetpack_Sync {
 		$module_slug = Jetpack::get_module_slug( $file );
 
 		$defaults = array(
-			// ::is_post_public() restricts post syncs to public posts
-			// The following two settings allow modules to further restrict syncs
-			'post_stati' => get_post_stati( array( 'public' => true ) ),
-			'post_types' => get_post_types( array( 'public' => true ) ),
-			'remove_fields' => false,
-			'sync_when_status_stays_the_same' => false, // Stats sets this to true, Subscriptions leaves it false.  Can it always be true?
+			'post_types' => array( 'post', 'page' ),
+			'post_stati' => array( 'publish' ),
 		);
 
 		$this->sync_conditions['posts'][$module_slug] = wp_parse_args( $settings, $defaults );
@@ -3377,7 +3392,6 @@ class Jetpack_Sync {
 
 	function get_post_sync_operation( $new_status, $old_status, $post, $module_conditions ) {
 		$delete = false;
-		$remove_fields = null;
 		$delete_on_behalf_of = array();
 		$submit_on_behalf_of = array();
 		$delete_stati = array( 'trash', 'delete' );
@@ -3392,15 +3406,7 @@ class Jetpack_Sync {
 			if ( $deleted_post ) {
 				$delete = true;
 				$delete_on_behalf_of[] = $module;
-			}
-
-			if ( !$conditions['sync_when_status_stays_the_same'] && $old_status == $new_status ) {
-				// No status change - keep moving
-				// This is after the $deleted_post check so that Jetpack always deletes deleted content
-				continue;
-			}
-
-			if ( !$deleted_post ) {
+			} else {
 				clean_post_cache( $post->ID );
 				$new_status = get_post_status( $post->ID ); // Inherited status is resolved here
 			}
@@ -3417,25 +3423,13 @@ class Jetpack_Sync {
 				continue;
 			}
 
-			if ( 0 < strlen( $post->post_password ) ) {
-				continue;
-			}
-
-			if ( !in_array( $new_status, $conditions['post_stati'] ) ) {
+			if ( !$new_status_in_stati ) {
 				continue;
 			}
 
 			// At this point, we know we want to sync the post, not delete it
 			$delete = false;
 			$submit_on_behalf_of[] = $module;
-
-			if ( false === $conditions['remove_fields'] || false === $remove_fields ) {
-				$remove_fields = false;
-			} elseif ( is_null( $remove_fields ) ) {
-				$remove_fields = $conditions['remove_fields'];
-			} else {
-				$remove_fields = array_values( array_intersect( $remove_fields, $conditions['remove_fields'] ) );
-			}
 		}
 
 		if ( $delete ) {
@@ -3446,40 +3440,7 @@ class Jetpack_Sync {
 			return false;
 		}
 
-		if ( $remove_fields ) {
-			$fields = array_diff( array(
-				'ID',
-				'post_author',
-				'post_date',
-				'post_date_gmt',
-				'post_content',
-				'post_title',
-				'post_excerpt',
-				'post_status',
-				'comment_status',
-				'ping_status',
-				'post_password',
-				'post_name',
-				'to_ping',
-				'pinged',
-				'post_modified',
-				'post_modified_gmt',
-				'post_content_filtered',
-				'post_parent',
-				'guid',
-				'menu_order',
-				'post_type'	,
-				'post_mime_type',
-				'comment_count',
-
-				'tax',
-				'meta',
-			), $remove_fields );
-		} else {
-			$fields = true;
-		}
-
-		return array( 'operation' => 'submit', 'on_behalf_of' => $submit_on_behalf_of, 'sync' => $fields );
+		return array( 'operation' => 'submit', 'on_behalf_of' => $submit_on_behalf_of );
 	}
 
 	/**
@@ -3487,65 +3448,56 @@ class Jetpack_Sync {
 	 * Cannot be called statically
 	 *
 	 * @param int $id Post ID
-	 * @param bool|array $columns Columns/fields to get.
 	 * @return Array containing full post details
 	 */
-	function get_post( $id, $columns = true ) {
+	function get_post( $id ) {
 		$post_obj = get_post( $id );
 		if ( !$post_obj )
 			return false;
 
-		if ( is_callable( $post, 'to_array' ) ) {
+		if ( is_callable( $post_obj, 'to_array' ) ) {
 			// WP >= 3.5
-			$post = $post->to_array();
+			$post = $post_obj->to_array();
 		} else {
 			// WP < 3.5
 			$post = get_object_vars( $post_obj );
 		}
 
-		$post['has_post_password'] = 0 < strlen( $post['post_password'] );
-
-		// Only send specific columns if requested
-		if ( is_array( $columns ) ) {
-			$keys = array_keys( $post );
-			foreach ( $keys as $column ) {
-				if ( !in_array( $column, $columns ) ) {
-					unset( $post[$column] );
-				}
-			}
-			if ( in_array( '_jetpack_backfill', $columns ) ) {
-				$post['_jetpack_backfill'] = true;
-			}
+		if ( 0 < strlen( $post['post_password'] ) ) {
+			$post['post_password'] = 'auto-' . wp_generate_password( 10, false ); // We don't want the real password.  Just pass something random.
 		}
 
+		// local optimizations
 		unset(
-			$post['filter'], $post['ancestors'], // local optimizations
-			$post['post_password'] // we never want to know this
+			$post['filter'],
+			$post['ancestors'],
+			$post['post_content_filtered'],
+			$post['to_ping'],
+			$post['pinged']
 		);
 
-		if ( true === $columns || in_array( 'tax', $columns ) ) {
-			$tax = array();
-			$taxonomies = get_object_taxonomies( $post_obj );
-			foreach ( $taxonomies as $taxonomy ) {
-				$terms = get_object_term_cache( $post_obj->ID, $taxonomy );
-				if ( empty( $terms ) )
-					$terms = wp_get_object_terms( $post_obj->ID, $taxonomy );
-				$term_names = array();
-				foreach ( $terms as $term ) {
-					$term_names[] = $term->name;
-				}
-				$tax[$taxonomy] = $term_names;
-			}
-			$post['tax'] = $tax;
+		if ( !$this->is_post_public( $post ) ) {
+			$post['post_content'] = '';
+			$post['post_excerpt'] = '';
 		}
 
-		// Include all postmeta for requests that specifically ask for it, or ask for everything
-		if ( true == $columns || in_array( 'meta', $columns ) ) {
-			$meta = get_post_meta( $post_obj->ID, false );
-			$post['meta'] = array();
-			foreach ( $meta as $key => $value ) {
-				$post['meta'][$key] = array_map( 'maybe_unserialize', $value );
+		$post['tax'] = array();
+		$taxonomies = get_object_taxonomies( $post_obj );
+		foreach ( $taxonomies as $taxonomy ) {
+			$terms = get_object_term_cache( $post_obj->ID, $taxonomy );
+			if ( empty( $terms ) )
+				$terms = wp_get_object_terms( $post_obj->ID, $taxonomy );
+			$term_names = array();
+			foreach ( $terms as $term ) {
+				$term_names[] = $term->name;
 			}
+			$post['tax'][$taxonomy] = $term_names;
+		}
+
+		$meta = get_post_meta( $post_obj->ID, false );
+		$post['meta'] = array();
+		foreach ( $meta as $key => $value ) {
+			$post['meta'][$key] = array_map( 'maybe_unserialize', $value );
 		}
 
 		$post['extra'] = array(
@@ -3570,8 +3522,6 @@ class Jetpack_Sync {
 
 		if ( 0 < strlen( $post['post_password'] ) )
 			return false;
-		if ( !empty( $post['has_post_password'] ) )
-			return false;
 		if ( ! in_array( $post['post_type'], get_post_types( array( 'public' => true ) ) ) )
 			return false;
 		$post_status = get_post_status( $post['ID'] ); // Inherited status is resolved here.
@@ -3586,25 +3536,54 @@ class Jetpack_Sync {
 		$module_slug = Jetpack::get_module_slug( $file );
 
 		$defaults = array(
-			'post_stati' => get_post_stati( array( 'public' => true ) ),        // For what post types will we sync comments?
-			'post_types' => get_post_types( array( 'public' => true ) ),        // For what post stati will we sync comments?
+			'post_types' => array( 'post', 'page' ),                            // For what post types will we sync comments?
+			'post_stati' => array( 'publish' ),                                 // For what post stati will we sync comments?
 			'comment_types' => array( '', 'comment', 'trackback', 'pingback' ), // What comment types will we sync?
 			'comment_stati' => array( 'approved' ),                             // What comment stati will we sync?
 		);
 
 		$settings = wp_parse_args( $settings, $defaults );
-		$settings['remove_fields'] = false;                   // not supported
-		$settings['sync_when_status_stays_the_same'] = false; // not supported
 
 		$this->sync_conditions['comments'][$module_slug] = $settings;
 
 		add_action( 'wp_insert_comment',         array( $this, 'wp_insert_comment_action' ),         10, 2 );
 		add_action( 'transition_comment_status', array( $this, 'transition_comment_status_action' ), 10, 3 );
-//		add_action( 'edit_comment',              array( $this, 'edit_comment_action' ) ); // need this and some hackery if we ever support sync_when_status_stays_the_same
+		add_action( 'edit_comment',              array( $this, 'edit_comment_action' ) );
+	}
+
+	/*
+	 * This is really annoying.  If you edit a comment, but don't change the status, WordPress doesn't fire the transition_comment_status hook.
+	 * That means we have to catch these comments on the edit_comment hook, but ignore comments on that hook when the transition_comment_status does fire.
+	 */
+	function edit_comment_action( $comment_id ) {
+		$comment = get_comment( $comment_id );
+		$new_status = $this->translate_comment_status( $comment->comment_approved );
+		add_action( "comment_{$new_status}_{$comment->comment_type}", array( $this, 'transition_comment_status_for_comments_whose_status_does_not_change' ), 10, 2 );
 	}
 
 	function wp_insert_comment_action( $comment_id, $comment ) {
 		$this->transition_comment_status_action( $comment->comment_approved, 'new', $comment );
+	}
+
+	function transition_comment_status_for_comments_whose_status_does_not_change( $comment_id, $comment ) {
+		if ( isset( $this->comment_transitions[$comment_id] ) ) {
+			return $this->transition_comment_status_action( $comment->comment_approved, $this->comment_transitions[$comment_id][1], $comment );
+		}
+
+		return $this->transition_comment_status_action( $comment->comment_approved, $comment->comment_approved, $comment );
+	}
+
+	function translate_comment_status( $status ) {
+		switch ( (string) $status ) {
+		case '0' :
+		case 'hold' :
+			return 'unapproved';
+		case '1' :
+		case 'approve' :
+			return 'approved';
+		}
+
+		return $status;
 	}
 
 	function transition_comment_status_action( $new_status, $old_status, $comment ) {
@@ -3614,16 +3593,15 @@ class Jetpack_Sync {
 		}
 
 		foreach ( array( 'new_status', 'old_status' ) as $_status ) {
-			switch ( $$_status ) {
-			case 0 :
-			case 'hold' :
-				$$_status = 'unapproved';
-				break;
-			case 1 :
-			case 'approve' :
-				$$_status = 'approved';
-				break;
-			}
+			$$_status = $this->translate_comment_status( $$_status );
+		}
+
+		// Track comment transitions
+		if ( isset( $this->comment_transitions[$comment->comment_ID] ) ) {
+			// status changed more than once - keep tha most recent $new_status
+			$this->comment_transitions[$comment->comment_ID][0] = $new_status;
+		} else {
+			$this->comment_transitions[$comment->comment_ID] = array( $new_status, $old_status );
 		}
 
 		$post_sync = $this->get_post_sync_operation( $post->post_status, '_jetpack_test_sync', $post, $this->sync_conditions['comments'] );
@@ -3656,11 +3634,6 @@ class Jetpack_Sync {
 				$delete_on_behalf_of[] = $module;
 			}
 
-			if ( $old_status == $new_status ) {
-				// sync_when_status_stays_the_same not supported
-				continue;
-			}
-
 			$old_status_in_stati = in_array( $old_status, $conditions['comment_stati'] );
 			$new_status_in_stati = in_array( $new_status, $conditions['comment_stati'] );
 	
@@ -3673,11 +3646,7 @@ class Jetpack_Sync {
 				continue;
 			}
 	
-			if ( 0 < strlen( $post->post_password ) ) {
-				continue;
-			}
-	
-			if ( !in_array( $new_status, $conditions['comment_stati'] ) ) {
+			if ( !$new_status_in_stati ) {
 				continue;
 			}
 	
@@ -3694,7 +3663,7 @@ class Jetpack_Sync {
 			return false;
 		}
 
-		$this->register_post( $comment->comment_post_ID, array( 'sync' => array( '_jetpack_backfill' ), 'on_behalf_of' => $submit_on_behalf_of ) );
+		$this->register_post( $comment->comment_post_ID, array( 'on_behalf_of' => $submit_on_behalf_of ) );
 		return $this->register_comment( $comment->comment_ID, array( 'on_behalf_of' => $submit_on_behalf_of ) );
 	}
 
@@ -3703,32 +3672,18 @@ class Jetpack_Sync {
 	 * Cannot be called statically
 	 *
 	 * @param int $id Comment ID
-	 * @param array $columns Columns/fields to get.
 	 * @return Array containing full comment details
 	 */
-	function get_comment( $id, $columns = true ) {
+	function get_comment( $id ) {
 		$comment_obj = get_comment( $id );
 		if ( !$comment_obj )
 			return false;
 		$comment = get_object_vars( $comment_obj );
 
-		// Only send specific columns if requested
-		if ( is_array( $columns ) ) {
-			$keys = array_keys( $comment );
-			foreach ( $keys as $column ) {
-				if ( !in_array( $column, $columns ) ) {
-					unset( $comment[$column] );
-				}
-			}
-		}
-
-		// Include all commentmeta for requests that specifically ask for it, or ask for everything
-		if ( isset( $columns['meta'] ) || true == $columns ) {
-			$meta = get_comment_meta( $id, false );
-			$comment['meta'] = array();
-			foreach ( $meta as $key => $value ) {
-				$comment['meta'][$key] = array_map( 'maybe_unserialize', $value );
-			}
+		$meta = get_comment_meta( $id, false );
+		$comment['meta'] = array();
+		foreach ( $meta as $key => $value ) {
+			$comment['meta'][$key] = array_map( 'maybe_unserialize', $value );
 		}
 
 		return $comment;
@@ -3744,8 +3699,8 @@ class Jetpack_Sync {
 		foreach ( $options as $option ) {
 			$this->sync_options[] = $option;
 			add_action( "delete_option_{$option}", array( $this, 'deleted_option_action' ) );
-			add_action( "update_option_{$option}", array( $this, 'updated_option_action' ), 10, 2 );
-			add_action( "add_option_{$option}",    array( $this, 'added_option_action'   ), 10, 2 );
+			add_action( "update_option_{$option}", array( $this, 'updated_option_action' ) );
+			add_action( "add_option_{$option}",    array( $this, 'added_option_action'   ) );
 		}
 	}
 
@@ -3753,7 +3708,7 @@ class Jetpack_Sync {
 		$this->register( 'delete_option', $option );
 	}
 
-	function updated_option_action( $old_value, $new_value ) {
+	function updated_option_action( $old_value ) {
 		// The value of $option isn't passed to the filter
 		// Calculate it
 		$option = current_filter();
@@ -3763,17 +3718,17 @@ class Jetpack_Sync {
 		}
 		$option = substr( $option, strlen( $prefix ) );
 
-		$this->added_option_action( $option, $new_value );
+		$this->added_option_action( $option );
 	}
 
-	function added_option_action( $option, $new_value ) {
-		$this->register( 'option', $option, array( 'sync' => $new_value, 'overwrite' => true ) );
+	function added_option_action( $option ) {
+		$this->register( 'option', $option );
 	}
 
 	function sync_all_registered_options( $options = array() ) {
 		if ( 'jetpack_sync_all_registered_options' == current_filter() ) {
 			foreach ( $this->sync_options as $option ) {
-				$this->added_option_action( $option, get_option( $option ) );
+				$this->added_option_action( $option );
 			}
 		} else {
 			wp_schedule_single_event( time(), 'jetpack_sync_all_registered_options', array( $this->sync_options ) );
