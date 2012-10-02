@@ -81,6 +81,7 @@ abstract class WPCOM_JSON_API_Endpoint {
 			'method'               => 'GET',
 			'path'                 => '/',
 			'force'	               => '',
+			'jp_disabled'          => false,
 			'path_labels'          => array(),
 			'request_format'       => array(),
 			'response_format'      => array(),
@@ -99,6 +100,7 @@ abstract class WPCOM_JSON_API_Endpoint {
 		$this->group       = $args['group'];
 		$this->stat        = $args['stat'];
 		$this->force	   = $args['force'];
+		$this->jp_disabled = $args['jp_disabled'];
 
 		$this->method      = $args['method'];
 		$this->path        = $args['path'];
@@ -1055,6 +1057,7 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 		'publicize_URLs' => '(array:URL) Array of Twitter and Facebook URLs published by this post.',
 		'tags'           => '(object:tag) Hash of tags (keyed by tag name) applied to the post.',
 		'categories'     => '(object:category) Hash of categories (keyed by category name) applied to the post.',
+		'attachments'	 => '(object:attachment) Hash of post attachments (keyed by attachment ID).',
 		'meta'           => '(object) Meta data',
 	);
 
@@ -1075,6 +1078,7 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 	}
 
 	function get_post_by( $field, $post_id, $context = 'display' ) {
+		global $blog_id;
 
 		if ( defined( 'GEO_LOCATION__CLASS' ) && class_exists( GEO_LOCATION__CLASS ) ) {
 			$geo = call_user_func( array( GEO_LOCATION__CLASS, 'init' ) );
@@ -1229,7 +1233,7 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 				$response[$key] = (int) $post->comment_count;
 				break;
 			case 'like_count' :
-				$response[$key] = (int) $this->api->post_like_count( compact( 'post_id', 'blog_id' ) );
+				$response[$key] = (int) $this->api->post_like_count( array( 'post_id' => $post->ID, 'blog_id' => $blog_id ) );
 				break;
 			case 'format' :
 				$response[$key] = (string) get_post_format( $post->ID );
@@ -1303,6 +1307,14 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 					if ( !empty( $category->name ) ) {
 						$response[$key][$category->name] = $this->get_taxonomy( $category->slug, 'category', $context );
 					}
+				}
+				$response[$key] = (object) $response[$key];
+				break;
+			case 'attachments':
+				$response[$key] = array();
+				$_attachments = get_posts( array( 'post_parent' => $post->ID, 'post_status' => 'inherit', 'post_type' => 'attachment' ) );
+				foreach ( $_attachments as $attachment ) {
+					$response[$key][$attachment->ID] = $this->get_attachment( $attachment );
 				}
 				$response[$key] = (object) $response[$key];
 				break;
@@ -1419,6 +1431,34 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns attachment object.
+	 *
+	 * @param $attachment attachment row
+	 *
+	 * @return (object)
+	 */
+	function get_attachment( $attachment ) {
+		$ID = $attachment->ID;
+		$guid = $attachment->guid;
+		$mime_type = $attachment->post_mime_type;
+		$metadata = wp_get_attachment_metadata( $ID );
+
+		$result = array(
+			'ID'		=> $ID,
+			'guid'		=> $guid,
+			'mime_type'	=> $mime_type,
+			'width'		=> $metadata['width'],
+			'height'	=> $metadata['height'],
+		);
+
+		if ( isset( $metadata['duration'] ) ) {
+			$result['duration'] = $metadata['duration'];
+		}
+
+		return (object) apply_filters( 'get_attachment', $result );
 	}
 }
 
