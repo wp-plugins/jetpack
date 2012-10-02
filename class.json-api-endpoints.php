@@ -851,11 +851,15 @@ EOPHP;
 				return null;
 			}
 
-			$ID          = $user->ID;
-			$email       = $user->user_email;
-			$name        = $user->display_name;
-			$URL         = $user->user_url;
-			$profile_URL = "http://en.gravatar.com/{$user->user_login}";
+			$ID    = $user->ID;
+			$email = $user->user_email;
+			$name  = $user->display_name;
+			$URL   = $user->user_url;
+			if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) {
+				$profile_URL = "http://en.gravatar.com/{$user->user_login}";
+			} else {
+				$profile_URL = 'http://en.gravatar.com/' . md5( $email );
+			}
 		}
 
 		$avatar_URL = $this->api->get_avatar_url( $email );
