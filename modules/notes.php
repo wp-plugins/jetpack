@@ -41,6 +41,7 @@ class Jetpack_Notifications {
 
 	function action_init() {
 		wp_enqueue_style( 'notes-admin-bar-rest', $this->wpcom_static_url( '/wp-content/mu-plugins/notes/admin-bar-rest.css' ), array(), '2012-05-18a' );
+		wp_enqueue_style( 'noticons', $this->wpcom_static_url( '/i/noticons/noticons.css' ), array(), '2012-10-02' );
 		wp_enqueue_script( 'spin', $this->wpcom_static_url( '/wp-includes/js/spin.js' ), array( 'jquery' ) );
 		wp_enqueue_script( 'jquery.spin', $this->wpcom_static_url( '/wp-includes/js/jquery/jquery.spin.js' ), array( 'jquery', 'spin' ) );
 		wp_enqueue_script( 'notes-postmessage', $this->wpcom_static_url( '/wp-content/js/postmessage.js' ), array(), '20120525', true );
@@ -65,10 +66,11 @@ class Jetpack_Notifications {
 
 		$wp_admin_bar->add_menu( array(
 			'id'     => 'notes',
-			'title'  => '<span id="wpnt-notes-unread-count" class="' . esc_attr( $classes ) . '">'
-					. '<img width="14px" height="14px" src="' . esc_url( $noticon ) . '" style="display: inline-block; width: 14px; height: 14px; overflow-x: hidden; overflow-y: hidden;" /></span>',
+			'title'  => '<span id="wpnt-notes-unread-count" class="' . esc_attr( $classes ) . '">
+					<span class="noticon noticon-notification" /></span>
+					</span>',
 			'meta'   => array(
-				'html'  => '<div id="wpnt-notes-panel" style="display:none"><div class="wpnt-notes-panel-header"><span class="wpnt-notes-header">' . __('Notifications') . '</span><span class="wpnt-notes-panel-link"></span></div></div>',
+				'html'  => '<div id="wpnt-notes-panel" style="display:none"><div class="wpnt-notes-panel-header"><span class="wpnt-notes-header">' . __('Notifications', 'jetpack') . '</span><span class="wpnt-notes-panel-link"></span></div></div>',
 				'class' => 'menupop',
 			),
 			'parent' => 'top-secondary',
