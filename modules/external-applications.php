@@ -30,3 +30,32 @@ function jetpack_external_applications_toggle() {
 
 add_action( 'jetpack_deactivate_module_external-applications', 'jetpack_external_applications_toggle' );
 add_action( 'jetpack_activate_module_external-applications', 'jetpack_external_applications_toggle' );
+
+function jetpack_external_applications_add_media_uplooad_xmlrpc_methods( $methods, $core_methods, $user ) {
+	if ( !$user || is_wp_error( $user ) ) {
+		return $methods;
+	}
+
+	if ( !isset( $core_methods['metaWeblog.editPost'] ) ) {
+		return $methods;
+	}
+
+	$methods['metaWeblog.newMediaObject'] = $core_methods['metaWeblog.newMediaObject'];
+	$methods['jetpack.updateAttachmentParent'] = 'jetpack_external_applications_update_attachment_parent';
+
+	return $methods;
+}
+
+function jetpack_external_applications_update_attachment_parent( $args ) {
+	// Don't use "raw".  Authentication handled by Jetpack's XML-RPC Server
+
+	$attachment_id = (int) $args[0];
+	$parent_id     = (int) $args[1];
+
+	return wp_update_post( array(
+		'ID'          => $attachment_id,
+		'post_parent' => $parent_id,
+	) );
+}
+
+add_filter( 'jetpack_xmlrpc_methods', 'jetpack_external_applications_add_media_uplooad_xmlrpc_methods', 10, 3 );
