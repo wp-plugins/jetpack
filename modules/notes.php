@@ -25,11 +25,45 @@ class Jetpack_Notifications {
 	}
 
 	function Jetpack_Notifications() {
+		$this->jetpack = Jetpack::init();
+
 		add_action( 'jetpack_modules_loaded', array( &$this, 'enable_configuration' ) );
 		add_action( 'init', array( &$this, 'action_init' ) );
 		$this->always_show_toolbar = get_option( 'jp_notes_always_show_toolbar', 1 );
 		if ( $this->always_show_toolbar )
 			add_filter( 'show_admin_bar', '__return_true' , 1000 );
+
+		Jetpack_Sync::sync_options( __FILE__,
+			'home',
+			'blogname',
+			'siteurl',
+			'permalink_structure',
+			'category_base',
+			'tag_base',
+			'comment_moderation',
+			'default_comment_status',
+			'comment_moderation',
+			'thread_comments',
+			'thread_comments_depth',
+		);
+
+		//post types that support comments
+		$filt_post_types = array();
+		foreach ( get_post_types() as $post_type ) {
+			if ( post_type_supports( $post_type, 'comments' ) ) {
+				$filt_post_types[] = $post_type;
+			}
+		}
+
+		Jetpack_Sync::sync_posts( __FILE__, array( 
+			'post_types' => $filt_post_types,
+			'post_stati' => array( 'publish' ),
+		) );
+		Jetpack_Sync::sync_comments( __FILE__, array( 
+			'post_types' => $filt_post_types,
+			'post_stati' => array( 'publish' ),
+			'comment_stati' => array( 'approve', 'approved', '1', 'hold', 'unapproved', 'unapprove', '0', 'spam', 'trash' ),
+		) );
 	}
 
 	function wpcom_static_url($file) {
@@ -159,6 +193,7 @@ class Jetpack_Notifications {
 		</p>
 	<?php
 	}
+
 }
 
 Jetpack_Notifications::init();
