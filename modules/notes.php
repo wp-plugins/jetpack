@@ -42,7 +42,6 @@ class Jetpack_Notifications {
 			'tag_base',
 			'comment_moderation',
 			'default_comment_status',
-			'comment_moderation',
 			'thread_comments',
 			'thread_comments_depth',
 		);
