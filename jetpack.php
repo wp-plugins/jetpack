@@ -3551,7 +3551,7 @@ class Jetpack_Sync {
 		$delete = false;
 		$delete_on_behalf_of = array();
 		$submit_on_behalf_of = array();
-		$delete_stati = array( 'trash', 'delete' );
+		$delete_stati = array( 'delete' );
 
 		foreach ( $module_conditions as $module => $conditions ) {
 			if ( !in_array( $post->post_type, $conditions['post_types'] ) ) {
