@@ -1,5 +1,11 @@
 <?php
 
+/*
+ * Currently, this widget depends on the Stats Module. To not load this file
+ * when the Stats Module is not active would potentially bypass Jetpack's
+ * fatal error detection on module activation, so we always load this file.
+ * Instead, we don't register the widget if the Stats Module isn't active.
+ */
 
 /**
  * Register the widget for use in Appearance -> Widgets
@@ -7,6 +13,15 @@
 add_action( 'widgets_init', 'jetpack_top_posts_widget_init' );
 
 function jetpack_top_posts_widget_init() {
+	// Currently, this widget depends on the Stats Module
+	if (
+		( !defined( 'IS_WPCOM' ) || !IS_WPCOM )
+	&&
+		!function_exists( 'stats_get_csv' )
+	) {
+		return;
+	}
+
 	register_widget( 'Jetpack_Top_Posts_Widget' );
 }
 
@@ -163,10 +178,8 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 				$image = Jetpack_PostImages::get_image( $post['post_id'], $get_image_options );
 				$post['image'] = $image['src'];
 				if ( 'blavatar' != $image['from'] && 'gravatar' != $image['from'] ) {
-					if ( false !== strpos( $post['image'], 'files.wordpress.com' ) ) {
-						$post['image'] = add_query_arg( 'w', '800', $post['image'] );
-					}
-					$post['image'] = apply_filters( 'jetpack_static_url', is_ssl() ? 'https' : 'http' . "://en.wordpress.com/imgpress?resize={$get_image_options['avatar_size']},{$get_image_options['avatar_size']}&url=" . urlencode( $post['image'] ) );
+					$size = (int) $get_image_options['avatar_size'];
+					$post['image'] = jetpack_photon_url( $post['image'], array( 'resize' => "$size,$size" ) );
 				}
 			}
 
@@ -209,17 +222,17 @@ class Jetpack_Top_Posts_Widget extends WP_Widget {
 
 	function get_by_views( $count ) {
 		global $wpdb;
-		$post_views = wp_cache_get( "get_top_posts_$count", 'stats' );
-		if ( false === $post_views ) {
-			$post_views = array_shift( stats_get_csv( 'post_views', "days=2&limit=10" ) );
-			unset( $post_views[0] );
-			wp_cache_add( "get_top_posts_$count", $post_views, 'stats', 1200);
+		$post_view_posts = stats_get_csv( 'postviews', array( 'days' => 2, 'limit' => 10 ) );
+		if ( !$post_view_posts ) {
+			return array();
 		}
 
-		if ( ! empty( $post_views ) )
-			return $this->get_posts( array_keys( $post_views ), $count );
-		else
+		$post_view_ids = array_filter( wp_list_pluck( $post_view_posts, 'post_id' ) );
+		if ( !$post_view_ids ) {
 			return array();
+		}
+
+		return $this->get_posts( $post_view_ids, $count );
 	}
 
 	function get_fallback_posts() {
