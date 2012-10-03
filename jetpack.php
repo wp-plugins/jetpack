@@ -3777,7 +3777,7 @@ class Jetpack_Sync {
 		$delete = false;
 		$delete_on_behalf_of = array();
 		$submit_on_behalf_of = array();
-		$delete_stati = array( 'trash', 'delete', 'spam' );
+		$delete_stati = array( 'delete' );
 
 		foreach ( $this->sync_conditions['comments'] as $module => $conditions ) {
 			if ( !in_array( $comment->comment_type, $conditions['comment_types'] ) ) {
