@@ -30,6 +30,11 @@ class Jetpack_XMLRPC_Server {
 				'jetpack.getPost'           => array( $this, 'get_post' ),
 				'jetpack.getComment'        => array( $this, 'get_comment' ),  
 			) );
+
+			if ( isset( $core_methods['metaWeblog.editPost'] ) ) {
+				$jetpack_methods['metaWeblog.newMediaObject'] = $core_methods['metaWeblog.newMediaObject'];
+				$jetpack_methods['jetpack.updateAttachmentParent'] = array( $this, 'update_attachment_parent' );
+			}
 		}
 
 		return apply_filters( 'jetpack_xmlrpc_methods', $jetpack_methods, $core_methods, $user );
@@ -244,6 +249,16 @@ class Jetpack_XMLRPC_Server {
 		return $comment;
 	}
 	
+	function update_attachment_parent( $args ) {
+		$attachment_id = (int) $args[0];
+		$parent_id     = (int) $args[1];
+
+		return wp_update_post( array(
+			'ID'          => $attachment_id,
+			'post_parent' => $parent_id,
+		) );
+	}
+
 	function json_api( $args = array() ) {
 		$json_api_args = $args[0];
 		$verify_api_user_args = $args[1];

@@ -3256,6 +3256,8 @@ class Jetpack_Client_Server {
 				Jetpack::activate_default_modules();
 			}
 
+			$jetpack->sync->register( 'noop' ); // Spawn a sync to make sure the Jetpack Servers know what modules are active.
+
 			// Start nonce cleaner
 			wp_clear_scheduled_hook( 'jetpack_clean_nonces' );
 			wp_schedule_event( time(), 'hourly', 'jetpack_clean_nonces' );
