@@ -19,7 +19,7 @@ function jetpack_twitter_widget_init() {
 class Jetpack_Widget_Twitter extends WP_Widget {
 
 	function __construct() {
-		parent::__construct( 'twitter', __( 'Twitter' ), array( 'classname' => 'widget_twitter', 'description' => __( 'Display your Tweets from Twitter' ) ) );
+		parent::__construct( 'twitter', __( 'Twitter', 'jetpack' ), array( 'classname' => 'widget_twitter', 'description' => __( 'Display your Tweets from Twitter', 'jetpack' ) ) );
 	}
 
 	function widget( $args, $instance ) {
@@ -28,7 +28,7 @@ class Jetpack_Widget_Twitter extends WP_Widget {
 		if ( empty( $account ) ) {
 			if ( current_user_can('edit_theme_options') ) {
 				echo $args['before_widget'];
-				echo '<p>' . sprintf( __( 'Please configure your Twitter username for the <a href="%s">Twitter Widget</a>.' ), admin_url( 'widgets.php' ) ) . '</p>';
+				echo '<p>' . sprintf( __( 'Please configure your Twitter username for the <a href="%s">Twitter Widget</a>.', 'jetpack' ), admin_url( 'widgets.php' ) ) . '</p>';
 				echo $args['after_widget'];
 			}
 
@@ -38,7 +38,7 @@ class Jetpack_Widget_Twitter extends WP_Widget {
 		$title = apply_filters( 'widget_title', $instance['title'] );
 
 		if ( empty( $title ) )
-			$title = __( 'Twitter Updates' );
+			$title = __( 'Twitter Updates', 'jetpack' );
 
 		$show = absint( $instance['show'] );  // # of Updates to show
 
@@ -58,7 +58,7 @@ class Jetpack_Widget_Twitter extends WP_Widget {
 			$before_tweet     = isset( $instance['beforetweet'] ) ? stripslashes( wp_filter_post_kses( $instance['beforetweet'] ) ) : '';
 			$before_timesince = ( isset( $instance['beforetimesince'] ) && ! empty( $instance['beforetimesince'] ) ) ? esc_html( $instance['beforetimesince'] ) : ' ';			
 
-			$this->display_tweets( $show, $tweets['data'], $hidepublicized, $before_tweet, $beforetimesince );
+			$this->display_tweets( $show, $tweets['data'], $hidepublicized, $before_tweet, $before_timesince, $account );
 
 			if ( $follow_button )
 				$this->display_follow_button( $account );
@@ -72,7 +72,7 @@ class Jetpack_Widget_Twitter extends WP_Widget {
 		do_action( 'jetpack_stats_extra', 'widgets', 'twitter' );
 	}
 
-	function display_tweets( $show, $tweets, $hidepublicized, $before_tweet, $beforetimesince ) {
+	function display_tweets( $show, $tweets, $hidepublicized, $before_tweet, $before_timesince, $account ) {
 		$tweets_out = 0;
 		?><ul class='tweets'><?php
 
@@ -87,7 +87,6 @@ class Jetpack_Widget_Twitter extends WP_Widget {
 				continue;
 
 			$tweet['text'] = esc_html( $tweet['text'] ); // escape here so that Twitter handles in Tweets don't get mangled
-			$tweet['text'] = $this->normalize_tweet_text( $tweet['text'] );
 			$tweet         = $this->expand_tco_links( $tweet );
 			$tweet['text'] = make_clickable( $tweet['text'] ); 
 
@@ -145,12 +144,6 @@ class Jetpack_Widget_Twitter extends WP_Widget {
 		return $tweet;
 	}
 
-	function normalize_tweet_text( $text ) {
-			// Hack to replace this junk from the tweets.
-			// http://www.theregister.co.uk/2011/03/31/lizamoon_mass_injection_attack/
-			return str_replace( '&lt;/title&gt;&lt;script src=http://lizamoon.com/ur.php&gt;&lt;/script&gt;', '', $text );
-	}
-
 	function fetch_twitter_user_stream( $account, $hidereplies, $show, $include_retweets ) {
 		$tweets    = get_transient( 'widget-twitter-' . $this->number );
 		$the_error = get_transient( 'widget-twitter-error-' . $this->number );
@@ -183,7 +176,7 @@ class Jetpack_Widget_Twitter extends WP_Widget {
 
 					if ( ! is_array( $tweets ) || isset( $tweets['error'] ) ) {
 						do_action( 'jetpack_bump_stats_extras', 'twitter_widget', 'request-fail-$response_code-bad-data' );
-						$the_error = '<p>' . __( 'Error: Twitter did not respond. Please wait a few minutes and refresh this page.' ) . '</p>';
+						$the_error = '<p>' . __( 'Error: Twitter did not respond. Please wait a few minutes and refresh this page.', 'jetpack' ) . '</p>';
 						$tweet_cache_expire = 300;
 						break;
 					} else {				
@@ -197,14 +190,14 @@ class Jetpack_Widget_Twitter extends WP_Widget {
 					do_action( 'jetpack_bump_stats_extras', 'twitter_widget', 'request-fail-$response_code' );
 
 					$tweets = array();
-					$the_error = '<p>' . sprintf( __( 'Error: Please make sure the Twitter account is <a href="%s">public</a>.' ), 'http://support.twitter.com/forums/10711/entries/14016' ) . '</p>';
+					$the_error = '<p>' . sprintf( __( 'Error: Please make sure the Twitter account is <a href="%s">public</a>.', 'jetpack' ), 'http://support.twitter.com/forums/10711/entries/14016' ) . '</p>';
 					$tweet_cache_expire = 300;
 					break;
 				default :  // display an error message
 					do_action( 'jetpack_bump_stats_extras', 'twitter_widget', 'request-fail-$response_code' );
 
 					$tweets = get_transient( 'widget-twitter-backup-' . $this->number );
-					$the_error = '<p>' . __( 'Error: Twitter did not respond. Please wait a few minutes and refresh this page.' ) . '</p>';
+					$the_error = '<p>' . __( 'Error: Twitter did not respond. Please wait a few minutes and refresh this page.', 'jetpack' ) . '</p>';
 					$tweet_cache_expire = 300;
 					break;
 			}
@@ -280,21 +273,21 @@ class Jetpack_Widget_Twitter extends WP_Widget {
 
 		<p>
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>">
-				<?php esc_html_e( 'Title:' )?>
+				<?php esc_html_e( 'Title:', 'jetpack' )?>
 				<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
 			</label>
 		</p>
 
 		<p>
 			<label for="<?php echo $this->get_field_id( 'account' ); ?>">
-				<?php esc_html_e( 'Twitter username:' ); ?> <a href="http://support.wordpress.com/widgets/twitter-widget/#twitter-username" target="_blank">( ? )</a>
+				<?php esc_html_e( 'Twitter username:', 'jetpack' ); ?> <a href="http://support.wordpress.com/widgets/twitter-widget/#twitter-username" target="_blank">( ? )</a>
 				<input class="widefat" id="<?php echo $this->get_field_id( 'account' ); ?>" name="<?php echo $this->get_field_name( 'account' ); ?>" type="text" value="<?php echo esc_attr( $account ); ?>" />
 			</label>
 		</p>
 
 		<p>
 			<label for="<?php echo $this->get_field_id( 'show' ); ?>">
-				<?php esc_html_e( 'Maximum number of Tweets to show:' ); ?>
+				<?php esc_html_e( 'Maximum number of Tweets to show:', 'jetpack' ); ?>
 				<select id="<?php echo $this->get_field_id( 'show' ); ?>" name="<?php echo $this->get_field_name( 'show' ); ?>">
 					<?php
 					for ( $i = 1; $i <= 20; ++$i ) :
@@ -308,34 +301,34 @@ class Jetpack_Widget_Twitter extends WP_Widget {
 		<p>
 			<label for="<?php echo $this->get_field_id( 'hidereplies' ); ?>">
 				<input id="<?php echo $this->get_field_id( 'hidereplies' );?>" class="checkbox" type="checkbox" name="<?php echo $this->get_field_name( 'hidereplies' ); ?>" <?php checked( $hidereplies, true ); ?> /> 
-				<?php esc_html_e( 'Hide replies' ); ?>
+				<?php esc_html_e( 'Hide replies', 'jetpack' ); ?>
 			</label>
 		</p>
 
 		<p>
 			<label for="<?php echo $this->get_field_id( 'hidepublicized' ); ?>">
 				<input id="<?php echo $this->get_field_id( 'hidepublicized' ); ?>" class="checkbox" type="checkbox" name="<?php echo $this->get_field_name( 'hidepublicized' ); ?>" <?php checked( $hidepublicized, true ); ?> />
- 				<?php esc_html_e( 'Hide Tweets pushed by Publicize' ); ?>
+ 				<?php esc_html_e( 'Hide Tweets pushed by Publicize', 'jetpack' ); ?>
  			</label>
  		</p>
 
 		<p>
 			<label for="<?php echo $this->get_field_id( 'includeretweets' ); ?>">
 				<input id="<?php echo $this->get_field_id( 'includeretweets' ); ?>" class="checkbox" type="checkbox" name="<?php echo $this->get_field_name( 'includeretweets' ); ?>" <?php checked( $include_retweets, true ); ?> />
-				<?php esc_html_e( 'Include retweets' ); ?>
+				<?php esc_html_e( 'Include retweets', 'jetpack' ); ?>
 			</label>
 		</p>
 
 		<p>
 			<label for="<?php echo $this->get_field_id( 'followbutton' ); ?>">
 				<input id="<?php echo $this->get_field_id( 'followbutton' ); ?>" class="checkbox" type="checkbox" name="<?php echo $this->get_field_name( 'followbutton' ); ?>" <?php checked( $follow_button, 1 ); ?> /> 
-				<?php esc_html_e( 'Display Follow Button' ); ?>
+				<?php esc_html_e( 'Display Follow Button', 'jetpack' ); ?>
 			</label>
 		</p>
 
 		<p>
 			<label for="<?php echo $this->get_field_id( 'beforetimesince' ); ?>">
-				<?php esc_html_e( 'Text to display between Tweet and timestamp:' ); ?>
+				<?php esc_html_e( 'Text to display between Tweet and timestamp:', 'jetpack' ); ?>
 				<input class="widefat" id="<?php echo $this->get_field_id( 'beforetimesince' ); ?>" name="<?php echo $this->get_field_name( 'beforetimesince' ); ?>" type="text" value="<?php echo esc_attr( $before_timesince ); ?>" />
 			</label>
 		</p>

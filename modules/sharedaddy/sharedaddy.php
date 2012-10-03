@@ -27,12 +27,12 @@ function sharing_add_meta_box() {
 }
 
 function sharing_meta_box_content( $post ) {
-	$disabled = get_post_meta( $post_id, 'sharing_disabled', true ); ?>
+	$disabled = get_post_meta( $post->ID, 'sharing_disabled', true ); ?>
 
 	<p>
 		<label for="enable_post_sharing">
 			<input type="checkbox" name="enable_post_sharing" id="enable_post_sharing" value="1" <?php checked( !$disabled ); ?>>
-			<?php _e( 'Show sharing buttons.' ); ?>
+			<?php _e( 'Show sharing buttons.' , 'jetpack'); ?>
 		</label>
 		<input type="hidden" name="sharing_status_hidden" value="1" />
 	</p>
