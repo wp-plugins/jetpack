@@ -213,7 +213,7 @@ add_filter( 'jetpack_learn_more_button_stats', 'stats_load_more_link' );
 function notes_more_info() { ?>
 	<div class="jp-info-img">
 		<a href="http://support.wordpress.com/notifications/">
-			<img class="jp-info-img" src="<?php echo plugins_url( basename( dirname( dirname( __FILE__ ) ) ) . '/_inc/images/notes.gif' ) ?>" alt="<?php esc_attr_e( 'WordPress.com Notifications', 'jetpack' ) ?>" width="300" height="144" />
+			<img class="jp-info-img" src="<?php echo plugins_url( basename( dirname( dirname( __FILE__ ) ) ) . '/_inc/images/screenshots/notes.png' ) ?>" alt="<?php esc_attr_e( 'WordPress.com Notifications', 'jetpack' ) ?>" width="300" height="150" />
 		</a>
 	</div>
 
@@ -226,7 +226,7 @@ add_action( 'jetpack_module_more_info_notes', 'notes_more_info' );
 function notes_more_info_connected() { ?>
 	<div class="jp-info-img">
 		<a href="http://support.wordpress.com/notifications/">
-			<img class="jp-info-img" src="<?php echo plugins_url( basename( dirname( dirname( __FILE__ ) ) ) . '/_inc/images/notes.gif' ) ?>" alt="<?php esc_attr_e( 'WordPress.com Notifications', 'jetpack' ) ?>" width="300" height="144" />
+			<img class="jp-info-img" src="<?php echo plugins_url( basename( dirname( dirname( __FILE__ ) ) ) . '/_inc/images/screenshots/notes.png' ) ?>" alt="<?php esc_attr_e( 'WordPress.com Notifications', 'jetpack' ) ?>" width="300" height="150" />
 		</a>
 	</div>
 
