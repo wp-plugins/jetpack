@@ -43,7 +43,7 @@ class Jetpack_Notifications {
 			'comment_moderation',
 			'default_comment_status',
 			'thread_comments',
-			'thread_comments_depth',
+			'thread_comments_depth'
 		);
 
 		//post types that support comments
