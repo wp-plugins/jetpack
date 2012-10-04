@@ -44,6 +44,28 @@ class Publicize_UI {
 						<p><a href="<?php echo esc_url( $this->publicize->globalize_url( $service_name, $id, 'unglobalize' ) ); ?>">Unglobalize</a></p>
 					<?php } 
 					
+					// the below is an example of how we would detect if we need an options popup
+					// see "temporary_options_example" in admin_page_load() for how the xml-rpc request works
+					if ( isset( $connection['connection_data']['meta']['options_responses'] ) ) {
+						$option_responses = $connection['connection_data']['meta']['options_responses'];
+						if ( is_array( $option_responses ) ) {
+							echo "Detected Options Cache - User Options Selection Should Show.";
+							
+							if ( 'tumblr' == $service_name ) {
+								$blogs = $option_responses[0]['response']['user']['blogs'];
+							
+								foreach ( $blogs as $blog ) {
+									if ( $blog['primary'] )
+										$blog_selected = parse_url( $blog['url'], PHP_URL_HOST );
+								} ?>
+								
+								<p><a href="<?php echo esc_url( $this->publicize->temporary_options_example_url( $service_name, $id, $blog_selected ) ); ?>">Example Options Set: Set Primary Blog</a></p>
+							
+								<?php
+							}		
+						}
+					}				
+					
 					// there should be checks here that only allow a user to delete their own connection
 				}
 				

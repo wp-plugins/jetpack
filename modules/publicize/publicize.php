@@ -49,13 +49,10 @@ class Publicize {
 					$xml = new Jetpack_IXR_Client();
 					$xml->query( 'jetpack.fetchPublicizeConnections' );
 					
-					if ( $xml->isError() ) {
-						// @todo error here..
+					if ( !$xml->isError() ) {
+						$response = $xml->getResponse();
+						Jetpack::update_option( 'publicize_connections', $response );
 					}
-					
-					$response = $xml->getResponse();
-					
-					Jetpack::update_option( 'publicize_connections', $response );
 				break;
 				
 				case 'delete':
@@ -68,12 +65,10 @@ class Publicize {
 					$xml = new Jetpack_IXR_Client();
 					$xml->query( 'jetpack.deletePublicizeConnection', $id );
 					
-					if ( $xml->isError() ) {
-						// @todo error here..
+					if ( !$xml->isError() ) {
+						$response = $xml->getResponse();
+						Jetpack::update_option( 'publicize_connections', $response );
 					}
-					
-					$response = $xml->getResponse();
-					Jetpack::update_option( 'publicize_connections', $response );
 				break;
 				
 				case 'globalize':
@@ -86,14 +81,33 @@ class Publicize {
 					Jetpack::load_xml_rpc_client();
 					$xml = new Jetpack_IXR_Client();
 					$xml->query( 'jetpack.globalizePublicizeConnection', $id, $_GET['action'] );
-					
-					if ( $xml->isError() ) {
-						// @todo error here..
+				
+					if ( !$xml->isError() ) {
+						$response = $xml->getResponse();
+						Jetpack::update_option( 'publicize_connections', $response );
 					}
+				break;
+				
+				case 'temporary_options_example':
+					$id = $_GET['id'];
+				
+					check_admin_referer( 'keyring-request', 'kr_nonce' );
+					check_admin_referer( "keyring-request-$service_name", 'nonce' );
 					
-					$response = $xml->getResponse();
-					Jetpack::update_option( 'publicize_connections', $response );
+					$options = array( 'tumblr_base_hostname' => $_GET['blog_selected'] );
+					
+					Jetpack::load_xml_rpc_client();
+					$xml = new Jetpack_IXR_Client();
+					$xml->query( 'jetpack.setPublicizeOptions', $id, $options );
+					
+					if ( !$xml->isError() ) {
+						$response = $xml->getResponse();
+						Jetpack::update_option( 'publicize_connections', $response );
+					}
+				break;
 			}
+			
+			
 		}
 	}
 
@@ -130,6 +144,18 @@ class Publicize {
 		return add_query_arg( array (
 			'action'   => 'refresh',
 		), menu_page_url( 'sharing', false ) );
+	}
+	
+	// just for development - should be removed before release
+	function temporary_options_example_url( $service_name, $id, $blog_selected ) {
+		return add_query_arg( array (
+			'action'        => "temporary_options_example",
+			'service'       => $service_name,
+			'id'            => $id,
+			'blog_selected' => $blog_selected,
+			'kr_nonce'      => wp_create_nonce( 'keyring-request' ),
+			'nonce'         => wp_create_nonce( "keyring-request-$service_name" ),
+		), menu_page_url( 'sharing', false ) );		
 	}
 	
 	function disconnect_url( $service_name, $id ) {
