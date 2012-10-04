@@ -93,7 +93,7 @@ class Jetpack_Notifications {
 		if ( !is_object( $wp_admin_bar ) )
 			return;
 
-		$classes = 'wpnt-loading';
+		$classes = 'wpnt-loading wpn-read';
 
 		$noticon = '//s0.wp.com/wp-content/mu-plugins/notes/images/noticon-empty.png';
 
