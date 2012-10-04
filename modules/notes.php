@@ -94,9 +94,6 @@ class Jetpack_Notifications {
 			return;
 
 		$classes = 'wpnt-loading wpn-read';
-
-		$noticon = '//s0.wp.com/wp-content/mu-plugins/notes/images/noticon-empty.png';
-
 		$wp_admin_bar->add_menu( array(
 			'id'     => 'notes',
 			'title'  => '<span id="wpnt-notes-unread-count" class="' . esc_attr( $classes ) . '">
