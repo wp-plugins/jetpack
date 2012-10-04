@@ -3286,7 +3286,8 @@ class Jetpack_Sync {
 	 */
 	static function sync_posts( $file, array $settings = null ) {
 		$jetpack = Jetpack::init();
-		return call_user_func_array( array( $jetpack->sync, 'posts' ), func_get_args() );
+		$args = func_get_args();
+		return call_user_func_array( array( $jetpack->sync, 'posts' ), $args );
 	}
 
 	/**
@@ -3299,7 +3300,8 @@ class Jetpack_Sync {
 	 */
 	static function sync_comments( $file, array $settings = null ) {
 		$jetpack = Jetpack::init();
-		return call_user_func_array( array( $jetpack->sync, 'comments' ), func_get_args() );
+		$args = func_get_args();
+		return call_user_func_array( array( $jetpack->sync, 'comments' ), $args );
 	}
 
 	/**
@@ -3309,7 +3311,8 @@ class Jetpack_Sync {
 	 */
 	static function sync_options( $file, $option /*, $option, ... */ ) {
 		$jetpack = Jetpack::init();
-		return call_user_func_array( array( $jetpack->sync, 'options' ), func_get_args() );
+		$args = func_get_args();
+		return call_user_func_array( array( $jetpack->sync, 'options' ), $args );
 	}
 
 /* Internal Methods */
