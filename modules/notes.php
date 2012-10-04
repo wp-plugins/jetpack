@@ -108,19 +108,6 @@ class Jetpack_Notifications {
 			),
 			'parent' => 'top-secondary',
 		) );
-
-		if ( !is_user_logged_in() ) {
-			$menu = array(
-				'title'  => __( 'Log In', 'jetpack' ),
-				'href'   => wp_login_url(),
-				'parent' => 'top-secondary',
-			);
-
-			$blog_name = get_bloginfo('name');
-			$menu[ 'meta' ][ 'title' ] = empty( $blog_name ) ? __( 'Log In', 'jetpack' ) : sprintf( __( 'Log In to %s', 'jetpack' ), $blog_name );
-
-			$wp_admin_bar->add_menu( $menu );
-		}
 	}
 
 	function print_js() {
