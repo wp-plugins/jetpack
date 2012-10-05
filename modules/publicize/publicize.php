@@ -177,6 +177,16 @@ class Publicize {
 			'nonce'    => wp_create_nonce( "keyring-request-$service_name" ),
 		), menu_page_url( 'sharing', false ) );
 	}
+
+	function get_services() {
+		return array(
+			'facebook' => array(),
+			'twitter'  => array(),
+			'yahoo'    => array(),
+			'tumblr'   => array(),
+			'linkedin' => array(),
+		);
+	}
 	
 }
 
