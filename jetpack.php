@@ -62,9 +62,10 @@ class Jetpack {
 
 	var $capability_translations = array(
 		'administrator' => 'manage_options',
-//		'editor' => 'edit_others_posts',
-//		'author' => 'publish_posts',
-//		'contributor' => 'edit_posts',
+		'editor' => 'edit_others_posts',
+		'author' => 'publish_posts',
+		'contributor' => 'edit_posts',
+		'subscriber' => 'read',
 	);
 
 	/**
@@ -1153,7 +1154,7 @@ p {
 			$title = __( 'Jetpack', 'jetpack' );
 		}
 
-		$hook = add_menu_page( 'Jetpack', $title, 'manage_options', 'jetpack', array( $this, 'admin_page' ), 'div' );
+		$hook = add_menu_page( 'Jetpack', $title, 'read', 'jetpack', array( $this, 'admin_page' ), 'div' );
 
 		add_action( "load-$hook", array( $this, 'admin_page_load' ) );
 
@@ -1212,19 +1213,21 @@ p {
 		) );
 
 		// Screen Content
-		$current_screen->add_help_tab( array(
-			'id'		=> 'modules',
-			'title'		=> __( 'Modules', 'jetpack' ),
-			'content'	=>
-				'<p><strong>' . __( 'Jetpack by WordPress.com',                                              'jetpack' ) . '</strong></p>' .
-				'<p>' . __( 'You can activate or deactivate individual Jetpack modules to suit your needs.', 'jetpack' ) . '</p>' .
-				'<ol>' .
-					'<li>' . __( 'Find the component you want to manage',                            'jetpack' ) . '</li>' .
-					'<li>' . __( 'Click on Learn More',                                              'jetpack' ) . '</li>' .
-					'<li>' . __( 'An Activate or Deactivate button will appear',                     'jetpack' ) . '</li>' .
-					'<li>' . __( 'If additional settings are available, a link to them will appear', 'jetpack' ) . '</li>' .
-				'</ol>'
-		) );
+		if ( current_user_can( 'manage_options' ) ) {
+			$current_screen->add_help_tab( array(
+				'id'		=> 'modules',
+				'title'		=> __( 'Modules', 'jetpack' ),
+				'content'	=>
+					'<p><strong>' . __( 'Jetpack by WordPress.com',                                              'jetpack' ) . '</strong></p>' .
+					'<p>' . __( 'You can activate or deactivate individual Jetpack modules to suit your needs.', 'jetpack' ) . '</p>' .
+					'<ol>' .
+						'<li>' . __( 'Find the component you want to manage',                            'jetpack' ) . '</li>' .
+						'<li>' . __( 'Click on Learn More',                                              'jetpack' ) . '</li>' .
+						'<li>' . __( 'An Activate or Deactivate button will appear',                     'jetpack' ) . '</li>' .
+						'<li>' . __( 'If additional settings are available, a link to them will appear', 'jetpack' ) . '</li>' .
+					'</ol>'
+			) );
+		}
 
 		// Help Sidebar
 		$current_screen->set_help_sidebar(
@@ -1273,7 +1276,7 @@ p {
 	}
 
 	function admin_head() {
-		if ( isset( $_GET['configure'] ) && Jetpack::is_module( $_GET['configure'] ) )
+		if ( isset( $_GET['configure'] ) && Jetpack::is_module( $_GET['configure'] ) && current_user_can( 'manage_options' ) )
 			do_action( 'jetpack_module_configuration_head_' . $_GET['configure'] );
 	}
 
@@ -1714,7 +1717,7 @@ p {
 			add_action( 'jetpack_notices', array( $this, 'admin_notices' ) );
 		}
 
-		if ( isset( $_GET['configure'] ) && Jetpack::is_module( $_GET['configure'] ) ) {
+		if ( isset( $_GET['configure'] ) && Jetpack::is_module( $_GET['configure'] ) && current_user_can( 'manage_options' ) ) {
 			do_action( 'jetpack_module_configuration_load_' . $_GET['configure'] );
 		}
 
@@ -1863,9 +1866,11 @@ p {
 				<div id="jp-clouds">
 					<?php if ( $is_connected ) : ?>
 					<div id="jp-disconnectors">
-					<div id="jp-disconnect" class="jp-disconnect">
-						<a href="<?php echo wp_nonce_url( Jetpack::admin_url( array( 'action' => 'disconnect' ) ), 'jetpack-disconnect' ); ?>"><div class="deftext"><?php _e( 'Connected to WordPress.com', 'jetpack' ); ?></div><div class="hovertext"><?php _e( 'Disconnect from WordPress.com', 'jetpack' ) ?></div></a>
-					</div>
+						<?php if ( current_user_can( 'manage_options' ) ) : ?>
+						<div id="jp-disconnect" class="jp-disconnect">
+							<a href="<?php echo wp_nonce_url( Jetpack::admin_url( array( 'action' => 'disconnect' ) ), 'jetpack-disconnect' ); ?>"><div class="deftext"><?php _e( 'Connected to WordPress.com', 'jetpack' ); ?></div><div class="hovertext"><?php _e( 'Disconnect from WordPress.com', 'jetpack' ) ?></div></a>
+						</div>
+						<?php endif; ?>
 						<?php if ( $is_user_connected && !$is_master_user ) : ?>
 						<div id="jp-unlink" class="jp-disconnect">
 							<a href="<?php echo wp_nonce_url( Jetpack::admin_url( array( 'action' => 'unlink' ) ), 'jetpack-unlink' ); ?>"><div class="deftext"><?php _e( 'User linked to WordPress.com', 'jetpack' ); ?></div><div class="hovertext"><?php _e( 'Unlink user from WordPress.com', 'jetpack' ) ?></div></a>
@@ -1930,7 +1935,7 @@ p {
 
 			<?php
 			// If we select the configure option for a module, show the configuration screen.
-			if ( isset( $_GET['configure'] ) && Jetpack::is_module( $_GET['configure'] ) ) :
+			if ( isset( $_GET['configure'] ) && Jetpack::is_module( $_GET['configure'] ) && current_user_can( 'manage_options' ) ) :
 				$this->admin_screen_configure_module( $_GET['configure'] );
 
 			// List all the available modules.
@@ -2045,7 +2050,7 @@ p {
 	}
 
 	function admin_screen_configure_module( $module_id ) {
-		if ( !in_array( $module_id, $this->get_active_modules() ) )
+		if ( !in_array( $module_id, $this->get_active_modules() ) || !current_user_can( 'manage_options' ) )
 			return false; ?>
 
 		<div id="jp-settings-screen" style="position: relative">
@@ -2170,17 +2175,17 @@ p {
 
 				<div class="jetpack-module-actions">
 				<?php if ( $jetpack_connected ) : ?>
-					<?php if ( !$activated ) : ?>
+					<?php if ( !$activated && current_user_can( 'manage_options' ) ) : ?>
 						<a href="<?php echo esc_url( $toggle_url ); ?>" class="jetpack-toggle-button<?php echo ( 'inactive' == $css ? ' button-primary' : ' button' ); ?>"><?php echo $toggle; ?></a>&nbsp;
 					<?php endif; ?>
 
 					<?php do_action( 'jetpack_learn_more_button_' . $module ) ?>
 
 					<?php
-					if ( apply_filters( 'jetpack_module_configurable_' . $module, false ) ) {
+					if ( current_user_can( 'manage_options' ) && apply_filters( 'jetpack_module_configurable_' . $module, false ) ) {
 						echo '<a href="' . esc_attr( Jetpack::module_configuration_url( $module ) ) . '" class="jetpack-configure-button button">' . __( 'Configure', 'jetpack' ) . '</a>';
 					}
-					?><?php if ( $activated && $module_data['deactivate'] ) : ?><a style="display: none;" href="<?php echo esc_url( $toggle_url ); ?>" class="jetpack-deactivate-button button"><?php echo $toggle; ?></a>&nbsp;<?php endif; ?>
+					?><?php if ( $activated && $module_data['deactivate'] && current_user_can( 'manage_options' ) ) : ?><a style="display: none;" href="<?php echo esc_url( $toggle_url ); ?>" class="jetpack-deactivate-button button"><?php echo $toggle; ?></a>&nbsp;<?php endif; ?>
 
 				<?php else : ?>
 					<?php do_action( 'jetpack_learn_more_button_' . $module ) ?>
