@@ -108,10 +108,15 @@ class Jetpack_Notifications {
 	}
 
 	function print_js() {
+		if ( is_user_logged_in() && !Jetpack::is_user_connected() )
+			$link_accounts_url = $this->jetpack->admin_url();
 ?>
 <script type="text/javascript">
 /* <![CDATA[ */
 	var wpNotesIsJetpackClient = true;
+<?php if ( $link_accounts_url ) : ?>
+	var wpNotesLinkAccountsURL = '<?php print $link_accounts_url; ?>';
+<?php endif; ?>
 /* ]]> */
 </script>
 <?php
