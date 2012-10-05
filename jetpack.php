@@ -1831,7 +1831,7 @@ p {
 	}
 
 	function admin_url( $args = null ) {
-		$url = menu_page_url( 'jetpack', false );
+		$url = admin_url( 'admin.php?page=jetpack' );
 		if ( is_array( $args ) )
 			$url = add_query_arg( $args, $url );
 		return $url;
