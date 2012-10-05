@@ -8,6 +8,10 @@ class Publicize {
 
 	function __construct() {
 		add_action( 'load-settings_page_sharing', array( $this, 'admin_page_load' ) );
+		add_action( 'wp_ajax_publicize_facebook_options_page', array( $this, 'options_page_facebook' ) );
+		add_action( 'wp_ajax_publicize_facebook_options_save', array( $this, 'options_save_facebook' ) );
+		add_action( 'wp_ajax_publicize_tumblr_options_page', array( $this, 'options_page_tumblr' ) );
+		add_action( 'wp_ajax_publicize_tumblr_options_save', array( $this, 'options_save_tumblr' ) );
 	}
 	
 	function admin_page_load() {
@@ -187,7 +191,212 @@ class Publicize {
 			'linkedin' => array(),
 		);
 	}
-	
-}
 
+	function options_page_facebook() {
+		$connected_services = Jetpack::get_option( 'publicize_connections' );
+		$connection = $connected_services['facebook'][$_POST['connection']];
+		$options_to_show = $connection['connection_data']['meta']['options_responses'];
+
+		// Nonce check
+		check_admin_referer( 'options_page_facebook_' . $_REQUEST['connection'] );
+		
+		$me = $options_to_show[0];
+		$pages = $options_to_show[1]['data'];
+
+		$profile_checked = true;
+		$page_selected = false;
+
+		if ( !empty( $connection['connection_data']['meta']['facebook_page'] ) && !empty( $connection['connection_data']['meta']['facebook_page_token'] ) ) {
+			$found = false;
+			if ( is_array( $pages->data ) ) {
+				foreach ( $pages->data as $page ) {
+					if ( $page->id == $connection['connection_data']['meta']['facebook_page'] ) {
+						$found = true;
+						break;
+					}
+				}
+			}
+
+			if ( $found ) {
+				$profile_checked = false;
+				$page_selected = $connection['connection_data']['meta']['facebook_page'];
+			} else {
+				// Reset page token
+				//$this->store_token( null );
+			}
+		}
+		
+		?>
+
+		<div id="thickbox-content">
+
+			<p><?php _e('Publicize to my <strong>Facebook Wall</strong>:') ?></p>
+			<table id="option-profile">
+				<tbody>
+					<tr>
+						<td class="radio"><input type="radio" name="option" id="<?php echo esc_attr( $me['id'] ) ?>" value="" <?php checked( $profile_checked, true ); ?> /></td>
+						<td class="thumbnail"><label for="<?php echo esc_attr( $me['id'] ) ?>"><img src="<?php echo esc_url( $me['picture']['data']['url'] ) ?>" width="50" height="50" /></label></td>
+						<td class="details"><label for="<?php echo esc_attr( $me['id'] ) ?>"><?php echo esc_html( $me['name'] ) ?></label></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<?php if ( $pages ) : ?>
+
+				<p><?php _e('Publicize to my <strong>Facebook Page</strong>:') ?></p>
+				<table id="option-fb-fanpage">
+					<tbody>
+
+						<?php foreach ( $pages as $i => $page ) : ?>
+							<?php if ( ! isset( $page['perms'] ) ) { continue; } ?>
+							<?php if ( ! ( $i % 2 ) ) : ?>
+								<tr>
+							<?php endif; ?>
+									<td class="radio"><input type="radio" name="option" id="<?php echo esc_attr( $page['id'] ) ?>" value="<?php echo esc_attr( $page['access_token'] ) ?>" <?php checked( $page_selected && $page_selected == $page['id'], true ); ?> /></td>
+									<td class="thumbnail"><label for="<?php echo esc_attr( $page['id'] ) ?>"><img src="<?php echo esc_url( str_replace( '_s', '_q', $page['picture']['data']['url'] ) ) ?>" width="50" height="50" /></label></td>
+									<td class="details">
+										<label for="<?php echo esc_attr( $page['id'] ) ?>">
+											<span class="name"><?php echo esc_html( $page['name'] ) ?></span><br/>
+											<span class="category"><?php echo esc_html( $page['category'] ) ?></span>
+										</label>
+									</td>
+							<?php if ( ( $i % 2 ) || ( $i == count( $pages ) - 1 ) ): ?>
+								</tr>
+							<?php endif; ?>
+						<?php endforeach; ?>
+
+					</tbody>
+				</table>
+
+			<?php endif; ?>
+
+			<p style="text-align: center;">
+				<input type="submit" value="<?php esc_attr_e('Save these settings') ?>" class="button fb-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce('save_fb_token_' . $_REQUEST['connection'] ) ?>" />
+			</p><br/>
+		</div>
+
+		<?php
+	}
+
+	function options_save_facebook() {
+		// Nonce check
+		check_admin_referer( 'save_fb_token_' . $_REQUEST['connection'] );
+
+		$id = $_POST['connection'];
+
+		// Check for a numeric page ID
+		$page_id = (int) $_POST['selected_id'];
+		if ( !ctype_digit( $page_id ) )
+			die( 'Security check' );
+
+		if ( isset( $_POST['selected_id'] ) && empty( $_POST['token'] ) ) {
+			// Publish to User Wall/Profile
+			$options = array(
+				'facebook_page'       => null,
+				'facebook_page_token' => null,
+				'facebook_profile'    => true
+			);
+
+		} else {
+			if ( !isset( $_POST['token'] ) || !isset( $_POST['selected_id'] ) ) {
+				return;
+			}
+
+			// Publish to Page
+			$page_token = $_POST['token'];
+			$page_token = urlencode( $page_token );
+			$options = array(
+				'facebook_page'       => $page_id,
+				'facebook_page_token' => $page_token,
+				'facebook_profile'    => null
+			);
+		}
+
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client();
+		$xml->query( 'jetpack.setPublicizeOptions', $id, $options );
+		
+		if ( !$xml->isError() ) {
+			$response = $xml->getResponse();
+			Jetpack::update_option( 'publicize_connections', $response );
+		}
+	}
+
+	function options_page_tumblr() {
+		// Nonce check
+		check_admin_referer( 'options_page_tumblr_' . $_REQUEST['connection'] );
+
+		$connected_services = Jetpack::get_option( 'publicize_connections' );
+		$connection = $connected_services['tumblr'][$_POST['connection']];
+		$options_to_show = $connection['connection_data']['meta']['options_responses'];
+		$request = $options_to_show[0];
+
+		$blogs = $request['response']['user']['blogs'];
+		$blog_selected = false;
+
+		if ( !empty( $connection['connection_data']['meta']['tumblr_base_hostname'] ) ) {
+			foreach ( $blogs as $blog ) {
+				if ( $connection['connection_data']['meta']['tumblr_base_hostname'] == $this->get_basehostname( $blog['url'] ) ) {
+					$blog_selected = $connection['connection_data']['meta']['tumblr_base_hostname'];
+					break;
+				}
+			}
+
+		}
+
+		// Use their Primary blog if they haven't selected one yet
+		if ( !$blog_selected ) {
+			foreach ( $blogs as $blog ) {
+				if ( $blog['primary'] )
+					$blog_selected = $this->get_basehostname( $blog['url'] );
+			}
+		} ?>
+
+		<div id="thickbox-content">
+
+			<p><?php _e('Publicize to my <strong>Tumblr blog</strong>:') ?></p>
+
+			<ul id="option-tumblr-blog">
+
+			<?php
+			foreach ( $blogs as $blog ) {
+				$url = $this->get_basehostname( $blog['url'] ); ?>
+				<li>
+					<input type="radio" name="option" id="<?php echo esc_attr( $url ) ?>" value="<?php echo esc_attr( $url ) ?>" <?php checked( $blog_selected == $url, true ); ?> />
+					<label for="<?php echo esc_attr( $url ) ?>"><span class="name"><?php echo esc_html( $blog['title'] ) ?></span></label>
+				</li>
+			<?php } ?>
+
+			</ul>
+
+			<p style="text-align: center;">
+				<input type="submit" value="<?php esc_attr_e( 'Save these settings' ) ?>" class="button tumblr-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce( 'save_tumblr_blog_' . $_REQUEST['connection'] ) ?>" />
+			</p> <br />
+		</div> 
+
+		<?php
+	}
+
+	function get_basehostname( $url ) {
+		return parse_url( $url, PHP_URL_HOST );
+	}
+
+	function options_save_tumblr() {
+		// Nonce check
+		check_admin_referer( 'save_tumblr_blog_' . $_REQUEST['connection'] );
+
+		$id = $_POST['connection'];
+		
+		$options = array( 'tumblr_base_hostname' => $_POST['selected_id'] );
+		
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client();
+		$xml->query( 'jetpack.setPublicizeOptions', $id, $options );
+		
+		if ( !$xml->isError() ) {
+			$response = $xml->getResponse();
+			Jetpack::update_option( 'publicize_connections', $response );
+		}
+	}
+}
 ?>

@@ -48,7 +48,7 @@ class Publicize_UI {
 	  		<h3 id="publicize"><?php _e( 'Publicize' ) ?></h3>
 	  		<p>
 	  			<?php esc_html_e( 'Connect your blog to popular social networking sites and automatically share new posts with your friends.' ) ?>
-	  			<?php esc_html_e( 'You can make a connection for just yourself or for all users on your blog. Shared connections are marked with the (Shared) text.' ); ?>
+	  			<?php esc_html_e( 'Click on (Share?) to make a connection available to all users on your blog. Shared connections are marked with the (Shared) text.' ); ?>
 	  		</p>
 
 	  		<div id="publicize-services-block">
@@ -71,29 +71,66 @@ class Publicize_UI {
 					  					<?php
 										foreach( $connections as $id => $connection ) :
 
-											// if ( 'facebook' == $service->get_name() && isset( $cmeta->meta['facebook_page_token'] ) ) {
-											// 	$response = $service->request( 'https://graph.facebook.com/' . $cmeta->meta['facebook_page'] );
-
-											// 	$connection_display = $response->name;
-											// 	$profile_link = $response->link;
-											// } elseif ( 'tumblr' == $service->get_name() && isset( $cmeta->meta['tumblr_base_hostname'] ) ) {
-											// 	$connection_display = $cmeta->meta['tumblr_base_hostname'];
-											// 	$profile_link = $service->get_profile_link( $c );
-											// } else {
-												// $profile_link = $service->get_profile_link( $c );
+											if ( 'facebook' == $service_name && isset( $connection['connection_data']['meta']['facebook_page_token'] ) ) {
+												$response = wp_remote_get( 'https://graph.facebook.com/' . $connection['connection_data']['meta']['facebook_page'] );
+												if ( ! is_wp_error( $response ) ) {
+													$result = json_decode( wp_remote_retrieve_body( $response ) );
+													$connection_display = $result->name;
+													$profile_link = $result->link;
+												} else {
+													$connection_display = $connection['external_name'];
+													$profile_link = '';
+												}
+											} elseif ( 'tumblr' == $service_name && isset( $connection['connection_data']['meta']['tumblr_base_hostname'] ) ) {
+												$connection_display = $connection['connection_data']['meta']['tumblr_base_hostname'];
+												$profile_link = ( false == strpos( $connection['connection_data']['meta']['tumblr_base_hostname'], 'http' ) ? 'http://' . $connection['connection_data']['meta']['tumblr_base_hostname'] : $connection['connection_data']['meta']['tumblr_base_hostname'] );
+											} elseif ( 'twitter' == $service_name ) {
+												$profile_link = 'https://twitter.com/' . $connection['external_name'];
 												$connection_display = $connection['external_display'];
 												if ( empty( $connection_display ) )
 													$connection_display = $connection['external_name'];
-											// }
+											} elseif ( 'yahoo' == $service_name ) {
+												$profile_link = 'http://profile.yahoo.com/' . $connection['external_id'];
+											} elseif ( 'linkedin' == $service_name ) {
+												$profile_link = '';
+												$connection_display = $connection['external_display'];
+												if ( empty( $connection_display ) )
+													$connection_display = $connection['external_name'];
+											}
 
+											if ( isset( $connection['connection_data']['meta']['options_responses'] ) && is_array( $connection['connection_data']['meta']['options_responses'] ) ) :
+												$options_nonce = wp_create_nonce( 'options_page_' . $service_name . '_' . $id );
+												?>
+
+												<script type="text/javascript">
+												jQuery(document).ready( function($) {
+													showOptionsPage.call(
+													this,
+													'<?php echo esc_js( $service_name ); ?>',
+													'<?php echo esc_js( $options_nonce ); ?>',
+													'<?php echo esc_js( $id ); ?>'
+													);
+												} );
+												</script>
+
+												<?php
+											endif;
 											?>
 											<li>
-												<a class="publicize-profile-link" href="<?php //echo esc_attr( $profile_link ); ?>">
+												<?php if ( !empty( $profile_link ) ) : ?>
+													<a class="publicize-profile-link" href="<?php echo esc_attr( $profile_link ); ?>">
+												<?php endif; ?>
+												
 													<?php echo esc_attr( $connection_display );?>
-												</a>
+												
+												<?php if ( !empty( $profile_link ) ) : ?>
+													</a>
+												<?php endif; ?>
 
 												<?php if ( 0 == $connection['connection_data']['user_id'] ) : ?>
 													<small>(Shared)</small>
+												<?php else: ?>
+													<small>(<a href="<?php echo esc_url( $this->publicize->globalize_url( $service_name, $id, 'globalize' ) ); ?>">Share?</a>)</small>
 												<?php endif; ?>
 												
 												<a class="pub-disconnect-button" title="<?php esc_html_e( 'Disconnect' ); ?>" href="<?php echo esc_url( $this->publicize->disconnect_url( $service_name, $id ) ); ?>">×</a>
@@ -105,7 +142,7 @@ class Publicize_UI {
 					  					?>
 					  				</ul>
 					  			<?php endif; ?>
-						  		<a id="<?php echo esc_attr( $name ); ?>" class="publicize-add-connection" href="<?php echo esc_url( $this->publicize->connect_url( $service_name ) ); ?>"><?php esc_html_e( sprintf( __( 'Add new %s connection.' ), ucwords( $service_name ) ) ); ?></a>
+						  		<a id="<?php echo esc_attr( $service_name ); ?>" class="publicize-add-connection" href="<?php echo esc_url( $this->publicize->connect_url( $service_name ) ); ?>"><?php esc_html_e( sprintf( __( 'Add new %s connection.' ), ucwords( $service_name ) ) ); ?></a>
 				  			</div>
 				  		</div>
 					<?php endforeach; ?>
