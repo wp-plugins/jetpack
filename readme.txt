@@ -1,6 +1,6 @@
 === Jetpack by WordPress.com ===
 Contributors: automattic, apeatling, beaulebens, hugobaeta, joen, mdawaffe, andy, designsimply, hew, westi, eoigal, tmoorewp, matt, pento, cfinke, daniloercoli, chellycat, gibrown, jblz
-Tags: WordPress.com, statistics, stats, views, tweets, twitter, widget, gravatar, hovercards, profile, equations, latex, math, maths, youtube, shortcode, archives, audio, blip, bliptv, dailymotion, digg, flickr, googlevideo, google, googlemaps, kyte, kytetv, livevideo, redlasso, rockyou, rss, scribd, slide, slideshare, soundcloud, vimeo, shortlinks, wp.me, subscriptions
+Tags: WordPress.com, statistics, stats, views, tweets, twitter, widget, gravatar, hovercards, profile, equations, latex, math, maths, youtube, shortcode, archives, audio, blip, bliptv, dailymotion, digg, flickr, googlevideo, google, googlemaps, kyte, kytetv, livevideo, redlasso, rockyou, rss, scribd, slide, slideshare, soundcloud, vimeo, shortlinks, wp.me, subscriptions, notifications, notes
 Requires at least: 3.2
 Tested up to: 3.4.2
 Stable tag: 1.8.2
