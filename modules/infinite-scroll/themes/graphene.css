@@ -1,0 +1,10 @@
+.infinite-scroll .infinite-wrap {
+	border-top: none;
+	padding-top: 0;
+}
+.infinite-scroll #infinite-footer {
+	z-index: 10;
+}
+.infinite-scroll.neverending .post-nav {
+	display: none;
+}

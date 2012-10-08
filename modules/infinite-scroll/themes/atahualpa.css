@@ -1,0 +1,7 @@
+.infinite-scroll .navigation-bottom {
+	display: none;
+}
+.infinite-scroll .infinite-wrap {
+	border-top: none;
+	padding-top: 0;
+}
