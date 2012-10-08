@@ -433,8 +433,8 @@ function jetpack_enhanced_distribution_more_link() {
 }
 add_action( 'jetpack_learn_more_button_enhanced-distribution', 'jetpack_enhanced_distribution_more_link' );
 
-// External Applications
-function jetpack_external_applications_more_info() { ?>
+// JSON API
+function jetpack_json_api_more_info() { ?>
 	<h4><?php esc_html_e( 'JSON API' , 'jetpack' ); ?></h4>
 
 	<p><?php esc_html_e( 'Jetpack will allow you to authorize applications and services to securely connect to your blog and allow them to use your content in new ways and offer you new functionality.', 'jetpack' ); ?></p>
@@ -442,13 +442,13 @@ function jetpack_external_applications_more_info() { ?>
 <?php
 }
 
-add_action( 'jetpack_module_more_info_external-applications', 'jetpack_external_applications_more_info' );
-add_action( 'jetpack_module_more_info_connected_external-applications', 'jetpack_external_applications_more_info' );
+add_action( 'jetpack_module_more_info_json-api', 'jetpack_json_api_more_info' );
+add_action( 'jetpack_module_more_info_connected_json-api', 'jetpack_json_api_more_info' );
 
-function jetpack_external_applications_more_link() {
+function jetpack_json_api_more_link() {
 	echo '<a class="button more-info-link" href="http://en.wordpress.com/firehose/">' . esc_html__( 'Learn More', 'jetpack' ) . '</a>';
 }
-add_action( 'jetpack_learn_more_button_external-applications', 'jetpack_external_applications_more_link' );
+add_action( 'jetpack_learn_more_button_json-api', 'jetpack_json_api_more_link' );
 
 // Contact Form: START
 function jetpack_contact_form_learn_more_button() {
