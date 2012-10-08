@@ -435,9 +435,9 @@ add_action( 'jetpack_learn_more_button_enhanced-distribution', 'jetpack_enhanced
 
 // External Applications
 function jetpack_external_applications_more_info() { ?>
-	<h4><?php esc_html_e( 'External Applications' , 'jetpack' ); ?></h4>
+	<h4><?php esc_html_e( 'JSON API' , 'jetpack' ); ?></h4>
 
-	<p><?php esc_html_e( 'Jetpack will allow you to authorize third-party services to securely connect to your blog and allow them to use your content in new ways and offer you new functionality.', 'jetpack' ); ?></p>
+	<p><?php esc_html_e( 'Jetpack will allow you to authorize applications and services to securely connect to your blog and allow them to use your content in new ways and offer you new functionality.', 'jetpack' ); ?></p>
 
 <?php
 }

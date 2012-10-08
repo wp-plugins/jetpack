@@ -1,7 +1,7 @@
 <?php
 /**
- * Module Name: External Applications
- * Module Description: Allow third-party services to securely connect to your blog to work with your data and offer you new functionality.
+ * Module Name: JSON API
+ * Module Description: Allow applications to securely access your content through the cloud.
  * Sort Order: 100
  * First Introduced: 1.9
  */
