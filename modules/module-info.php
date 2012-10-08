@@ -437,7 +437,9 @@ add_action( 'jetpack_learn_more_button_enhanced-distribution', 'jetpack_enhanced
 function jetpack_json_api_more_info() { ?>
 	<h4><?php esc_html_e( 'JSON API' , 'jetpack' ); ?></h4>
 
-	<p><?php esc_html_e( 'Jetpack will allow you to authorize applications and services to securely connect to your blog and allow them to use your content in new ways and offer you new functionality.', 'jetpack' ); ?></p>
+	<p><?php esc_html_e( 'Jetpack will allow you to authorize applications and services to securely connect to your blog and allow them to use your content in new ways and offer you new functionality.', 'jetpack' ); ?>
+
+	<p><?php _e( "Developers can use WordPress.com's <a href='http://developer.wordpress.com/docs/oauth2/'>OAuth2</a> authentication system and <a href='http://developer.wordpress.com/docs/api/'>WordPress.com REST API</a> to manage and access your site's content.", 'jetpack' ); ?></p>
 
 <?php
 }
@@ -446,7 +448,7 @@ add_action( 'jetpack_module_more_info_json-api', 'jetpack_json_api_more_info' );
 add_action( 'jetpack_module_more_info_connected_json-api', 'jetpack_json_api_more_info' );
 
 function jetpack_json_api_more_link() {
-	echo '<a class="button more-info-link" href="http://en.wordpress.com/firehose/">' . esc_html__( 'Learn More', 'jetpack' ) . '</a>';
+	echo '<a class="button more-info-link" href="http://jetpack.me/support/json-api/">' . esc_html__( 'Learn More', 'jetpack' ) . '</a>';
 }
 add_action( 'jetpack_learn_more_button_json-api', 'jetpack_json_api_more_link' );
 
