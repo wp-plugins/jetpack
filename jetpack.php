@@ -215,7 +215,7 @@ class Jetpack {
 		}
 
 		add_filter( 'xmlrpc_blog_options', array( $this, 'xmlrpc_options' ) );
-		
+
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'admin_init', array( $this, 'dismiss_jetpack_notice' ) );
@@ -1231,20 +1231,20 @@ p {
 
 	function admin_menu_css() { ?>
 		<style type="text/css" id="jetpack-menu-css">
-			#toplevel_page_jetpack .wp-menu-image { 
-				background: url( <?php echo plugins_url( basename( dirname( __FILE__ ) ) . '/_inc/images/menuicon-sprite.png' ) ?> ) 0 90% no-repeat; 
+			#toplevel_page_jetpack .wp-menu-image {
+				background: url( <?php echo plugins_url( basename( dirname( __FILE__ ) ) . '/_inc/images/menuicon-sprite.png' ) ?> ) 0 90% no-repeat;
 			}
 			/* Retina Jetpack Menu Icon */
 			@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5) {
-				#toplevel_page_jetpack .wp-menu-image { 
+				#toplevel_page_jetpack .wp-menu-image {
 					background: url( <?php echo plugins_url( basename( dirname( __FILE__ ) ) . '/_inc/images/menuicon-sprite-2x.png' ) ?> ) 0 90% no-repeat;
 					background-size:30px 64px;
 				}
 			}
-			#toplevel_page_jetpack.current .wp-menu-image, 
-			#toplevel_page_jetpack.wp-has-current-submenu .wp-menu-image, 
-			#toplevel_page_jetpack:hover .wp-menu-image { 
-				background-position: top left; 
+			#toplevel_page_jetpack.current .wp-menu-image,
+			#toplevel_page_jetpack.wp-has-current-submenu .wp-menu-image,
+			#toplevel_page_jetpack:hover .wp-menu-image {
+				background-position: top left;
 			}
 		</style><?php
 	}
@@ -1345,7 +1345,7 @@ p {
 		</div>
 		<?php
 	}
-	
+
 	function jetpack_comment_notice() {
 		if ( in_array( 'comments', Jetpack::get_active_modules() ) ) {
 			return '';
@@ -1366,7 +1366,7 @@ p {
 			}
 		}
 
-		return '<br /><br />' . sprintf( 
+		return '<br /><br />' . sprintf(
 			__( 'Jetpack now includes Jetpack Comments, which enables your visitors to use their WordPress.com, Twitter, or Facebook accounts when commenting on your site. To activate Jetpack Comments, <a href="%s">%s</a>.', 'jetpack' ),
 			wp_nonce_url(
 				Jetpack::admin_url( array(
@@ -1396,7 +1396,7 @@ p {
 	 * 4 - redirect to https://jetpack.wordpress.com/jetpack.authorize/1/
 	 * 5 - user logs in with WP.com account
 	 * 6 - redirect to this site's wp-admin/index.php?page=jetpack&action=authorize with
-	 *     code <-- OAuth2 style authorization code    
+	 *     code <-- OAuth2 style authorization code
 	 * 7 - ::admin_page_load() action=authorize
 	 * 8 - Jetpack_Client_Server::authorize()
 	 * 9 - Jetpack_Client_Server::get_token()
@@ -2475,14 +2475,14 @@ p {
 		$this->HTTP_RAW_POST_DATA = $GLOBALS['HTTP_RAW_POST_DATA'];
 		return $methods;
 	}
-	
+
 	function xmlrpc_options( $options ) {
 		$options['jetpack_version'] = array(
 				'desc'          => __( 'Jetpack Plugin Version' , 'jetpack'),
 				'readonly'      => true,
 				'value'         => JETPACK__VERSION,
 		);
-	
+
 		$options['jetpack_client_id'] = array(
 				'desc'          => __( 'The Client ID/WP.com Blog ID of this site' , 'jetpack'),
 				'readonly'      => true,
@@ -3647,7 +3647,7 @@ class Jetpack_Sync {
 
 			$old_status_in_stati = in_array( $old_status, $conditions['comment_stati'] );
 			$new_status_in_stati = in_array( $new_status, $conditions['comment_stati'] );
-	
+
 			if ( $old_status_in_stati && !$new_status_in_stati ) {
 				// Jetpack no longer needs the comment
 				if ( !$deleted_comment ) {
@@ -3656,11 +3656,11 @@ class Jetpack_Sync {
 				} // else, we've already flagged it above
 				continue;
 			}
-	
+
 			if ( !$new_status_in_stati ) {
 				continue;
 			}
-	
+
 			// At this point, we know we want to sync the comment, not delete it
 			$delete = false;
 			$submit_on_behalf_of[] = $module;
