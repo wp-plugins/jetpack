@@ -587,6 +587,7 @@ class Jetpack {
 			case 'comments' :
 			case 'carousel' :
 			case 'minileven':
+			case 'infinite-scroll' :
 				continue;
 			default :
 				$return[] = $module;
@@ -2164,7 +2165,7 @@ p {
 
 				<div class="jetpack-module-actions">
 				<?php if ( $jetpack_connected ) : ?>
-					<?php if ( !$activated ) : ?>
+					<?php if ( ! $activated && apply_filters( 'jetpack_can_activate_' . $module, true ) ) : ?>
 						<a href="<?php echo esc_url( $toggle_url ); ?>" class="jetpack-toggle-button<?php echo ( 'inactive' == $css ? ' button-primary' : ' button' ); ?>"><?php echo $toggle; ?></a>&nbsp;
 					<?php endif; ?>
 

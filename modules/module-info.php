@@ -583,4 +583,12 @@ function jetpack_infinite_scroll_more_button() {
 	echo '<a class="button more-info-link" href="#">' . __( 'Learn More', 'jetpack' ) . '</a>';
 }
 add_action( 'jetpack_learn_more_button_infinite-scroll', 'jetpack_infinite_scroll_more_button' );
+
+/**
+ *
+ */
+function jetpack_can_activate_infinite_scroll( $can_activate ) {
+	return (bool) current_theme_supports( 'infinite-scroll' );
+}
+add_filter( 'jetpack_can_activate_infinite-scroll', 'jetpack_can_activate_infinite_scroll' );
 // Infinite Scroll: STOP
