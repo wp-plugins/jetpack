@@ -1825,6 +1825,7 @@ p {
 				'scope' => $signed_role,
 				'user_email' => $user->user_email,
 				'user_login' => $user->user_login,
+				'is_active' => Jetpack::is_active(),
 			) );
 
 			$url = add_query_arg( $args, Jetpack::api_url( 'authorize' ) );
