@@ -162,10 +162,12 @@ class Jetpack_XMLRPC_Server {
 			return false;
 		}
 
+		/* debugging
 		error_log( "CLIENT: $client_id" );
 		error_log( "USER:   $user_id" );
 		error_log( "NONCE:  $nonce" );
 		error_log( "VERIFY: $verify" );
+		*/
 
 		$jetpack_token = Jetpack_Data::get_access_token( 1 );
 
