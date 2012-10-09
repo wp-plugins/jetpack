@@ -2123,6 +2123,8 @@ p {
 	}
 
 	function ajax_debug() {
+		nocache_headers();
+
 		check_ajax_referer( 'jetpack_debug' );
 
 		if ( !current_user_can( 'manage_options' ) ) {
@@ -2150,6 +2152,7 @@ p {
 			'TIME_DIFF'   => 'time_diff',
 			'VERSION'     => 'version',
 			'OLD_VERSION' => 'old_version',
+			'PUBLIC'      => 'public',
 		) as $label => $option_name ) :
 		?>
 			<li><?php echo esc_html( $label ); ?>: <code><?php echo esc_html( Jetpack::get_option( $option_name ) ); ?></code></li>
