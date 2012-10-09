@@ -5,7 +5,7 @@
  * Plugin URI: http://wordpress.org/extend/plugins/jetpack/
  * Description: Bring the power of the WordPress.com cloud to your self-hosted WordPress. Jetpack enables you to connect your blog to a WordPress.com account to use the powerful features normally only available to WordPress.com users.
  * Author: Automattic
- * Version: 1.8.1
+ * Version: 1.9-alpha
  * Author URI: http://jetpack.me
  * License: GPL2+
  * Text Domain: jetpack
@@ -17,7 +17,7 @@ define( 'JETPACK__API_VERSION', 1 );
 define( 'JETPACK__MINIMUM_WP_VERSION', '3.2' );
 defined( 'JETPACK_CLIENT__AUTH_LOCATION' ) or define( 'JETPACK_CLIENT__AUTH_LOCATION', 'header' );
 defined( 'JETPACK_CLIENT__HTTPS' ) or define( 'JETPACK_CLIENT__HTTPS', 'AUTO' );
-define( 'JETPACK__VERSION', '1.8.1' );
+define( 'JETPACK__VERSION', '1.9-alpha' );
 define( 'JETPACK__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 defined( 'JETPACK__GLOTPRESS_LOCALES_PATH' ) or define( 'JETPACK__GLOTPRESS_LOCALES_PATH', JETPACK__PLUGIN_DIR . 'locales.php' );
 
@@ -79,6 +79,12 @@ class Jetpack {
 	 * @var string
 	 */
 	var $error = '';
+
+	/**
+	 * Modules that need more privacy description.
+	 * @var string
+	 */
+	var $privacy_checks = '';
 
 	/**
 	 * Stats to record once the page loads
@@ -327,15 +333,16 @@ class Jetpack {
 		}
 
 		return array(
-			'id',                           // (int)    The Client ID/WP.com Blog ID of this site.
-			'blog_token',                   // (string) The Client Secret/Blog Token of this site.
-			'user_token',                   // (string) The User Token of this site. (deprecated)
-			'master_user',                  // (int)    The local User ID of the user who connected this site to jetpack.wordpress.com.
-			'user_tokens',                  // (array)  User Tokens for each user of this site who has connected to jetpack.wordpress.com.
-			'version',                      // (string) Used during upgrade procedure to auto-activate new modules. version:time
-			'old_version',                  // (string) Used to determine which modules are the most recently added. previous_version:time
-			'fallback_no_verify_ssl_certs', // (int)    Flag for determining if this host must skip SSL Certificate verification due to misconfigured SSL.
-			'time_diff',                    // (int)    Offset between Jetpack server's clocks and this server's clocks. Jetpack Server Time = time() + (int) Jetpack::get_option( 'time_diff' )
+			'id',                           // (int)      The Client ID/WP.com Blog ID of this site.
+			'blog_token',                   // (string)   The Client Secret/Blog Token of this site.
+			'user_token',                   // (string)   The User Token of this site. (deprecated)
+			'master_user',                  // (int)      The local User ID of the user who connected this site to jetpack.wordpress.com.
+			'user_tokens',                  // (array)    User Tokens for each user of this site who has connected to jetpack.wordpress.com.
+			'version',                      // (string)   Used during upgrade procedure to auto-activate new modules. version:time
+			'old_version',                  // (string)   Used to determine which modules are the most recently added. previous_version:time
+			'fallback_no_verify_ssl_certs', // (int)      Flag for determining if this host must skip SSL Certificate verification due to misconfigured SSL.
+			'time_diff',                    // (int)      Offset between Jetpack server's clocks and this server's clocks. Jetpack Server Time = time() + (int) Jetpack::get_option( 'time_diff' )
+			'public',                       // (int|bool) If we think this site is public or not (1, 0), false if we haven't yet tried to figure it out.
 		);
 	}
 
@@ -594,10 +601,21 @@ class Jetpack {
 		foreach ( Jetpack::get_available_modules( $min_version, $max_version ) as $module ) {
 			// Add special cases here for modules to avoid auto-activation
 			switch ( $module ) {
+
+			// These modules are default off: they change things blog-side
 			case 'comments' :
 			case 'carousel' :
 			case 'minileven':
-				continue;
+				break;
+
+			// These modules are default off if we think the site is a private one
+			case 'enhanced-distribution' :
+			case 'json-api' :
+				if ( !Jetpack::get_option( 'public' ) ) {
+					break;
+				}
+				// else no break
+			// The rest are default on
 			default :
 				$return[] = $module;
 			}
@@ -734,6 +752,8 @@ class Jetpack {
 			exit;
 		}
 
+		do_action( 'jetpack_before_activate_default_modules', $min_version, $max_version, $other_modules );
+
 		// Check each module for fatal errors, a la wp-admin/plugins.php::activate before activating
 		$redirect = menu_page_url( 'jetpack', false );
 		Jetpack::restate();
@@ -766,6 +786,7 @@ class Jetpack {
 			Jetpack::state( 'module', $module );
 			ob_start();
 			require $file;
+			do_action( "jetpack_activate_module_$module" );
 			$active[] = $module;
 			$state = in_array( $module, $other_modules ) ? 'reactivated_modules' : 'activated_modules';
 			if ( $active_state = Jetpack::state( $state ) ) {
@@ -781,6 +802,7 @@ class Jetpack {
 		Jetpack::state( 'error', false );
 		Jetpack::state( 'module', false );
 		Jetpack::catch_errors( false );
+		do_action( 'jetpack_activate_default_modules', $min_version, $max_version, $other_modules );
 	}
 
 	function activate_module( $module ) {
@@ -1402,7 +1424,7 @@ p {
 	 *       xmlrpc.php?for=jetpack: RPC method: jetpack.verifyRegistration, Parameters: secret_1
 	 *     - The XML-RPC request verifies secret_1, deletes both secrets and responds with: secret_2
 	 *     - https://jetpack.wordpress.com/jetpack.register/1/ verifies that XML-RPC response (secret_2) then finally responds itself with
-	 *       jetpack_id, jetpack_secret
+	 *       jetpack_id, jetpack_secret, jetpack_public
 	 *     - ::register() then stores jetpack_options: id => jetpack_id, blog_token => jetpack_secret
 	 * 4 - redirect to https://jetpack.wordpress.com/jetpack.authorize/1/
 	 * 5 - user logs in with WP.com account
@@ -1478,11 +1500,13 @@ p {
 				wp_safe_redirect( Jetpack::admin_url() );
 				exit;
 			case 'deactivate' :
-				$module = stripslashes( $_GET['module'] );
-				check_admin_referer( "jetpack_deactivate-$module" );
-				Jetpack::deactivate_module( $module );
-				Jetpack::state( 'message', 'module_deactivated' );
-				Jetpack::state( 'module', $module );
+				$modules = stripslashes( $_GET['module'] );
+				check_admin_referer( "jetpack_deactivate-$modules" );
+				foreach ( explode( ',', $modules ) as $module ) {
+					Jetpack::deactivate_module( $module );
+					Jetpack::state( 'message', 'module_deactivated' );
+				}
+				Jetpack::state( 'module', $modules );
 				wp_safe_redirect( Jetpack::admin_url() );
 				exit;
 			case 'unlink' :
@@ -1648,10 +1672,35 @@ p {
 			break;
 
 		case 'module_deactivated' :
-			if ( $module = Jetpack::get_module( Jetpack::state( 'module' ) ) ) {
-				$this->message = sprintf( __( '<strong>%s Deactivated!</strong> You can activate it again at any time using the activate button on the module card.', 'jetpack' ), $module['name']  );
-				$this->stat( 'module-deactivated', Jetpack::state( 'module' ) );
+			$modules = Jetpack::state( 'module' );
+			if ( !$modules ) {
+				break;
 			}
+
+			$module_names = array();
+			foreach ( explode( ',', $modules ) as $module_slug ) {
+				$module = Jetpack::get_module( $module_slug );
+				if ( $module ) {
+					$module_names[] = $module['name'];
+				}
+
+				$this->stat( 'module-deactivated', $module_slug );
+			}
+
+			if ( !$module_names ) {
+				break;
+			}
+
+			$this->message = wp_sprintf(
+				_nx(
+					'<strong>%l Deactivated!</strong> You can activate it again at any time using the activate button on the module card.',
+					'<strong>%l Deactivated!</strong> You can activate them again at any time using the activate buttons on their module cards.',
+					count( $module_names ),
+					'%l = list of Jetpack module/feature names',
+					'jetpack'
+				),
+				$module_names
+			);
 			break;
 
 		case 'module_configured' :
@@ -1716,7 +1765,9 @@ p {
 			}
 		}
 
-		if ( $this->message || $this->error ) {
+		$this->privacy_checks = Jetpack::state( 'privacy_checks' );
+
+		if ( $this->message || $this->error || $this->privacy_checks ) {
 			add_action( 'jetpack_notices', array( $this, 'admin_notices' ) );
 		}
 
@@ -1750,7 +1801,64 @@ p {
 	</div>
 </div>
 <?php
+
 		}
+
+		if ( $this->privacy_checks ) :
+			$module_names = $module_slugs = array();
+
+			$privacy_checks = explode( ',', $this->privacy_checks );
+			foreach ( $privacy_checks as $module_slug ) {
+				$module = Jetpack::get_module( $module_slug );
+				if ( !$module ) {
+					continue;
+				}
+
+				$module_slugs[] = $module_slug;
+				$module_names[] = "<strong>{$module['name']}</strong>";
+			}
+
+			$module_slugs = join( ',', $module_slugs );
+?>
+<div id="message" class="jetpack-message jetpack-err">
+	<div class="squeezer">
+		<h4><strong><?php esc_html_e( 'Is this site private?', 'jetpack' ); ?></strong></h4><br />
+		<p><?php
+			echo wp_kses( wptexturize( wp_sprintf(
+				_nx(
+					"Like your site's RSS feeds, %l allows access to your posts and other content to third parties.", 
+					"Like your site's RSS feeds, %l allow access to your posts and other content to third parties.",
+					count( $privacy_checks ),
+					'%l = list of Jetpack module/feature names',
+					'jetpack'
+				),
+				$module_names
+			) ), array( 'strong' => true ) );
+
+			echo "\n<br />\n";
+
+			echo wp_kses( sprintf(
+				_nx(
+					'If your site is not publicly accessible, consider <a href="%1$s" title="%2$s">deactivating this feature</a>.',
+					'If your site is not publicly accessible, consider <a href="%1$s" title="%2$s">deactivating these features</a>.',
+					count( $privacy_checks ),
+					'%1$s = deactivation URL, %2$s = "Deactivate {list of Jetpack module/feature names}',
+					'jetpack'
+				),
+				wp_nonce_url(
+					Jetpack::admin_url( array(
+						'action' => 'deactivate',
+						'module' => urlencode( $module_slugs ),
+					) ),
+					"jetpack_deactivate-$module_slugs"
+                                ),
+				esc_attr( wp_kses( wp_sprintf( _x( 'Deactivate %l', '%l = list of Jetpack module/feature names', 'jetpack' ), $module_names ), array() ) )
+			), array( 'a' => array( 'href' => true, 'title' => true ) ) );
+		?></p>
+	</div>
+</div>
+<?php
+		endif;
 	}
 
 	/**
@@ -2391,9 +2499,16 @@ p {
 		if ( empty( $json->jetpack_secret ) || !is_string( $json->jetpack_secret ) )
 			return new Jetpack_Error( 'jetpack_secret', '', $code );
 
+		if ( isset( $json->jetpack_public ) ) {
+			$jetpack_public = (int) $json->jetpack_public;
+		} else {
+			$jetpack_public = false;
+		}
+
 		Jetpack::update_options( array(
 			'id'         => (int)    $json->jetpack_id,
 			'blog_token' => (string) $json->jetpack_secret,
+			'public'     => $jetpack_public,
 		) );
 
 		return true;
@@ -2606,6 +2721,42 @@ p {
 	 */
 	function restate() {
 		Jetpack::state( null, null, true );
+	}
+
+	static function check_privacy( $file ) {
+		static $is_site_publicly_accessible = null;
+
+		if ( is_null( $is_site_publicly_accessible ) ) {
+			$is_site_publicly_accessible = false;
+
+			Jetpack::load_xml_rpc_client();
+			$rpc = new Jetpack_IXR_Client();
+
+			$success = $rpc->query( 'jetpack.isSitePubliclyAccessible', home_url() );
+			if ( $success ) {
+				$response = $rpc->getResponse();
+				if ( $response ) {
+					$is_site_publicly_accessible = true;
+				}
+			}
+
+			Jetpack::update_option( 'public', (int) $is_site_publicly_accessible );
+		}
+
+		if ( $is_site_publicly_accessible ) {
+			return;
+		}
+
+		$module_slug = self::get_module_slug( $file );
+
+		$privacy_checks = Jetpack::state( 'privacy_checks' );
+		if ( !$privacy_checks ) {
+			$privacy_checks = $module_slug;
+		} else {
+			$privacy_checks .= ",$module_slug";
+		}
+
+		Jetpack::state( 'privacy_checks', $privacy_checks );
 	}
 
 	/**
