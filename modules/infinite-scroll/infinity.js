@@ -18,6 +18,7 @@ Scroller = function( settings ) {
 	this.ready    = true;
 	this.disabled = false;
 	this.page     = 1;
+	this.order    = settings.order;
 	this.throttle = false;
 	this.handle   = '<div id="infinite-handle"><span>' + text + '</span></div>';
 	this.footer   = $( '#infinite-footer' );
@@ -93,7 +94,8 @@ Scroller.prototype.render = function( response ) {
  */
 Scroller.prototype.query = function() {
 	return {
-		page: this.page
+		page:  this.page,
+		order: this.order
 	};
 };
 

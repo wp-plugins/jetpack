@@ -254,7 +254,7 @@ class The_Neverending_Home_Page {
 		add_filter( 'body_class', array( $this, 'body_class' ) );
 
 		// Add our scripts.
-		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), '20121002' );
+		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), '20121004' );
 
 		// Add our default styles.
 		wp_enqueue_style( 'the-neverending-homepage', plugins_url( 'infinity.css', __FILE__ ), array(), '20120612' );
@@ -316,13 +316,21 @@ class The_Neverending_Home_Page {
 
 	/**
 	 * Create a where clause that will make sure post queries
-	 * will always return results prior to the last post date.
+	 * will always return results prior to (descending sort)
+	 * or before (ascending sort) the last post date.
+	 *
+	 * @param string $where
+	 * @param object $query
+	 * @filter posts_where
+	 * @return string
 	 */
-	function query_time_filter( $where ) {
+	function query_time_filter( $where, $query ) {
 		global $wpdb;
 
+		$operator = 'ASC' == $query->get( 'order' ) ? '>' : '<';
+
 		// Construct the date query using our timestamp
-		$where .= $wpdb->prepare( ' AND post_date_gmt < %s', self::set_last_post_time() );
+		$where .= $wpdb->prepare( " AND post_date_gmt {$operator} %s", self::set_last_post_time() );
 
 		return $where;
 	}
@@ -390,9 +398,14 @@ class The_Neverending_Home_Page {
 
 	/**
 	 * Prints the relevant infinite scroll settings in JS.
+	 *
+	 * @uses self::get_settings, esc_js, esc_url_raw, self::has_wrapper, __, apply_filters, do_action
+	 * @action wp_head
+	 * @return string
 	 */
 	function action_wp_head() {
-		$js_settings = apply_filters( 'infinite_scroll_js_settings', array(
+		// Base JS settings
+		$js_settings = array(
 			'id'            => self::get_settings()->container,
 			'ajaxurl'       => esc_js( esc_url_raw( self::ajax_url() ) ),
 			'type'          => self::get_settings()->type,
@@ -400,7 +413,18 @@ class The_Neverending_Home_Page {
 			'wrapper_class' => is_string( self::get_settings()->wrapper ) ? self::get_settings()->wrapper : 'infinite-wrap',
 			'text'          => esc_js( __( 'Load more posts' ) ),
 			'totop'         => esc_js( __( 'Scroll back to top' ) ),
-		) );
+			'order'         => 'DESC'
+		);
+
+		// Optional order param
+		if ( isset( $_GET['order'] ) ) {
+			$order = strtoupper( $_GET['order'] );
+
+			if ( in_array( $order, array( 'ASC', 'DESC' ) ) )
+				$js_settings['order'] = $order;
+		}
+
+		$js_settings = apply_filters( 'infinite_scroll_js_settings', $js_settings );
 
 		do_action( 'infinite_scroll_wp_head' );
 
@@ -416,6 +440,10 @@ class The_Neverending_Home_Page {
 	/**
 	 * Runs the query and returns the results via JSON.
 	 * Triggered by an AJAX request.
+	 *
+	 * @global $wp_query
+	 * @uses current_user_can, get_option, self::set_last_post_time, current_user_can, apply_filters, self::get_settings, add_filter, WP_Query, remove_filter, have_posts, do_action, add_action, this::render, this::has_wrapper, esc_attr
+	 * @return string or null
 	 */
 	function query() {
 		global $wp_query;
@@ -433,19 +461,22 @@ class The_Neverending_Home_Page {
 		if ( current_user_can( 'read_private_posts' ) )
 			array_push( $post_status, 'private' );
 
+		$order = in_array( $_GET['order'], array( 'ASC', 'DESC' ) ) ? $_GET['order'] : 'DESC';
+
 		$query_args = apply_filters( 'infinite_scroll_query_args', array(
 			'paged'          => $page,
 			'post_status'    => $post_status,
 			'posts_per_page' => self::get_settings()->posts_per_page,
 			'post__not_in'   => ( array ) $sticky,
+			'order'          => $order
 		) );
 
 		// Add query filter that checks for posts below the date
-		add_filter( 'posts_where', array( $this, 'query_time_filter' ) );
+		add_filter( 'posts_where', array( $this, 'query_time_filter' ), 10, 2 );
 
 		$wp_query = new WP_Query( $query_args );
 
-		remove_filter( 'posts_where', array( $this, 'query_time_filter' ) );
+		remove_filter( 'posts_where', array( $this, 'query_time_filter' ), 10, 2 );
 
 		$results = array();
 
