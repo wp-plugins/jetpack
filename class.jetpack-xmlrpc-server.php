@@ -25,7 +25,7 @@ class Jetpack_XMLRPC_Server {
 			'jetpack.featuresEnabled'   => array( $this, 'features_enabled' ),
 			'jetpack.getPost'           => array( $this, 'get_post' ),
 			'jetpack.getComment'        => array( $this, 'get_comment' ), 
-			'jetpack.verifyAction'      => array( $this, 'verify_action'    ),
+			'jetpack.verifyAction'      => array( $this, 'verify_action' ),
 		) );
 	}
 
@@ -35,7 +35,7 @@ class Jetpack_XMLRPC_Server {
 	function bootstrap_xmlrpc_methods() {
 		return array(
 			'jetpack.verifyRegistration' => array( $this, 'verify_registration' ),
-			'jetpack.verifyAction'       => array( $this, 'verify_action'    ),
+			'jetpack.verifyAction'       => array( $this, 'verify_action' ),
 		);
 	}
 
@@ -43,7 +43,7 @@ class Jetpack_XMLRPC_Server {
 	 * Verifies that Jetpack.WordPress.com received a registration request from this site
 	 */
 	function verify_registration( $verify_secret ) {
-		return $this->verify_action( 'register', $verify_secret );
+		return $this->verify_action( array( 'register', $verify_secret ) );
 	}
 	
 /* * @return WP_Error|string secret_2 on success, WP_Error( error_code => error_code, error_message => error description, error_data => status code ) on failure
