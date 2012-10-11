@@ -254,7 +254,7 @@ class The_Neverending_Home_Page {
 		add_filter( 'body_class', array( $this, 'body_class' ) );
 
 		// Add our scripts.
-		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), '20121004' );
+		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), '20121010' );
 
 		// Add our default styles.
 		wp_enqueue_style( 'the-neverending-homepage', plugins_url( 'infinity.css', __FILE__ ), array(), '20120612' );
@@ -262,6 +262,10 @@ class The_Neverending_Home_Page {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_spinner_scripts' ) );
 
 		add_action( 'wp_head', array( $this, 'action_wp_head' ), 2 );
+
+		add_action( 'wp_footer', array( $this, 'action_wp_footer' ), 99999999 );
+
+		add_filter( 'infinite_scroll_results', array( $this, 'filter_infinite_scroll_results' ) );
 	}
 
 	/**
@@ -435,6 +439,86 @@ class The_Neverending_Home_Page {
 		//]]>
 		</script>
 		<?php
+	}
+
+	/**
+	 * Provide IS with a list of the scripts already present on the page.
+	 * Since posts may contain require additional scripts that haven't been loaded, this data will be used to track additional scripts.
+	 *
+	 * @global $wp_scripts
+	 * @action wp_footer
+	 * @return string
+	 */
+	function action_wp_footer() {
+		global $wp_scripts;
+
+		$scripts = is_a( $wp_scripts, 'WP_Scripts' ) ? $wp_scripts->done : array();
+
+		?><script type="text/javascript">var infiniteScrollScripts = <?php echo json_encode( $scripts ); ?>;</script><?php
+	}
+
+	/**
+	 * Identify additional scripts required by the latest set of IS posts and provide the necessary data to the IS response handler.
+	 *
+	 * @global $wp_scripts
+	 * @uses sanitize_text_field, add_query_arg
+	 * @filter infinite_scroll_results
+	 * @return array
+	 */
+	function filter_infinite_scroll_results( $results ) {
+		$initial_items = isset( $_GET['scripts'] ) && is_array( $_GET['scripts'] ) ? array_map( 'sanitize_text_field', $_GET['scripts'] ) : false;
+
+		if ( is_array( $initial_items ) ) {
+			global $wp_scripts;
+
+			// First, trick $wp_scripts into thinking the scripts have been output
+			ob_start();
+			$wp_scripts->do_head_items();
+			$wp_scripts->do_footer_items();
+			ob_end_clean();
+
+			// Identify new scripts needed by the latest set of IS posts
+			$new_scripts = array_diff( $wp_scripts->done, $initial_items );
+
+			// If new scripts are needed, extract relevant data from $wp_scripts
+			if ( ! empty( $new_scripts ) ) {
+				$results['scripts'] = array();
+
+				foreach ( $new_scripts as $handle ) {
+					// Abort if somehow the script handle doesn't correspond to a registered script
+					if ( ! isset( $wp_scripts->registered[ $handle ] ) )
+						continue;
+
+					// Provide basic script data
+					$script_data = array(
+						'handle'     => $handle,
+						'footer'     => ( is_array( $wp_scripts->in_footer ) && in_array( $handle, $wp_scripts->in_footer ) ),
+						'extra_data' => $wp_scripts->print_extra_script( $handle, false )
+					);
+
+					// Base source
+					$src = $wp_scripts->registered[ $handle ]->src;
+
+					// Version and additional arguments
+					if ( null === $wp_scripts->registered[ $handle ]->ver )
+						$ver = '';
+					else
+						$ver = $wp_scripts->registered[ $handle ]->ver ? $wp_scripts->registered[ $handle ]->ver : $wp_scripts->default_version;
+
+					if ( isset($wp_scripts->args[ $handle ] ) )
+						$ver = $ver ? $ver . '&amp;' . $wp_scripts->args[$handle] : $wp_scripts->args[$handle];
+
+					// Full script source with version info
+					$script_data['src'] = add_query_arg( 'ver', $ver, $src );
+
+					// Add script to data that will be returned to IS JS
+					array_push( $results['scripts'], $script_data );
+				}
+			}
+		}
+
+		// Lastly, return the IS results array
+		return $results;
 	}
 
 	/**

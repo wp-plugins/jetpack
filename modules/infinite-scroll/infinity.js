@@ -93,9 +93,12 @@ Scroller.prototype.render = function( response ) {
  * Returns the object used to query for new posts.
  */
 Scroller.prototype.query = function() {
+	var infiniteScrollScripts = typeof window.infiniteScrollScripts == 'object' ? window.infiniteScrollScripts : [];
+
 	return {
 		page:  this.page,
-		order: this.order
+		order: this.order,
+		scripts: infiniteScrollScripts
 	};
 };
 
@@ -193,6 +196,28 @@ Scroller.prototype.refresh = function() {
 
 			// If we've succeeded...
 			} else if ( response.type == 'success' ) {
+				// If additional scripts are required by the incoming set of posts, parse them
+				if ( response.scripts ) {
+					$( response.scripts ).each( function() {
+						infiniteScrollScripts.push( this.handle );
+
+						if ( this.extra_data ) {
+							var data = document.createElement('script');
+							data.type = 'text/javascript';
+							dataContent = document.createTextNode( "//<![CDATA[ \n" + this.extra_data + "\n//]]>" );
+							data.appendChild( dataContent );
+
+							document.getElementsByTagName( this.footer ? 'body' : 'head' )[0].appendChild(data);
+						}
+
+						var script = document.createElement('script');
+						script.type = 'text/javascript';
+						script.src = this.src;
+						script.id = this.handle;
+						document.getElementsByTagName( this.footer ? 'body' : 'head' )[0].appendChild(script);
+					} );
+				}
+
 				// Increment the page number
 				self.page++;
 
