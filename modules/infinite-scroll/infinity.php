@@ -417,7 +417,8 @@ class The_Neverending_Home_Page {
 			'wrapper_class' => is_string( self::get_settings()->wrapper ) ? self::get_settings()->wrapper : 'infinite-wrap',
 			'text'          => esc_js( __( 'Load more posts' ) ),
 			'totop'         => esc_js( __( 'Scroll back to top' ) ),
-			'order'         => 'DESC'
+			'order'         => 'DESC',
+			'scripts'       => array()
 		);
 
 		// Optional order param
@@ -454,7 +455,7 @@ class The_Neverending_Home_Page {
 
 		$scripts = is_a( $wp_scripts, 'WP_Scripts' ) ? $wp_scripts->done : array();
 
-		?><script type="text/javascript">var infiniteScrollScripts = <?php echo json_encode( $scripts ); ?>;</script><?php
+		?><script type="text/javascript">jQuery.extend( infiniteScroll.settings.scripts, <?php echo json_encode( $scripts ); ?> );</script><?php
 	}
 
 	/**
@@ -466,16 +467,15 @@ class The_Neverending_Home_Page {
 	 * @return array
 	 */
 	function filter_infinite_scroll_results( $results ) {
+		// Don't bother unless there are posts to display
+		if ( 'success' != $results['type'] )
+			return $results;
+
+		// Parse and sanitize the script handles already output
 		$initial_items = isset( $_GET['scripts'] ) && is_array( $_GET['scripts'] ) ? array_map( 'sanitize_text_field', $_GET['scripts'] ) : false;
 
 		if ( is_array( $initial_items ) ) {
 			global $wp_scripts;
-
-			// First, trick $wp_scripts into thinking the scripts have been output
-			ob_start();
-			$wp_scripts->do_head_items();
-			$wp_scripts->do_footer_items();
-			ob_end_clean();
 
 			// Identify new scripts needed by the latest set of IS posts
 			$new_scripts = array_diff( $wp_scripts->done, $initial_items );
@@ -526,7 +526,7 @@ class The_Neverending_Home_Page {
 	 * Triggered by an AJAX request.
 	 *
 	 * @global $wp_query
-	 * @uses current_user_can, get_option, self::set_last_post_time, current_user_can, apply_filters, self::get_settings, add_filter, WP_Query, remove_filter, have_posts, do_action, add_action, this::render, this::has_wrapper, esc_attr
+	 * @uses current_user_can, get_option, self::set_last_post_time, current_user_can, apply_filters, self::get_settings, add_filter, WP_Query, remove_filter, have_posts, wp_head, do_action, add_action, this::render, this::has_wrapper, esc_attr, wp_footer
 	 * @return string or null
 	 */
 	function query() {
@@ -565,6 +565,11 @@ class The_Neverending_Home_Page {
 		$results = array();
 
 		if ( have_posts() ) {
+			// Fire wp_head to ensure that all necessary scripts are enqueued. Output isn't used, but scripts are extracted in self::action_wp_footer.
+			ob_start();
+			wp_head();
+			ob_end_clean();
+
 			$results['type'] = 'success';
 
 			// First, try theme's specified rendering handler, either specified via `add_theme_support` or by hooking to this action directly.
@@ -595,6 +600,11 @@ class The_Neverending_Home_Page {
 
 				$results['html'] = '<div class="' . esc_attr( $wrapper_classes ) . '">' . $results['html'] . '</div>';
 			}
+
+			// Fire wp_footer to ensure that all necessary scripts are enqueued. Output isn't used, but scripts are extracted in self::action_wp_footer.
+			ob_start();
+			wp_footer();
+			ob_end_clean();
 		} else {
 			do_action( 'infinite_scroll_empty' );
 			$results['type'] = 'empty';

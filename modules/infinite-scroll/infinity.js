@@ -93,12 +93,10 @@ Scroller.prototype.render = function( response ) {
  * Returns the object used to query for new posts.
  */
 Scroller.prototype.query = function() {
-	var infiniteScrollScripts = typeof window.infiniteScrollScripts == 'object' ? window.infiniteScrollScripts : [];
-
 	return {
 		page:  this.page,
 		order: this.order,
-		scripts: infiniteScrollScripts
+		scripts: window.infiniteScroll.settings.scripts
 	};
 };
 
@@ -199,7 +197,7 @@ Scroller.prototype.refresh = function() {
 				// If additional scripts are required by the incoming set of posts, parse them
 				if ( response.scripts ) {
 					$( response.scripts ).each( function() {
-						infiniteScrollScripts.push( this.handle );
+						window.infiniteScroll.settings.scripts.push( this.handle );
 
 						if ( this.extra_data ) {
 							var data = document.createElement('script');
