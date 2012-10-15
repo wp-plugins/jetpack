@@ -27,6 +27,27 @@ class Publicize_UI {
 		add_action( 'pre_admin_screen_sharing', array( &$this, 'admin_page' ) );
 		add_action( 'post_submitbox_misc_actions', array( &$this, 'post_page_metabox' ) );
 	}
+	
+	/**
+	* If the ShareDaddy plugin is not active we need to add the sharing settings page to the menu still
+	*/ 
+	function sharing_menu() {
+		add_submenu_page( 'options-general.php', __( 'Sharing Settings', 'jetpack' ), __( 'Sharing', 'jetpack' ), 'publish_posts', 'sharing', array( &$this, 'management_page' ) );
+	}
+	
+	
+	/**
+	* Management page to load if Sharedaddy is not active so the 'pre_admin_screen_sharing' action exists.
+	*/
+	function management_page() { ?>
+		<div class="wrap">
+			<div class="icon32" id="icon-options-general"><br /></div>
+			<h2><?php _e( 'Sharing Settings', 'jetpack' ); ?></h2>
+			
+				<?php do_action( 'pre_admin_screen_sharing' ) ?>
+				
+		</div> <?php
+	}
 
 	/**
 	* styling for the sharing screen and popups
