@@ -55,24 +55,23 @@ jQuery( function( $ ) {
 					var sel = $( "input[name='option']:checked" );
 					var global = $( "input[name='global']:checked" );
 
-					if ( sel.length ) {
-						var connection = $(this).data('connection');
-						var token = encodeURIComponent( sel.val() );
-						var id = encodeURIComponent( sel.attr( 'id' ) );
-						var nonce = $(this).attr('rel');
-						var global_conn = 'off';
-						var global_nonce = '';
+					var connection = $(this).data('connection');
+					var token = encodeURIComponent( sel.val() );
+					var id = encodeURIComponent( sel.attr( 'id' ) );
+					var nonce = $(this).attr('rel');
+					var global_conn = 'off';
+					var global_nonce = '';
 
-						if ( global.length ) {
-							global_conn = 'on';
-							global_nonce = global.val();
-						}
-
-						$.post( ajaxurl, 'action=publicize_'+ service + '_options_save&connection=' + connection + '&selected_id=' + id + '&token=' + token + '&_wpnonce=' + nonce + '&global=' + global_conn + '&global_nonce=' + global_nonce, function( response ) {
-							tb_remove();
-							location.reload();
-						} );
+					if ( global.length ) {
+						global_conn = 'on';
+						global_nonce = global.val();
 					}
+
+					$.post( ajaxurl, 'action=publicize_'+ service + '_options_save&connection=' + connection + '&selected_id=' + id + '&token=' + token + '&_wpnonce=' + nonce + '&global=' + global_conn + '&global_nonce=' + global_nonce, function( response ) {
+						tb_remove();
+						window.location = '/wp-admin/options-general.php?page=sharing';
+					} );
+					
 				} );
 			}
 
