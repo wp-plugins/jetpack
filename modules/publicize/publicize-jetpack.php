@@ -197,11 +197,7 @@ class Publicize extends Publicize_Base {
 	}
 
 	function flag_post_for_publicize( $new_status, $old_status, $post ) {
-		// @todo implement
-	}
-
-	function save_meta( $post_id, $post ) {
-		// @todo implement
+		// Stub only. Doesn't need to do anything on Jetpack Client
 	}
 
 	/**
