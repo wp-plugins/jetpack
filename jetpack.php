@@ -3761,6 +3761,9 @@ require_once dirname( __FILE__ ) . '/class.jetpack-user-agent.php';
 require_once dirname( __FILE__ ) . '/class.jetpack-post-images.php';
 require dirname( __FILE__ ) . '/functions.photon.php';
 
+if ( in_array( 'publicize', Jetpack::get_active_modules() ) || in_array( 'sharedaddy', Jetpack::get_active_modules() ) )
+	require_once dirname( __FILE__ ) . '/functions.opengraph.php';
+
 class Jetpack_Error extends WP_Error {}
 
 register_activation_hook( __FILE__, array( 'Jetpack', 'plugin_activation' ) );
