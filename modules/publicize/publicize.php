@@ -84,18 +84,19 @@ abstract class Publicize_Base {
 	/**
 	* Shared Functions
 	*/
+	
+	/**
+	* Returns an external URL to the connection's profile
+	*/ 
 	function get_profile_link( $service_name, $c ) {
 		$cmeta = $this->get_connection_meta( $c );
-		if ( 'facebook' == $service_name && isset( $cmeta['connection_data']['meta']['facebook_page_token'] ) ) {
-			$response = wp_remote_get( 'https://graph.facebook.com/' . $cmeta['connection_data']['meta']['facebook_page'] );
-			if ( ! is_wp_error( $response ) ) {
-				$result = json_decode( wp_remote_retrieve_body( $response ) );
-				return $profile_link = $result->link;
-			} else {
-				return false;
-			}
+		
+		if ( isset( $cmeta['connection_data']['meta']['link'] ) ) {
+			return $cmeta['connection_data']['meta']['link'];
+		} elseif ( 'facebook' == $service_name && isset( $cmeta['connection_data']['meta']['facebook_page'] ) ) {
+			return 'http://facebook.com/' . $cmeta['connection_data']['meta']['facebook_page'];
 		} elseif ( 'facebook' == $service_name ) {
-			return 'https://www.facebook.com/' . $cmeta['external_id'];
+			return 'http://www.facebook.com/' . $cmeta['external_id'];
 		} elseif ( 'tumblr' == $service_name && isset( $cmeta['connection_data']['meta']['tumblr_base_hostname'] ) ) {
 			 return 'http://' . $cmeta['connection_data']['meta']['tumblr_base_hostname'];
 		} elseif ( 'twitter' == $service_name ) {
@@ -103,20 +104,18 @@ abstract class Publicize_Base {
 		} else if ( 'yahoo' == $service_name ) {
 			return 'http://profile.yahoo.com/' . $cmeta['external_id'];
 		} else {
-			return false;
+			return false; // no fallback. we just won't link it
 		}
 	}
 
+	/**
+	* Returns a display name for the connection
+	*/
 	function get_display_name( $service_name, $c ) {
 		$cmeta = $this->get_connection_meta( $c );
-		if ( 'facebook' == $service_name && isset( $cmeta['connection_data']['meta']['facebook_page_token'] ) ) {
-			$response = wp_remote_get( 'https://graph.facebook.com/' . $cmeta['connection_data']['meta']['facebook_page'] );
-			if ( ! is_wp_error( $response ) ) {
-				$result = json_decode( wp_remote_retrieve_body( $response ) );
-				return $result->name;
-			} else {
-				return false;
-			}
+		
+		if ( isset( $cmeta['connection_data']['meta']['display_name'] ) ) {
+			return $cmeta['connection_data']['meta']['display_name'];
 		} elseif ( 'tumblr' == $service_name && isset( $cmeta['connection_data']['meta']['tumblr_base_hostname'] ) ) {
 			 return $cmeta['connection_data']['meta']['tumblr_base_hostname'];
 		} elseif ( 'twitter' == $service_name ) {
