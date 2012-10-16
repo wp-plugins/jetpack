@@ -210,7 +210,7 @@ class Publicize extends Publicize_Base {
 
 	function options_page_facebook() {
 		$connected_services = Jetpack::get_option( 'publicize_connections' );
-		$connection = $connected_services['facebook'][$_POST['connection']];
+		$connection = $connected_services['facebook'][$_REQUEST['connection']];
 		$options_to_show = $connection['connection_data']['meta']['options_responses'];
 
 		// Nonce check
