@@ -1,8 +1,7 @@
 <?php
-
 /**
  * Module Name: Publicize
- * Module Description: Publish your posts to Twitter, Facebook, Tumblr, LinkedIn, and Yahoo! (description to change)
+ * Module Description: Connect your site to popular social networks and automatically share new posts with your friends.
  * Sort Order: 1
  * First Introduced: 1.9
  */
