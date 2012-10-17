@@ -5,6 +5,9 @@ abstract class WPCOM_JSON_API_Endpoint {
 	// The API Object
 	var $api;
 
+	var $pass_wpcom_user_details = false;
+	var $can_use_user_details_instead_of_blog_membership = false;
+
 	// One liner.
 	var $description;
 
@@ -89,7 +92,10 @@ abstract class WPCOM_JSON_API_Endpoint {
 			'version'              => 'v1',
 			'example_request'      => '',
 			'example_request_data' => '',
-			'example_response'     => ''
+			'example_response'     => '',
+
+			'pass_wpcom_user_details' => false,
+			'can_use_user_details_instead_of_blog_membership' => false,
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -2099,8 +2105,28 @@ abstract class WPCOM_JSON_API_Comment_Endpoint extends WPCOM_JSON_API_Endpoint {
 			$comment         = get_comment_to_edit( $comment->comment_ID );
 			break;
 		case 'display' :
-			if ( 'approved' !== $status && !current_user_can( 'edit_comment', $comment->comment_ID ) ) {
-				return new WP_Error( 'unauthorized', 'User cannot read unapproved comment', 403 );
+			if ( 'approved' !== $status ) {
+				$current_user_id = get_current_user_id();
+				$user_can_read_coment = false;
+				if ( $current_user_id && $comment->user_id && $current_user_id == $comment->user_id ) {
+					$user_can_read_coment = true;
+				} elseif (
+					$comment->comment_author_email && $comment->comment_author
+				&&
+					isset( $this->api->token_details['user'] )
+				&&
+					$this->api->token_details['user']['user_email'] === $comment->comment_author_email
+				&&
+					$this->api->token_details['user']['display_name'] === $comment->comment_author
+				) {
+					$user_can_read_coment = true;
+				} else {
+					$user_can_read_coment = current_user_can( 'edit_comment', $comment->comment_ID );
+				}
+
+				if ( !$user_can_read_coment ) {
+					return new WP_Error( 'unauthorized', 'User cannot read unapproved comment', 403 );
+				}
 			}
 
 			$GLOBALS['post'] = $post;
@@ -2496,7 +2522,26 @@ class WPCOM_JSON_API_Update_Comment_Endpoint extends WPCOM_JSON_API_Comment_Endp
 
 		$user = wp_get_current_user();
 		if ( !$user || is_wp_error( $user ) || !$user->ID ) {
-			return new WP_Error( 'authorization_required', 'An active access token must be used to comment.', 403 );
+			$auth_required = false;
+			if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) {
+				$auth_required = true;
+			} elseif ( isset( $this->api->token_details['user'] ) ) {
+				$user = (object) $this->api->token_details['user'];
+				foreach ( array( 'display_name', 'user_email', 'user_url' ) as $user_datum ) {
+					if ( !isset( $user->$user_datum ) ) {
+						$auth_required = true;
+					}
+				}
+				if ( !isset( $user->ID ) ) {
+					$user->ID = 0;
+				}
+			} else {
+				$auth_required = true;
+			}
+
+			if ( $auth_required ) {
+				return new WP_Error( 'authorization_required', 'An active access token must be used to comment.', 403 );
+			}
 		}
 
 		$insert = array(
@@ -2504,9 +2549,10 @@ class WPCOM_JSON_API_Update_Comment_Endpoint extends WPCOM_JSON_API_Comment_Endp
 			'user_id'              => $user->ID,
 			'comment_author'       => $user->display_name,
 			'comment_author_email' => $user->user_email,
-			'comment_author_URL'   => $user->user_url,
+			'comment_author_url'   => $user->user_url,
 			'comment_content'      => $input['content'],
 			'comment_parent'       => $comment_parent_id,
+			'comment_type'         => '',
 		);
 
 		ob_start();
@@ -3256,6 +3302,9 @@ new WPCOM_JSON_API_Update_Comment_Endpoint( array(
 //		'author'    => '(author object) The author of the comment.',
 	),
 
+	'pass_wpcom_user_details' => true,
+	'can_use_user_details_instead_of_blog_membership' => true,
+
 	'example_request'      => 'https://public-api.wordpress.com/rest/v1/sites/30434183/posts/1222/replies/new/',
 	'example_request_data' =>  array(
 		'headers' => array(
@@ -3322,6 +3371,9 @@ new WPCOM_JSON_API_Update_Comment_Endpoint( array(
 //		@todo Should we open this up to unauthenticated requests too?
 //		'author'    => '(author object) The author of the comment.',
 	),
+
+	'pass_wpcom_user_details' => true,
+	'can_use_user_details_instead_of_blog_membership' => true,
 
 	'example_request'      => 'https://public-api.wordpress.com/rest/v1/sites/30434183/comments/8/replies/new/',
 	'example_request_data' => array(
