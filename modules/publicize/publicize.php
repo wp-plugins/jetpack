@@ -79,7 +79,6 @@ abstract class Publicize_Base {
 	abstract function get_connections( $service, $_blog_id, $_user_id );
 	abstract function get_connection( $service, $id, $_blog_id, $_user_id );
 	abstract function flag_post_for_publicize( $new_status, $old_status, $post );
-	abstract function save_meta( $post_id, $post );
 
 	/**
 	* Shared Functions
