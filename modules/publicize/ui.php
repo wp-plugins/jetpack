@@ -185,6 +185,17 @@ class Publicize_UI {
 		<?php endif;
 	}
 	
+	function broken_connection( $service_name, $id ) { ?>
+		<div id="thickbox-content">
+		
+			<div class='error'>
+				<p><?php printf( __( 'There was a problem connecting to %s. Please disconnect and try again.', 'jetpack' ), Publicize::get_service_label( $service_name ) ); ?></p>
+			</div>
+
+		</div> <?php
+		
+	}
+	
 	function options_page_other( $service_name ) {
 		// Nonce check
 		check_admin_referer( 'options_page_' . $service_name . '_' . $_REQUEST['connection'] );
@@ -387,17 +398,15 @@ jQuery( function($) {
 
 				<?php
 					foreach ( $services as $name => $connections ) {
-					
 						foreach ( $connections as $connection ) {
-							
 							if ( !$continue = apply_filters( 'wpas_submit_post?', true, $post->ID, $name ) )
 								continue;
 
-							if ( empty( $connection->unique_id ) )
-								$unique_id = $connection['connection_data']['token_id'];
-							else
+							if ( !empty( $connection->unique_id ) )
 								$unique_id = $connection->unique_id;
-							
+							else if ( !empty( $connection['connection_data']['token_id'] ) )
+								$unique_id = $connection['connection_data']['token_id'];
+
 							// Should we be skipping this one?
 							$skip = get_post_meta( $post->ID, $this->publicize->POST_SKIP . $unique_id, true );
 
