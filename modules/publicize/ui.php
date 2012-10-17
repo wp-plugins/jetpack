@@ -67,6 +67,8 @@ class Publicize_UI {
 			array(),
 			'20120925'
 		);
+		
+		add_thickbox();
 	}
 	
 	function connected_notice( $service_name ) { ?>
