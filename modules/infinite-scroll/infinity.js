@@ -96,7 +96,8 @@ Scroller.prototype.query = function() {
 	return {
 		page:  this.page,
 		order: this.order,
-		scripts: window.infiniteScroll.settings.scripts
+		scripts: window.infiniteScroll.settings.scripts,
+		styles: window.infiniteScroll.settings.styles
 	};
 };
 
@@ -200,9 +201,10 @@ Scroller.prototype.refresh = function() {
 						window.infiniteScroll.settings.scripts.push( this.handle );
 
 						if ( this.extra_data ) {
-							var data = document.createElement('script');
+							var data = document.createElement('script'),
+								dataContent = document.createTextNode( "//<![CDATA[ \n" + this.extra_data + "\n//]]>" );
+
 							data.type = 'text/javascript';
-							dataContent = document.createTextNode( "//<![CDATA[ \n" + this.extra_data + "\n//]]>" );
 							data.appendChild( dataContent );
 
 							document.getElementsByTagName( this.footer ? 'body' : 'head' )[0].appendChild(data);
@@ -213,6 +215,23 @@ Scroller.prototype.refresh = function() {
 						script.src = this.src;
 						script.id = this.handle;
 						document.getElementsByTagName( this.footer ? 'body' : 'head' )[0].appendChild(script);
+					} );
+				}
+
+				// If additional stylesheets are required by the incoming set of posts, parse them
+				if ( response.styles ) {
+					$( response.styles ).each( function() {
+						window.infiniteScroll.settings.styles.push( this.handle );
+
+						var style = document.createElement('link');
+						style.rel = 'stylesheet';
+						style.href = this.src;
+						style.id = this.handle + '-css';
+
+						//if ( this.conditional_start )
+						//	style = document.createComment( this.conditional_start + style + this.conditional_end );
+
+						document.getElementsByTagName('head')[0].appendChild(style);
 					} );
 				}
 

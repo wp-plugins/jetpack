@@ -254,7 +254,7 @@ class The_Neverending_Home_Page {
 		add_filter( 'body_class', array( $this, 'body_class' ) );
 
 		// Add our scripts.
-		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), '20121011' );
+		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), '20121015' );
 
 		// Add our default styles.
 		wp_enqueue_style( 'the-neverending-homepage', plugins_url( 'infinity.css', __FILE__ ), array(), '20120612' );
@@ -418,7 +418,8 @@ class The_Neverending_Home_Page {
 			'text'          => esc_js( __( 'Load more posts' ) ),
 			'totop'         => esc_js( __( 'Scroll back to top' ) ),
 			'order'         => 'DESC',
-			'scripts'       => array()
+			'scripts'       => array(),
+			'styles'        => array()
 		);
 
 		// Optional order param
@@ -443,19 +444,23 @@ class The_Neverending_Home_Page {
 	}
 
 	/**
-	 * Provide IS with a list of the scripts already present on the page.
-	 * Since posts may contain require additional scripts that haven't been loaded, this data will be used to track additional scripts.
+	 * Provide IS with a list of the scripts and stylesheets already present on the page.
+	 * Since posts may contain require additional assets that haven't been loaded, this data will be used to track the additional assets.
 	 *
-	 * @global $wp_scripts
+	 * @global $wp_scripts, $wp_styles
 	 * @action wp_footer
 	 * @return string
 	 */
 	function action_wp_footer() {
-		global $wp_scripts;
+		global $wp_scripts, $wp_styles;
 
 		$scripts = is_a( $wp_scripts, 'WP_Scripts' ) ? $wp_scripts->done : array();
+		$styles = is_a( $wp_styles, 'WP_Styles' ) ? $wp_styles->done : array();
 
-		?><script type="text/javascript">jQuery.extend( infiniteScroll.settings.scripts, <?php echo json_encode( $scripts ); ?> );</script><?php
+		?><script type="text/javascript">
+			jQuery.extend( infiniteScroll.settings.scripts, <?php echo json_encode( $scripts ); ?> );
+			jQuery.extend( infiniteScroll.settings.styles, <?php echo json_encode( $styles ); ?> );
+		</script><?php
 	}
 
 	/**
@@ -472,20 +477,20 @@ class The_Neverending_Home_Page {
 			return $results;
 
 		// Parse and sanitize the script handles already output
-		$initial_items = isset( $_GET['scripts'] ) && is_array( $_GET['scripts'] ) ? array_map( 'sanitize_text_field', $_GET['scripts'] ) : false;
+		$initial_scripts = isset( $_GET['scripts'] ) && is_array( $_GET['scripts'] ) ? array_map( 'sanitize_text_field', $_GET['scripts'] ) : false;
 
-		if ( is_array( $initial_items ) ) {
+		if ( is_array( $initial_scripts ) ) {
 			global $wp_scripts;
 
 			// Identify new scripts needed by the latest set of IS posts
-			$new_scripts = array_diff( $wp_scripts->done, $initial_items );
+			$new_scripts = array_diff( $wp_scripts->done, $initial_scripts );
 
 			// If new scripts are needed, extract relevant data from $wp_scripts
 			if ( ! empty( $new_scripts ) ) {
 				$results['scripts'] = array();
 
 				foreach ( $new_scripts as $handle ) {
-					// Abort if somehow the script handle doesn't correspond to a registered script
+					// Abort if somehow the handle doesn't correspond to a registered script
 					if ( ! isset( $wp_scripts->registered[ $handle ] ) )
 						continue;
 
@@ -513,6 +518,61 @@ class The_Neverending_Home_Page {
 
 					// Add script to data that will be returned to IS JS
 					array_push( $results['scripts'], $script_data );
+				}
+			}
+		}
+
+		// Parse and sanitize the style handles already output
+		$initial_styles = isset( $_GET['styles'] ) && is_array( $_GET['styles'] ) ? array_map( 'sanitize_text_field', $_GET['styles'] ) : false;
+
+		if ( is_array( $initial_styles ) ) {
+			global $wp_styles;
+
+			// Identify new styles needed by the latest set of IS posts
+			$new_styles = array_diff( $wp_styles->done, $initial_styles );
+
+			// If new styles are needed, extract relevant data from $wp_styles
+			if ( ! empty( $new_styles ) ) {
+				$results['styles'] = array();
+
+				foreach ( $new_styles as $handle ) {
+					// Abort if somehow the handle doesn't correspond to a registered stylesheet
+					if ( ! isset( $wp_styles->registered[ $handle ] ) )
+						continue;
+
+					// Provide basic style data
+					$style_data = array(
+						'handle' => $handle,
+						'media'  => 'all'
+					);
+
+					// Base source
+					$src = $wp_styles->registered[ $handle ]->src;
+
+					// Version and additional arguments
+					if ( null === $wp_styles->registered[ $handle ]->ver )
+						$ver = '';
+					else
+						$ver = $wp_styles->registered[ $handle ]->ver ? $wp_styles->registered[ $handle ]->ver : $wp_styles->default_version;
+
+					if ( isset($wp_styles->args[ $handle ] ) )
+						$ver = $ver ? $ver . '&amp;' . $wp_styles->args[$handle] : $wp_styles->args[$handle];
+
+					// Full stylesheet source with version info
+					$style_data['src'] = add_query_arg( 'ver', $ver, $src );
+
+					// Parse stylesheet's conditional comments if present
+					if ( isset( $wp_styles->registered[ $handle ]->extra['conditional'] ) && $wp_styles->registered[ $handle ]->extra['conditional'] ) {
+						$style_data['conditional_start'] = "[if {$wp_styles->registered[ $handle ]->extra['conditional']}]>\n";
+						$style_data['conditional_end'] = "<![endif]";
+					}
+
+					// Parse requested media context for stylesheet
+					if ( isset( $wp_styles->registered[ $handle ]->args ) )
+						$style_data['media'] = esc_attr( $wp_styles->registered[ $handle ]->args );
+
+					// Add stylesheet to data that will be returned to IS JS
+					array_push( $results['styles'], $style_data );
 				}
 			}
 		}
