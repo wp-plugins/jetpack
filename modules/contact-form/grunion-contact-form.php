@@ -717,7 +717,7 @@ class Grunion_Contact_Form extends Crunion_Contact_Form_Shortcode {
 				$url = remove_query_arg( array( 'contact-form-id', 'contact-form-sent', 'action', '_wpnonce' ) );
 			} else {
 				// Submit form to the post permalink
-				$url = get_permalink( $feedback_id );
+				$url = get_permalink();
 			}
 
 			// May eventually want to send this to admin-post.php...
