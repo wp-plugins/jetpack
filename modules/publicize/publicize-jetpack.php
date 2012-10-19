@@ -1,4 +1,5 @@
 <?php
+
 class Publicize extends Publicize_Base {
 
 	function __construct() {
@@ -17,15 +18,52 @@ class Publicize extends Publicize_Base {
 		add_action( 'wp_ajax_publicize_twitter_options_save', array( $this, 'options_save_twitter' ) );
 		add_action( 'wp_ajax_publicize_linkedin_options_save', array( $this, 'options_save_linkedin' ) );
 		add_action( 'wp_ajax_publicize_yahoo_options_save', array( $this, 'options_save_yahoo' ) );
+
+		add_action( 'load-settings_page_sharing', array( $this, 'force_user_connection' ) );
+	}
+
+	function force_user_connection() {
+		global $current_user;
+		$user_token = Jetpack_Data::get_access_token( $current_user->ID );
+		$is_user_connected = $user_token && !is_wp_error( $user_token );
+
+		// If the user is already connected via Jetpack, then we're good
+		if ( $is_user_connected )
+			return;
+
+		// If they're not connected, then remove the Publicize UI and tell them they need to connect first
+		global $publicize_ui;
+		remove_action( 'pre_admin_screen_sharing', array( $publicize_ui, 'admin_page' ) );
+
+		Jetpack::init()->admin_styles();
+		add_action( 'pre_admin_screen_sharing', array( $this, 'admin_page_warning' ), 1 );
+	}
+
+	function admin_page_warning() {
+		$jetpack = Jetpack::init();
+		?>
+				<div id="message" class="updated jetpack-message jp-connect">
+					<div class="jetpack-wrap-container">
+						<div class="jetpack-text-container">
+							<h4>
+								<p><?php _e( "To use Publicize you&#8217;ll need to link your account here to your WordPress.com account using the button to the right.", 'jetpack' ) ?></p>
+								<p><?php _e( "Come back to this page once you&#8217;re connected to configure Publicize." ); ?></p>
+							</h4>
+						</div>
+						<div class="jetpack-install-container">
+							<p class="submit"><a href="<?php echo $jetpack->build_connect_url(); ?>" class="button-connector" id="wpcom-connect"><?php _e( 'Link account with WordPress.com', 'jetpack' ); ?></a></p>
+						</div>
+					</div>
+				</div>
+		<?php
 	}
 
 	// @todo only load current users conncetions and _user_id = 0
 	function get_connections( $service_name, $_blog_id = false, $_user_id = false ) {
 		$connections = Jetpack::get_option( 'publicize_connections' );
+// print_r($connections);
 		$connections_to_return = array();
-
 		if ( !empty( $connections ) && is_array( $connections ) ) {
-
 			if ( !empty( $connections[$service_name] ) ) {
 				foreach( $connections[$service_name] as $id => $connection ) {
 					if ( 0 == $connection['connection_data']['user_id'] || $this->user_id() == $connection['connection_data']['user_id'] ) {
@@ -49,7 +87,6 @@ class Publicize extends Publicize_Base {
 
 	function admin_page_load() {
 		if ( isset( $_GET['action'] ) ) {
-
 			if ( isset( $_GET['service'] ) )
 				$service_name = $_GET['service'];
 
@@ -66,7 +103,7 @@ class Publicize extends Publicize_Base {
 					$user = wp_get_current_user();
 					$redirect = $this->api_url( $service_name, urlencode_deep( array(
 						'action'       => 'request',
-						'redirect_uri' => add_query_arg( array( 'action'   => 'done' ), menu_page_url( 'sharing', false ) ),
+						'redirect_uri' => add_query_arg( array( 'action' => 'done' ), menu_page_url( 'sharing', false ) ),
 						'for'          => 'publicize', // required flag that says this connection is intended for publicize
 						'siteurl'      => site_url(),
 						'state'        => $user->ID,
@@ -107,8 +144,6 @@ class Publicize extends Publicize_Base {
 					}
 				break;
 			}
-
-
 		}
 	}
 
@@ -150,7 +185,7 @@ class Publicize extends Publicize_Base {
 	}
 
 	function connect_url( $service_name ) {
-		return add_query_arg( array (
+		return add_query_arg( array(
 			'action'   => 'request',
 			'service'  =>  $service_name,
 			'kr_nonce' => wp_create_nonce( 'keyring-request' ),
@@ -248,7 +283,7 @@ class Publicize extends Publicize_Base {
 				echo $update_notice;
 			?>
 
-			<p><?php _e('Publicize to my <strong>Facebook Wall</strong>:') ?></p>
+			<p><?php _e( 'Publicize to my <strong>Facebook Wall</strong>:' ) ?></p>
 			<table id="option-profile">
 				<tbody>
 					<tr>
@@ -261,7 +296,7 @@ class Publicize extends Publicize_Base {
 
 			<?php if ( $pages ) : ?>
 
-				<p><?php _e('Publicize to my <strong>Facebook Page</strong>:') ?></p>
+				<p><?php _e( 'Publicize to my <strong>Facebook Page</strong>:' ) ?></p>
 				<table id="option-fb-fanpage">
 					<tbody>
 
@@ -291,7 +326,7 @@ class Publicize extends Publicize_Base {
 			<?php Publicize_UI::global_checkbox( 'facebook', $_REQUEST['connection'] ); ?>
 
 			<p style="text-align: center;">
-				<input type="submit" value="<?php esc_attr_e('Save these settings') ?>" class="button fb-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce('save_fb_token_' . $_REQUEST['connection'] ) ?>" />
+				<input type="submit" value="<?php esc_attr_e( 'Save these settings' ) ?>" class="button fb-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce('save_fb_token_' . $_REQUEST['connection'] ) ?>" />
 			</p><br/>
 		</div>
 
@@ -382,7 +417,7 @@ class Publicize extends Publicize_Base {
 				echo $update_notice;
 			?>
 
-			<p><?php _e('Publicize to my <strong>Tumblr blog</strong>:') ?></p>
+			<p><?php _e( 'Publicize to my <strong>Tumblr blog</strong>:' ) ?></p>
 
 			<ul id="option-tumblr-blog">
 
@@ -431,13 +466,13 @@ class Publicize extends Publicize_Base {
 		$this->globalization();
 	}
 
-	function options_page_twitter() { Publicize_UI::options_page_other( 'twitter'); }
-	function options_page_linkedin() { Publicize_UI::options_page_other( 'linkedin'); }
-	function options_page_yahoo() { Publicize_UI::options_page_other( 'yahoo'); }
+	function options_page_twitter() { Publicize_UI::options_page_other( 'twitter' ); }
+	function options_page_linkedin() { Publicize_UI::options_page_other( 'linkedin' ); }
+	function options_page_yahoo() { Publicize_UI::options_page_other( 'yahoo' ); }
 
-	function options_save_twitter() { $this->options_save_other( 'twitter'); }
-	function options_save_linkedin() { $this->options_save_other( 'linkedin'); }
-	function options_save_yahoo() { $this->options_save_other( 'yahoo'); }
+	function options_save_twitter() { $this->options_save_other( 'twitter' ); }
+	function options_save_linkedin() { $this->options_save_other( 'linkedin' ); }
+	function options_save_yahoo() { $this->options_save_other( 'yahoo' ); }
 	function options_save_other( $service_name ) {
 		// Nonce check
 		check_admin_referer( 'save_' . $service_name . '_blog_' . $_REQUEST['connection'] );
@@ -449,4 +484,3 @@ class Publicize extends Publicize_Base {
 
 	}
 }
-?>
