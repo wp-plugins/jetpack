@@ -218,7 +218,7 @@ class Publicize extends Publicize_Base {
 		$profile_checked = true;
 		$page_selected = false;
 
-		if ( !empty( $connection['connection_data']['meta']['facebook_page'] ) && !empty( $connection['connection_data']['meta']['facebook_page_token'] ) ) {
+		if ( !empty( $connection['connection_data']['meta']['facebook_page'] ) ) {
 			$found = false;
 			if ( is_array( $pages->data ) ) {
 				foreach ( $pages->data as $page ) {
@@ -232,9 +232,6 @@ class Publicize extends Publicize_Base {
 			if ( $found ) {
 				$profile_checked = false;
 				$page_selected = $connection['connection_data']['meta']['facebook_page'];
-			} else {
-				// Reset page token
-				//$this->store_token( null );
 			}
 		}
 
@@ -255,7 +252,7 @@ class Publicize extends Publicize_Base {
 			<table id="option-profile">
 				<tbody>
 					<tr>
-						<td class="radio"><input type="radio" name="option" id="<?php echo esc_attr( $me['id'] ) ?>" value="" <?php checked( $profile_checked, true ); ?> /></td>
+						<td class="radio"><input type="radio" name="option" data-type="profile" id="<?php echo esc_attr( $me['id'] ) ?>" value="" <?php checked( $profile_checked, true ); ?> /></td>
 						<td class="thumbnail"><label for="<?php echo esc_attr( $me['id'] ) ?>"><img src="<?php echo esc_url( $me['picture']['data']['url'] ) ?>" width="50" height="50" /></label></td>
 						<td class="details"><label for="<?php echo esc_attr( $me['id'] ) ?>"><?php echo esc_html( $me['name'] ) ?></label></td>
 					</tr>
@@ -273,7 +270,7 @@ class Publicize extends Publicize_Base {
 							<?php if ( ! ( $i % 2 ) ) : ?>
 								<tr>
 							<?php endif; ?>
-									<td class="radio"><input type="radio" name="option" id="<?php echo esc_attr( $page['id'] ) ?>" value="<?php echo esc_attr( $page['access_token'] ) ?>" <?php checked( $page_selected && $page_selected == $page['id'], true ); ?> /></td>
+									<td class="radio"><input type="radio" name="option" data-type="page" id="<?php echo intval( $page['id'] ) ?>" value="<?php echo intval( $page['id'] ) ?>" <?php checked( $page_selected && $page_selected == $page['id'], true ); ?> /></td>
 									<td class="thumbnail"><label for="<?php echo esc_attr( $page['id'] ) ?>"><img src="<?php echo esc_url( str_replace( '_s', '_q', $page['picture']['data']['url'] ) ) ?>" width="50" height="50" /></label></td>
 									<td class="details">
 										<label for="<?php echo esc_attr( $page['id'] ) ?>">
@@ -312,25 +309,21 @@ class Publicize extends Publicize_Base {
 		if ( !ctype_digit( $page_id ) )
 			die( 'Security check' );
 
-		if ( isset( $_POST['selected_id'] ) && empty( $_POST['token'] ) ) {
+		if ( isset( $_POST['selected_id'] ) && 'profile' == $_POST['type'] ) {
 			// Publish to User Wall/Profile
 			$options = array(
 				'facebook_page'       => null,
-				'facebook_page_token' => null,
 				'facebook_profile'    => true
 			);
 
 		} else {
-			if ( !isset( $_POST['token'] ) || !isset( $_POST['selected_id'] ) ) {
+			if ( 'page' != $_POST['type'] || !isset( $_POST['selected_id'] ) ) {
 				return;
 			}
 
 			// Publish to Page
-			$page_token = $_POST['token'];
-			$page_token = urlencode( $page_token );
 			$options = array(
 				'facebook_page'       => $page_id,
-				'facebook_page_token' => $page_token,
 				'facebook_profile'    => null
 			);
 		}
@@ -397,7 +390,7 @@ class Publicize extends Publicize_Base {
 			foreach ( $blogs as $blog ) {
 				$url = $this->get_basehostname( $blog['url'] ); ?>
 				<li>
-					<input type="radio" name="option" id="<?php echo esc_attr( $url ) ?>" value="<?php echo esc_attr( $url ) ?>" <?php checked( $blog_selected == $url, true ); ?> />
+					<input type="radio" name="option" data-type="blog" id="<?php echo esc_attr( $url ) ?>" value="<?php echo esc_attr( $url ) ?>" <?php checked( $blog_selected == $url, true ); ?> />
 					<label for="<?php echo esc_attr( $url ) ?>"><span class="name"><?php echo esc_html( $blog['title'] ) ?></span></label>
 				</li>
 			<?php } ?>

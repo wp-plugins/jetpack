@@ -58,6 +58,7 @@ jQuery( function( $ ) {
 					var connection = $(this).data('connection');
 					var token = encodeURIComponent( sel.val() );
 					var id = encodeURIComponent( sel.attr( 'id' ) );
+					var type = encodeURIComponent( sel.attr( 'data-type' ) );
 					var nonce = $(this).attr('rel');
 					var global_conn = 'off';
 					var global_nonce = '';
@@ -67,7 +68,7 @@ jQuery( function( $ ) {
 						global_nonce = global.val();
 					}
 
-					$.post( ajaxurl, 'action=publicize_'+ service + '_options_save&connection=' + connection + '&selected_id=' + id + '&token=' + token + '&_wpnonce=' + nonce + '&global=' + global_conn + '&global_nonce=' + global_nonce, function( response ) {
+					$.post( ajaxurl, 'action=publicize_'+ service + '_options_save&connection=' + connection + '&selected_id=' + id + '&token=' + token + '&type=' + type + '&_wpnonce=' + nonce + '&global=' + global_conn + '&global_nonce=' + global_nonce, function( response ) {
 						tb_remove();
 						window.location = 'options-general.php?page=sharing';
 					} );

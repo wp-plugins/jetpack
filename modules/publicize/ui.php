@@ -58,7 +58,7 @@ class Publicize_UI {
 			'publicize',
 			plugins_url( 'assets/publicize.js', __FILE__ ),
 			array( 'jquery', 'thickbox' ),
-			'20121017'
+			'20121019'
 		);
 
 		wp_enqueue_style(
