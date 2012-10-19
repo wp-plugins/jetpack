@@ -1,14 +1,13 @@
 <?php
 /**
- * Plugin Name: WP.com Open Graph Tags
- * Description: Add Open Graph tags so that Facebook (and any other service that supports them) can crawl the site better and we provide a better sharing experience
- * Author: Automattic
- * License: GPLv2, baby!
+ * Open Graph Tags
+ * 
+ * Add Open Graph tags so that Facebook (and any other service that supports them)
+ * can crawl the site better and we provide a better sharing experience.
  *
  * @link http://ogp.me/
  * @link http://developers.facebook.com/docs/opengraph/
  */
-
 add_action( 'wp_head', 'jetpack_og_tags' );
 
 function jetpack_og_tags() {
