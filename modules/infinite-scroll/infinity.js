@@ -223,13 +223,15 @@ Scroller.prototype.refresh = function() {
 					$( response.styles ).each( function() {
 						window.infiniteScroll.settings.styles.push( this.handle );
 
-						var style = document.createElement('link');
-						style.rel = 'stylesheet';
-						style.href = this.src;
-						style.id = this.handle + '-css';
-
-						//if ( this.conditional_start )
-						//	style = document.createComment( this.conditional_start + style + this.conditional_end );
+						if ( this.conditional_start ) {
+							var style = document.createComment( this.conditional_start + '\n<link rel="stylesheet" id="' + this.handle + '-css" href="' + this.src + '" />\n' + this.conditional_end );
+						}
+						else {
+							var style = document.createElement('link');
+							style.rel = 'stylesheet';
+							style.href = this.src;
+							style.id = this.handle + '-css';
+						}
 
 						document.getElementsByTagName('head')[0].appendChild(style);
 					} );

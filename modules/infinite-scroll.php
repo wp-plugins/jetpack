@@ -1,7 +1,7 @@
 <?php
 /**
  * Module Name: Infinite Scroll
- * Module Description: On the frontpage blog post view, automatically pull the next set of posts into view when the reader approaches the bottom of the page.
+ * Module Description: Automatically pull the next set of posts into view when the reader approaches the bottom of the page.
  * Sort Order: 14
  * First Introduced: 1.9
  */

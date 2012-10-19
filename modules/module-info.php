@@ -549,6 +549,9 @@ add_action( 'jetpack_module_more_info_mobile-push', 'jetpack_mobile_push_notific
  *
  */
 function jetpack_infinite_scroll_more_info() {
+	$active_modules = Jetpack::get_active_modules();
+	$is_active = is_array( $active_modules ) && in_array( 'infinite-scroll', $active_modules );
+
 	?>
 	<!-- <div class="jp-info-img">
 		<img class="jp-info-img" src="<?php echo plugins_url( basename( dirname( dirname( __FILE__ ) ) ) . '/_inc/images/screenshots/mobile-theme.png' ) ?>" alt="<?php esc_attr_e( 'Infinite Scroll', 'jetpack' ) ?>" width="300" height="150" />
@@ -556,8 +559,10 @@ function jetpack_infinite_scroll_more_info() {
 
 	<h4><?php esc_html_e( 'Infinite Scroll', 'jetpack' ); ?></h4>
 
-	<?php if ( current_theme_supports( 'infinite-scroll' ) ) : ?>
-		<p><?php esc_html_e( 'Keep visitors reading on your homepage by automatically loading more posts.', 'jetpack' ); ?></p>
+	<?php if ( current_theme_supports( 'infinite-scroll' ) || ! $is_active ) : ?>
+		<p><?php esc_html_e( 'When you write great content, all you really want is people to find it, right?', 'jetpack' ); ?></p>
+
+		<p><?php esc_html_e( "With the Infinite Scroll module and a supported theme, that's exactly what happens. Instead of the old way of navigating down a page by scrolling and then clicking a link to get to the next page, waiting for a page refresh&mdash;the document model of the web&mdash;infinite scrolling pulls the next set of posts automatically into view when the reader approaches the bottom of the page, more like an application.", 'jetpack' ); ?></p>
 
 	<?php else : ?>
 		<p><?php echo esc_html( sprintf( __( "At this time, your theme, %s, doesn't support Infinite Scroll. Unlike other Jetpack modules, Infinite Scroll needs information from your theme to function properly.", 'jetpack' ), wp_get_theme()->name ) ); ?></p>
@@ -583,12 +588,4 @@ function jetpack_infinite_scroll_more_button() {
 	echo '<a class="button more-info-link" href="#">' . __( 'Learn More', 'jetpack' ) . '</a>';
 }
 add_action( 'jetpack_learn_more_button_infinite-scroll', 'jetpack_infinite_scroll_more_button' );
-
-/**
- *
- */
-function jetpack_can_activate_infinite_scroll( $can_activate ) {
-	return (bool) current_theme_supports( 'infinite-scroll' );
-}
-add_filter( 'jetpack_can_activate_infinite-scroll', 'jetpack_can_activate_infinite_scroll' );
 // Infinite Scroll: STOP
