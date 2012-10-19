@@ -244,7 +244,7 @@ class Publicize extends Publicize_Base {
 
 			<?php
 			ob_start();
-			Publicize_UI::connected_notice();
+			Publicize_UI::connected_notice( 'Facebook' );
 			$update_notice = ob_get_clean();
 
 			if ( ! empty( $update_notice ) )
@@ -382,7 +382,7 @@ class Publicize extends Publicize_Base {
 
 			<?php
 			ob_start();
-			Publicize_UI::connected_notice();
+			Publicize_UI::connected_notice( 'Tumblr' );
 			$update_notice = ob_get_clean();
 
 			if ( ! empty( $update_notice ) )

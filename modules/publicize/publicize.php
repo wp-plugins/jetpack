@@ -1,4 +1,10 @@
 <?php
+/*
+ * WARNING: This file is distributed verbatim in Jetpack.
+ * There should be nothing WordPress.com specific in this file.
+ *
+ * @hide-in-jetpack
+ */
 
 abstract class Publicize_Base {
 
@@ -186,5 +192,121 @@ abstract class Publicize_Base {
 
 		$connections = $this->get_connections( $service, $_blog_id, $_user_id );
 		return ( is_array( $connections ) && count( $connections ) > 0 ? true : false );
+	}
+
+	/**
+	* Fires when a post is saved, checks conditions and saves state in postmeta so that it
+	* can be picked up later by @see ::publicize_post()
+	*/
+	function save_meta( $post_id, $post ) {
+		$cron_user = null;
+		$submit_post = true;
+
+		// don't do anything if its not actually a post
+		if ( 'post' !== $post->post_type )
+			return;
+
+		// Don't Publicize during certain contexts:
+
+		// - import
+		if ( defined( 'WP_IMPORTING' ) && WP_IMPORTING  )
+			$submit_post = false;
+
+		// - on quick edit, autosave, etc but do fire on p2, quickpress, and instapost ajax
+		if (
+			defined( 'DOING_AJAX' )
+		&&
+			DOING_AJAX
+		&&
+			!did_action( 'p2_ajax' )
+		&&
+			!did_action( 'wp_ajax_json_quickpress_post' )
+		&&
+			!did_action( 'wp_ajax_instapost_publish' )
+		) {
+			$submit_post = false;
+		}
+
+		// - bulk edit
+		if ( isset( $_GET['bulk_edit'] ) )
+			$submit_post = false;
+
+		// - API/XML-RPC Test Posts
+		if (
+			(
+				defined( 'XMLRPC_REQUEST' )
+			&&
+				XMLRPC_REQUEST
+			||
+				defined( 'APP_REQUEST' )
+			&&
+				APP_REQUEST
+			)
+		&&
+			0 === strpos( $post->post_title, 'Temporary Post Used For Theme Detection' )
+		) {
+			$submit_post = false;
+		}
+
+		// only work with certain statuses (avoids inherits, auto drafts etc)
+		if ( !in_array( $post->post_status, array( 'publish', 'draft', 'future' ) ) )
+			$submit_post = false;
+
+		// don't publish password protected posts
+		if ( '' !== $post->post_password )
+			$submit_post = false;
+
+		// Did this request happen via wp-admin?
+		$from_web = 'post' == strtolower( $_SERVER['REQUEST_METHOD'] ) && isset( $_POST[$this->ADMIN_PAGE] );
+
+		if ( ( $from_web || defined( 'POST_BY_EMAIL' ) ) && !empty( $_POST['wpas_title'] ) )
+			update_post_meta( $post_id, $this->POST_MESS, trim( stripslashes( $_POST['wpas_title'] ) ) );
+
+		// change current user to provide context for get_services() if we're running during cron
+		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+			$cron_user = (int) $GLOBALS['user_ID'];
+			wp_set_current_user( $post->post_author );
+		}
+
+		/**
+		 * In this phase, we mark connections that we want to SKIP. When Publicize is actually triggered,
+		 * it will Publicize to everything *except* those marked for skipping.
+		 */
+		foreach ( (array) $this->get_services( 'connected' ) as $service_name => $connections ) {
+			foreach ( $connections as $connection ) {
+				if ( false == apply_filters( 'wpas_submit_post?', $submit_post, $post_id, $service_name ) ) {
+					continue;
+				}
+
+				if ( !empty( $connection->unique_id ) )
+					$unique_id = $connection->unique_id;
+				else if ( !empty( $connection['connection_data']['token_id'] ) )
+					$unique_id = $connection['connection_data']['token_id'];
+
+				// This was a wp-admin request, so we need to check the state of checkboxes
+				if ( $from_web ) {
+					// We *unchecked* this stream from the admin page, or it's set to readonly, or it's a new addition
+					if ( empty( $_POST[$this->ADMIN_PAGE]['submit'][$unique_id] ) ) {
+						// Also make sure that the service-specific input isn't there.
+						// If the user connected to a new service 'in-page' then a hidden field with the service
+						// name is added, so we just assume they wanted to Publicize to that service.
+						if ( empty( $_POST[$this->ADMIN_PAGE]['submit'][$service] ) ) {
+							// Nothing seems to be checked, so we're going to mark this one to be skipped
+							update_post_meta( $post_id, $this->POST_SKIP . $unique_id, 1 );
+							continue;
+						}
+					} else {
+						// The checkbox for this connection is explicitly checked -- make sure we DON'T skip it
+						delete_post_meta( $post_id, $this->POST_SKIP . $unique_id );
+					}
+				}
+			}
+		}
+
+		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+			wp_set_current_user( $cron_user );
+		}
+
+		// Next up will be ::publicize_post()
 	}
 }
