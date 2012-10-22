@@ -18,6 +18,7 @@ class Jetpack_Publicize {
 		if ( $this->in_jetpack && method_exists( 'Jetpack', 'module_configuration_load' ) ) {
 		        Jetpack::enable_module_configurable( __FILE__ );
 		        Jetpack::module_configuration_load( __FILE__, array( $this, 'jetpack_configuration_load' ) );
+		        Jetpack_Sync::sync_posts( __FILE__ );
 		}
 
 		require_once dirname( __FILE__ ) . '/publicize/publicize.php';

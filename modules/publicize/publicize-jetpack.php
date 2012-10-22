@@ -61,7 +61,6 @@ class Publicize extends Publicize_Base {
 	// @todo only load current users conncetions and _user_id = 0
 	function get_connections( $service_name, $_blog_id = false, $_user_id = false ) {
 		$connections = Jetpack::get_option( 'publicize_connections' );
-// print_r($connections);
 		$connections_to_return = array();
 		if ( !empty( $connections ) && is_array( $connections ) ) {
 			if ( !empty( $connections[$service_name] ) ) {
@@ -149,7 +148,7 @@ class Publicize extends Publicize_Base {
 
 	function globalization() {
 		if ( 'on' == $_REQUEST['global'] ) {
-			$id = $_POST['connection'];
+			$id = $_REQUEST['connection'];
 
 			if ( !current_user_can( Publicize::GLOBAL_CAP ) )
 				return;
@@ -473,9 +472,10 @@ class Publicize extends Publicize_Base {
 	function options_save_twitter() { $this->options_save_other( 'twitter' ); }
 	function options_save_linkedin() { $this->options_save_other( 'linkedin' ); }
 	function options_save_yahoo() { $this->options_save_other( 'yahoo' ); }
+
 	function options_save_other( $service_name ) {
 		// Nonce check
-		check_admin_referer( 'save_' . $service_name . '_blog_' . $_REQUEST['connection'] );
+		check_admin_referer( 'save_' . $service_name . '_token_' . $_REQUEST['connection'] );
 		$this->globalization();
 	}
 
