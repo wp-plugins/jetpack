@@ -93,6 +93,9 @@ class Jetpack_Notifications {
 		if ( !is_object( $wp_admin_bar ) )
 			return;
 
+		if ( !is_user_logged_in() && !$this->always_show_toolbar )
+			return;
+
 		$classes = 'wpnt-loading wpn-read';
 		$wp_admin_bar->add_menu( array(
 			'id'     => 'notes',
@@ -175,8 +178,10 @@ class Jetpack_Notifications {
 	function notes_option_always_show_toolbar() {
 	?>
 		<p class="description">
-			<input type="checkbox" name="jp_notes_always_show_toolbar" id="jetpack-notes-always_show_toolbar" value="1" <?php checked( $this->always_show_toolbar ); ?> />
-			<?php _e( "Always show the Toolbar so visitors can view their notifications from your site", 'jetpack' ); ?>
+			<label>
+				<input type="checkbox" name="jp_notes_always_show_toolbar" id="jetpack-notes-always_show_toolbar" value="1" <?php checked( $this->always_show_toolbar ); ?> />
+				<?php _e( "Always show the Toolbar so visitors can view their notifications from your site", 'jetpack' ); ?>
+			</label>
 		</p>
 	<?php
 	}
