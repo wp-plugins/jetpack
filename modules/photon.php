@@ -144,12 +144,46 @@ class Jetpack_Photon {
 	/**
 	 *
 	 */
-	public function action_begin_fetch_post_thumbnail_html() {}
+	public function action_begin_fetch_post_thumbnail_html() {
+		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
+	}
 
 	/**
 	 *
 	 */
-	public function action_end_fetch_post_thumbnail_html() {}
+	public function action_end_fetch_post_thumbnail_html() {
+		remove_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
+	}
+
+	/**
+	 *
+	 */
+	public function filter_image_downsize( $image, $attachment_id, $size ) {
+		$image_url = wp_get_attachment_url( $attachment_id );
+
+		if ( $image_url ) {
+			global $_wp_additional_image_sizes;
+
+			if ( array_key_exists( $size, $_wp_additional_image_sizes ) ) {
+				$image_args = $_wp_additional_image_sizes[ $size ];
+
+				$photon_args = array();
+
+				if ( $image_args['crop'] )
+					$photon_args['resize'] = $image_args['width'] . ',' . $image_args['height'];
+				else
+					$photon_args['fit'] = $image_args['width'] . ',' . $image_args['height'];
+
+				$image = array(
+					jetpack_photon_url( $image_url, $photon_args ),
+					false,
+					false
+				);
+			}
+		}
+
+		return $image;
+	}
 }
 
 Jetpack_Photon::instance();
