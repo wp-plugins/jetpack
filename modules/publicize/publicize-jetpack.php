@@ -80,8 +80,8 @@ class Publicize extends Publicize_Base {
 	}
 
 	function get_connection_meta( $connection ) {
-		$connection['connection_data'] =  (array) $connection['connection_data'];
-		return (array) $connection;
+		$connection['user_id'] = $connection['connection_data']['user_id']; // Allows for shared connections
+		return $connection;
 	}
 
 	function admin_page_load() {
@@ -203,7 +203,6 @@ class Publicize extends Publicize_Base {
 	}
 
 	function get_services( $filter = 'all' ) {
-
 		$services = array(
 				'facebook' => array(),
 				'twitter'  => array(),
@@ -325,7 +324,7 @@ class Publicize extends Publicize_Base {
 			<?php Publicize_UI::global_checkbox( 'facebook', $_REQUEST['connection'] ); ?>
 
 			<p style="text-align: center;">
-				<input type="submit" value="<?php esc_attr_e( 'Save these settings' ) ?>" class="button fb-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce('save_fb_token_' . $_REQUEST['connection'] ) ?>" />
+				<input type="submit" value="<?php esc_attr_e( 'OK', 'jetpack' ) ?>" class="button fb-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce('save_fb_token_' . $_REQUEST['connection'] ) ?>" />
 			</p><br/>
 		</div>
 
@@ -434,7 +433,7 @@ class Publicize extends Publicize_Base {
 			<?php Publicize_UI::global_checkbox( 'tumblr', $_REQUEST['connection'] ); ?>
 
 			<p style="text-align: center;">
-				<input type="submit" value="<?php esc_attr_e( 'Save these settings' ) ?>" class="button tumblr-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce( 'save_tumblr_blog_' . $_REQUEST['connection'] ) ?>" />
+				<input type="submit" value="<?php esc_attr_e( 'OK', 'jetpack' ) ?>" class="button tumblr-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce( 'save_tumblr_blog_' . $_REQUEST['connection'] ) ?>" />
 			</p> <br />
 		</div>
 
