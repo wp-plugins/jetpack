@@ -8,7 +8,7 @@
 
 class Jetpack_Photon {
 	/**
-	 *
+	 * Class variables
 	 */
 	private static $__instance = null;
 
@@ -19,6 +19,9 @@ class Jetpack_Photon {
 		'jpeg',
 		'png'
 	);
+
+	// Don't access this directly. Instead, use this::image_sizes() so it's actually populated with something.
+	protected $image_sizes = array();
 
 	/**
 	 * Singleton implementation
@@ -33,7 +36,11 @@ class Jetpack_Photon {
 	}
 
 	/**
+	 * Register actions and filters, but only if basic Photon functions are available.
+	 * The basic functions are found in ./functions.photon.php.
 	 *
+	 * @uses add_filter
+	 * @return null
 	 */
 	private function __construct() {
 		if ( ! function_exists( 'jetpack_photon_url' ) )
@@ -48,6 +55,10 @@ class Jetpack_Photon {
 	}
 
 	/**
+	 ** IN-CONTENT IMAGE MANIPULATION FUNCTIONS
+	 **/
+
+	/**
 	 * Note: Photon won't re-Photon URLs, so pass them anyway with our size adjustments
 	 */
 	public function filter_the_content( $content ) {
@@ -56,6 +67,10 @@ class Jetpack_Photon {
 
 			foreach ( $images[0] as $index => $tag ) {
 				$src = $src_orig = $images[2][ $index ];
+
+				// Check if image URL should be used with Photon
+				if ( ! $this->validate_image_url( $src ) )
+					continue;
 
 				// Ensure the image extension is acceptable
 				$url_info = parse_url( $src );
@@ -82,7 +97,7 @@ class Jetpack_Photon {
 				// If width or height are available, constrain to $content_width
 				if ( false !== $width && is_numeric( $content_width ) ) {
 					if ( $width > $content_width && false !== $height ) {
-						$height = ( $content_width * $height ) / $width;
+						$height = round( ( $content_width * $height ) / $width );
 						$width = $content_width;
 					}
 					elseif ( $width > $content_width ) {
@@ -142,14 +157,26 @@ class Jetpack_Photon {
 	}
 
 	/**
+	 ** POST THUMBNAIL FUNCTIONS
+	 **/
+
+	/**
+	 * Apply Photon to WP image retrieval functions for post thumbnails
 	 *
+	 * @uses add_filter
+	 * @action begin_fetch_post_thumbnail_html
+	 * @return null
 	 */
 	public function action_begin_fetch_post_thumbnail_html() {
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
 	}
 
 	/**
+	 * Remove Photon from WP image functions when post thumbnail processing is finished
 	 *
+	 * @uses remove_filter
+	 * @action end_fetch_post_thumbnail_html
+	 * @return null
 	 */
 	public function action_end_fetch_post_thumbnail_html() {
 		remove_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
@@ -159,14 +186,24 @@ class Jetpack_Photon {
 	 *
 	 */
 	public function filter_image_downsize( $image, $attachment_id, $size ) {
+		// Don't foul up the admin side of things, and provide plugins a way of preventing Photon from being applied to images.
+		if ( is_admin() && apply_filters( 'jetpack_photon_override_image_downsize', true, compact( 'image', 'attachment_id', 'size' ) ) )
+			return $image;
+
+		// Get the image URL and proceed with Photon-ification if successful
 		$image_url = wp_get_attachment_url( $attachment_id );
 
 		if ( $image_url ) {
-			global $_wp_additional_image_sizes;
+			// Check if image URL should be used with Photon
+			if ( ! $this->validate_image_url( $image_url ) )
+				return $image;
 
-			if ( array_key_exists( $size, $_wp_additional_image_sizes ) ) {
-				$image_args = $_wp_additional_image_sizes[ $size ];
+			// If an image is requested with a size known to WordPress, use that size's settings with Photon
+			if ( array_key_exists( $size, $this->image_sizes() ) ) {
+				$image_args = $this->image_sizes();
+				$image_args = $image_args[ $size ];
 
+				// Expose arguments to a filter before passing to Photon
 				$photon_args = array();
 
 				if ( $image_args['crop'] )
@@ -174,6 +211,31 @@ class Jetpack_Photon {
 				else
 					$photon_args['fit'] = $image_args['width'] . ',' . $image_args['height'];
 
+				$photon_args = apply_filters( 'jetpack_photon_image_downsize_string', $photon_args, compact( 'image_args', 'image_url', 'attachment_id', 'size' ) );
+
+				// Generate Photon URL
+				$image = array(
+					jetpack_photon_url( $image_url, $photon_args ),
+					false,
+					false
+				);
+			}
+			elseif ( is_array( $size ) ) {
+				// Pull width and height values from the provided array, if possible
+				$width = isset( $size[0] ) ? (int) $size[0] : false;
+				$height = isset( $size[1] ) ? (int) $size[1] : false;
+
+				// Don't bother if necessary parameters aren't passed.
+				if ( ! $width || ! $height )
+					return $image;
+
+				// Expose arguments to a filter before passing to Photon
+				$photon_args = array(
+					'fit' => $image_args['width'] . ',' . $image_args['height']
+				);
+				$photon_args = apply_filters( 'jetpack_photon_image_downsize_array', $photon_args, compact( 'width', 'height', 'image_url', 'attachment_id' ) );
+
+				// Generate Photon URL
 				$image = array(
 					jetpack_photon_url( $image_url, $photon_args ),
 					false,
@@ -183,6 +245,73 @@ class Jetpack_Photon {
 		}
 
 		return $image;
+	}
+
+	/**
+	 ** GENERAL FUNCTIONS
+	 **/
+
+	/**
+	 * Exclude certain hosts from Photon-ification
+	 * Facebook et al already serve images from CDNs, so no need to duplicate the effort.
+	 *
+	 * @param string $url
+	 * @return bool
+	 */
+	protected function validate_image_url( $url ) {
+		$hosts_to_ignore = array(
+			'fbcdn.net', // Facebook
+			'twimg.com', // Twitter
+			'flickr.com' // Flickr (duh)
+		);
+
+		$url_host = parse_url( $url, PHP_URL_HOST );
+
+		return ! ( (bool) preg_match( '#(' . implode( '|', $hosts_to_ignore ) . ')$#i', $url_host ) );
+	}
+
+	/**
+	 * Provide an array of available image sizes and corresponding dimensions.
+	 * Similar to get_intermediate_image_sizes() except that it includes image sizes' dimensions, not just their names.
+	 *
+	 * @global $wp_additional_image_sizes
+	 * @uses get_option
+	 * @return array
+	 */
+	protected function image_sizes() {
+		if ( empty( $this->image_sizes ) ) {
+			global $_wp_additional_image_sizes;
+
+			// Populate an array matching the data structure of $_wp_additional_image_sizes so we have a consistent structure for image sizes
+			$images = array(
+				'thumb'  => array(
+					'width'  => intval( get_option( 'thumbnail_size_w' ) ),
+					'height' => intval( get_option( 'thumbnail_size_h' ) ),
+					'crop'   => false
+				),
+				'medium' => array(
+					'width'  => intval( get_option( 'medium_size_w' ) ),
+					'height' => intval( get_option( 'medium_size_h' ) ),
+					'crop'   => false
+				),
+				'large'  => array(
+					'width'  => intval( get_option( 'large_size_w' ) ),
+					'height' => intval( get_option( 'large_size_h' ) ),
+					'crop'   => false
+				)
+			);
+
+			// Compatibility mapping as found in wp-includes/media.php
+			$images['thumbnail'] = $images['thumb'];
+
+			// Update class variable, merging in $_wp_additional_image_sizes if any are set
+			if ( is_array( $_wp_additional_image_sizes ) && ! empty( $_wp_additional_image_sizes ) )
+				$this->image_sizes = array_merge( $images, $_wp_additional_image_sizes );
+			else
+				$this->image_sizes = $images;
+		}
+
+		return $this->image_sizes;
 	}
 }
 
