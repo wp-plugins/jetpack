@@ -125,10 +125,9 @@ class Jetpack_Photon {
 					$height = 9999;
 				}
 
-				// Build URL
-				if ( false != preg_match( '#(-\d+x\d+)\.(' . implode('|', $this->extensions ) . '){1}$#i', $src, $src_parts ) ) {
+				// Build URL, first removing WP's resized string so we pass the original image to Photon
+				if ( false != preg_match( '#(-\d+x\d+)\.(' . implode('|', $this->extensions ) . '){1}$#i', $src, $src_parts ) )
 					$src = str_replace( $src_parts[1], '', $src );
-				}
 
 				$args = array();
 
@@ -290,7 +289,7 @@ class Jetpack_Photon {
 				'thumb'  => array(
 					'width'  => intval( get_option( 'thumbnail_size_w' ) ),
 					'height' => intval( get_option( 'thumbnail_size_h' ) ),
-					'crop'   => false
+					'crop'   => (bool) get_option( 'thumbnail_crop' )
 				),
 				'medium' => array(
 					'width'  => intval( get_option( 'medium_size_w' ) ),
