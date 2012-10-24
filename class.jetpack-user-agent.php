@@ -1004,7 +1004,7 @@ class Jetpack_User_Agent_Info {
  		}
 
 
-	// Detect if user agent is the WordPress.com Windows 8 app (used for custom oauth stylesheet)
+	// Detect if user agent is the WordPress.com Windows 8 app (used ONLY on the custom oauth stylesheet)
 	function is_windows8_auth( ) {
 		if ( empty( $_SERVER['HTTP_USER_AGENT'] ) )
 			return false;
@@ -1017,6 +1017,20 @@ class Jetpack_User_Agent_Info {
 			return false;
 	}
 
+	// Detect if user agent is the WordPress.com Windows 8 app.
+	function is_wordpress_for_win8( ) {
+		if ( empty( $_SERVER['HTTP_USER_AGENT'] ) )
+			return false;
+	
+		$agent = strtolower( $_SERVER['HTTP_USER_AGENT'] );
+		$pos = strpos( $agent, 'wp-windows8' );
+		if ( $pos !== false )
+			return true;
+		else
+			return false;
+	}
+	
+	
 	/*
 	 * is_blackberry_tablet() can be used to check the User Agent for a RIM blackberry tablet
 	 * The user agent of the BlackBerry® Tablet OS follows a format similar to the following:

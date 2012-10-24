@@ -15,7 +15,7 @@ class Publicize_UI {
 	*/
 	function __construct() {
 		global $publicize;
-		
+
 		$this->publicize = $publicize = new Publicize;
 
 		// assets (css, js)
@@ -27,15 +27,15 @@ class Publicize_UI {
 		add_action( 'pre_admin_screen_sharing', array( &$this, 'admin_page' ) );
 		add_action( 'post_submitbox_misc_actions', array( &$this, 'post_page_metabox' ) );
 	}
-	
+
 	/**
 	* If the ShareDaddy plugin is not active we need to add the sharing settings page to the menu still
-	*/ 
+	*/
 	function sharing_menu() {
 		add_submenu_page( 'options-general.php', __( 'Sharing Settings', 'jetpack' ), __( 'Sharing', 'jetpack' ), 'publish_posts', 'sharing', array( &$this, 'management_page' ) );
 	}
-	
-	
+
+
 	/**
 	* Management page to load if Sharedaddy is not active so the 'pre_admin_screen_sharing' action exists.
 	*/
@@ -43,9 +43,9 @@ class Publicize_UI {
 		<div class="wrap">
 			<div class="icon32" id="icon-options-general"><br /></div>
 			<h2><?php _e( 'Sharing Settings', 'jetpack' ); ?></h2>
-			
+
 				<?php do_action( 'pre_admin_screen_sharing' ) ?>
-				
+
 		</div> <?php
 	}
 
@@ -67,10 +67,10 @@ class Publicize_UI {
 			array(),
 			'20120925'
 		);
-		
+
 		add_thickbox();
 	}
-	
+
 	function connected_notice( $service_name ) { ?>
 		<div class='updated'>
 			<p><?php printf( __( 'You have successfully connected your blog with your %s account.', 'jetpack' ), Publicize::get_service_label( $service_name ) ); ?></p>
@@ -93,8 +93,8 @@ class Publicize_UI {
 	  		</p>
 
 	  		<div id="publicize-services-block">
-		  		<?php 
-		  		foreach ( $this->publicize->get_services( 'all' ) as $name => $service ) : 
+		  		<?php
+		  		foreach ( $this->publicize->get_services( 'all' ) as $name => $service ) :
 		  		$connect_url    = $this->publicize->connect_url( $name );
 		  		?>
 		  			<div class="publicize-service-entry">
@@ -110,11 +110,11 @@ class Publicize_UI {
 
 										$id = $this->publicize->get_connection_id( $c );
 										$disconnect_url = $this->publicize->disconnect_url( $name, $id );
-									
+
 										$cmeta = $this->publicize->get_connection_meta( $c );
 										$profile_link = $this->publicize->get_profile_link( $name, $c );
 										$connection_display = $this->publicize->get_display_name( $name, $c );
-										
+
 										$options_nonce = wp_create_nonce( 'options_page_' . $name . '_' . $id ); ?>
 
 										<script type="text/javascript">
@@ -131,7 +131,7 @@ class Publicize_UI {
 										</script>
 
 										<li>
-											
+
 											<?php
 											if ( !empty( $profile_link ) ) : ?>
 												<a class="publicize-profile-link" href="<?php echo esc_attr( $profile_link ); ?>">
@@ -141,16 +141,16 @@ class Publicize_UI {
 												echo esc_attr( $connection_display );
 											endif;
 											?>
-											
+
 											<?php if ( 0 == $cmeta['connection_data']['user_id'] ) : ?>
 												<small>(Shared)</small>
-											
-											
-												<?php if ( current_user_can( Publicize::GLOBAL_CAP ) ) : ?> 
+
+
+												<?php if ( current_user_can( Publicize::GLOBAL_CAP ) ) : ?>
 													<a class="pub-disconnect-button" title="<?php esc_html_e( 'Disconnect', 'jetpack' ); ?>" href="<?php echo esc_url( $disconnect_url ); ?>">×</a>
 												<?php endif; ?>
-												
-											<?php 
+
+											<?php
 												else : ?>
 												<a class="pub-disconnect-button" title="<?php esc_html_e( 'Disconnect', 'jetpack' ); ?>" href="<?php echo esc_url( $disconnect_url ); ?>">×</a>
 											<?php
@@ -159,7 +159,7 @@ class Publicize_UI {
 
 										</li>
 
-										<?php 
+										<?php
 									endforeach;
 				  					?>
 				  				</ul>
@@ -184,26 +184,26 @@ class Publicize_UI {
 		</p>
 		<?php endif;
 	}
-	
+
 	function broken_connection( $service_name, $id ) { ?>
 		<div id="thickbox-content">
-		
+
 			<div class='error'>
 				<p><?php printf( __( 'There was a problem connecting to %s. Please disconnect and try again.', 'jetpack' ), Publicize::get_service_label( $service_name ) ); ?></p>
 			</div>
 
 		</div> <?php
-		
+
 	}
-	
+
 	function options_page_other( $service_name ) {
 		// Nonce check
 		check_admin_referer( 'options_page_' . $service_name . '_' . $_REQUEST['connection'] );
 
 		?>
-		
+
 		<div id="thickbox-content">
-		
+
 			<?php
 			ob_start();
 			Publicize_UI::connected_notice( $service_name );
@@ -212,17 +212,17 @@ class Publicize_UI {
 			if ( ! empty( $update_notice ) )
 				echo $update_notice;
 			?>
-			
+
 			<?php Publicize_UI::global_checkbox( $service_name, $_REQUEST['connection'] ); ?>
 
 			<p style="text-align: center;">
-				<input type="submit" value="<?php esc_attr_e( 'Save these settings' ) ?>" class="button <?php echo $service_name;?>-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce( 'save_'.$service_name.'_token_' . $_REQUEST['connection'] ) ?>" />
+				<input type="submit" value="<?php esc_attr_e( 'OK', 'jetpack' ) ?>" class="button <?php echo $service_name; ?>-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce( 'save_'.$service_name.'_token_' . $_REQUEST['connection'] ) ?>" />
 			</p> <br />
-		</div> 
+		</div>
 
 		<?php
 	}
-	
+
 	/**
 	* CSS for styling the publicize message box and counter that displays on the post page.
 	* There is also some Javascript for length counting and some basic display effects.
@@ -432,12 +432,13 @@ jQuery( function($) {
 							if ( $skip && 'publish' == $post->post_status && !$done )
 								$checked = false;
 
+							$label = sprintf(
+								_x( '%1$s: %2$s', 'Service: Account connected as' ),
+								esc_html( $this->publicize->get_service_label( $name ) ),
+								esc_html( $this->publicize->get_display_name( $name, $connection ) )
+							);
 							if ( !$skip || $done ) {
-								$label = esc_html( $this->publicize->get_service_label( $name ) );
-								if ( isset( $active[$label] ) )
-									$active[$label]++;
-								else
-									$active[$label] = 1;
+								$active[] = $label;
 							}
 							?>
 							<li>
@@ -451,28 +452,11 @@ jQuery( function($) {
 										// Need to submit a value to force a global connection to post
 										echo '<input type="hidden" name="wpas[submit][' . $unique_id . ']" value="1" />';
 									}
-									printf(
-										_x( '%1$s: %2$s', 'Service: Account connected as' ),
-										esc_html( $this->publicize->get_service_label( $name ) ),
-										esc_html( $this->publicize->get_display_name( $name, $connection ) )
-									);
+									echo esc_html( $label );
 									?>
 								</label>
 							</li>
 							<?php
-						}
-					}
-
-					// Prepare the active list for a nice display
-					foreach ( $active as $name => $count ) {
-						if ( $count > 1 ) {
-							$active[$name] = sprintf(
-								_x( '%1$s (%2$d)', 'Service (number of connections, >1)' ),
-								$name,
-								$count
-							);
-						} else {
-							$active[$name] = $name;
 						}
 					}
 
@@ -509,7 +493,7 @@ jQuery( function($) {
 
 					<ul class="not-connected">
 
-					<?php foreach ( $available_services as $name => $service ) : 
+					<?php foreach ( $available_services as $name => $service ) :
 						$service_name = "Yahoo! Updates" == $this->publicize->get_service_label( $service_name ) ? 'yahoo' : strtolower( $this->publicize->get_service_label( $service_name ) );
 					?>
 

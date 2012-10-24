@@ -61,7 +61,7 @@ function jetpack_og_tags() {
 		// We got back more than one image from Jetpack_PostImages, so we need to extract just the thumb
 		$imgs = array();
 		foreach ( $tags['og:image'] as $img ) {
-			$imgs[] = jetpack_photon_url( $img['src'], array( 'fit' => '200,200' ) );
+			$imgs[] = jetpack_photon_url( $img['src'], array( 'fit' => '400,400' ) );
 		}
 		$tags['og:image'] = $imgs;
 	}

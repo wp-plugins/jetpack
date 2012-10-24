@@ -187,6 +187,9 @@ class Jetpack_PostImages {
 		*/
 		$html_images = array();
 		$html_images = self::from_html( get_post( $post_id ) );
+
+		$inserted_images = array();
+		
 		foreach( $html_images as $html_image ) {
 			$src = parse_url( $html_image['src'] );
 			$inserted_images[] = $src['scheme'] . '://' . $src['host'] . $src['path']; // strip off any query strings 

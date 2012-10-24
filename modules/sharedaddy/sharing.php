@@ -166,8 +166,6 @@ class Sharing_Admin {
 		
 		<?php if ( current_user_can( 'manage_options' ) ) : ?>
 		
-		<a name="sharing-buttons"></a>
-		
 	  	<h3><?php _e( 'Sharing Buttons', 'jetpack' ) ?></h3>
 	  	<p><?php _e( 'Add sharing buttons to your blog and allow your visitors to share posts with their friends.', 'jetpack' ) ?></p>
 	  	
