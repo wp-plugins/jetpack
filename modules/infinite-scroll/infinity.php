@@ -49,9 +49,10 @@ class The_Neverending_Home_Page {
 				'type'           => 'scroll', // scroll | click
 				'requested_type' => 'scroll', // store the original type for use when logic overrides it
 				'footer_widgets' => false, // true | false | sidebar_id | array of sidebar_ids -- last two are checked with is_active_sidebar
-				'container'      => 'content', // container id
-				'wrapper'        => true, // true | false | css class
+				'container'      => 'content', // container html id
+				'wrapper'        => true, // true | false | html class
 				'render'         => false, // optional function, otherwise the `content` template part will be used
+				'footer'         => true, // boolean to enable or disable the infinite footer | string to provide an html id to derive footer width from
 				'posts_per_page' => false // int | false to set based on IS type
 			);
 
@@ -98,6 +99,19 @@ class The_Neverending_Home_Page {
 									$settings[ $key ] = $value;
 
 									add_action( 'infinite_scroll_render', $value );
+								}
+
+								break;
+
+							case 'footer' :
+								if ( is_bool( $value ) ) {
+									$settings[ $key ] = $value;
+								}
+								elseif ( is_string( $value ) ) {
+									$value = preg_replace( $css_pattern, '', $value );
+
+									if ( ! empty( $value ) )
+										$settings[ $key ] = $value;
 								}
 
 								break;
@@ -412,9 +426,10 @@ class The_Neverending_Home_Page {
 		$js_settings = array(
 			'id'            => self::get_settings()->container,
 			'ajaxurl'       => esc_js( esc_url_raw( self::ajax_url() ) ),
-			'type'          => self::get_settings()->type,
+			'type'          => esc_js( self::get_settings()->type ),
 			'wrapper'       => self::has_wrapper(),
-			'wrapper_class' => is_string( self::get_settings()->wrapper ) ? self::get_settings()->wrapper : 'infinite-wrap',
+			'wrapper_class' => is_string( self::get_settings()->wrapper ) ? esc_js( self::get_settings()->wrapper ) : 'infinite-wrap',
+			'footer'        => is_string( self::get_settings()->footer ) ? esc_js( self::get_settings()->footer ) : self::get_settings()->footer,
 			'text'          => esc_js( __( 'Load more posts' ) ),
 			'totop'         => esc_js( __( 'Scroll back to top' ) ),
 			'order'         => 'DESC',
@@ -693,6 +708,10 @@ class The_Neverending_Home_Page {
 	 * The Infinite Blog Footer
 	 */
 	function footer() {
+		// Bail if theme requested footer not show
+		if ( false == self::get_settings()->footer )
+			return;
+
 		// Bail if there are not enough posts for infinity.
 		if ( ! self::set_last_post_time() )
 			return;
