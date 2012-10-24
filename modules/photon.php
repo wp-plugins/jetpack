@@ -72,11 +72,13 @@ class Jetpack_Photon {
 				if ( ! $this->validate_image_url( $src ) )
 					continue;
 
-				// Ensure the image extension is acceptable
+				// Ensure that the image source is acceptable
 				$url_info = parse_url( $src );
-				$extension = strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) );
 
-				if ( ! is_array( $url_info ) || ! in_array( $extension, $this->extensions ) )
+				if ( ! is_array( $url_info ) || ! isset( $url_info['host'] ) )
+					continue;
+
+				if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions ) )
 					continue;
 
 				// Find the width and height attributes
@@ -260,9 +262,10 @@ class Jetpack_Photon {
 	 */
 	protected function validate_image_url( $url ) {
 		$hosts_to_ignore = array(
-			'fbcdn.net', // Facebook
-			'twimg.com', // Twitter
-			'flickr.com' // Flickr (duh)
+			'fbcdn.net',    // Facebook
+			'twimg.com',    // Twitter
+			'flickr.com',   // Flickr (duh)
+			'amazonaws.com' // Instagram, among *many* others
 		);
 
 		$url_host = parse_url( $url, PHP_URL_HOST );
