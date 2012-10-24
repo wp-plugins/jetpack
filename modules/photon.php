@@ -83,6 +83,8 @@ class Jetpack_Photon {
 
 				// Find the width and height attributes
 				$width = $height = false;
+
+				// First, check the image tag
 				foreach ( array( 1, 3 ) as $search_index ) {
 					if ( false === $width && preg_match( '#width=["|\']?(\d+)["|\']?#i', $images[ $search_index ][ $index ], $width_string ) )
 						$width = (int) $width_string[1];
@@ -91,12 +93,13 @@ class Jetpack_Photon {
 						$height = (int) $height_string[1];
 				}
 
-				if ( ( false === $width || false === $height ) && false != preg_match( '#(-\d+x\d+)\.(' . implode('|', $this->extensions ) . '){1}$#i', $src, $width_height_string ) ) {
+				// If image tag lacks width and height arguments, try to determine from strings WP appends to resized image filenames.
+				if ( false === $width && false === $height && false != preg_match( '#(-\d+x\d+)\.(' . implode('|', $this->extensions ) . '){1}$#i', $src, $width_height_string ) ) {
 					$width = (int) $width_height_string[1];
 					$height = (int) $width_height_string[2];
 				}
 
-				// If width or height are available, constrain to $content_width
+				// If width is available, constrain to $content_width
 				if ( false !== $width && is_numeric( $content_width ) ) {
 					if ( $width > $content_width && false !== $height ) {
 						$height = round( ( $content_width * $height ) / $width );
