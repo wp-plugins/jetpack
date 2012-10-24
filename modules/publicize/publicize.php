@@ -83,13 +83,13 @@ abstract class Publicize_Base {
 	/**
 	* Shared Functions
 	*/
-	
+
 	/**
 	* Returns an external URL to the connection's profile
-	*/ 
+	*/
 	function get_profile_link( $service_name, $c ) {
 		$cmeta = $this->get_connection_meta( $c );
-		
+
 		if ( isset( $cmeta['connection_data']['meta']['link'] ) ) {
 			return $cmeta['connection_data']['meta']['link'];
 		} elseif ( 'facebook' == $service_name && isset( $cmeta['connection_data']['meta']['facebook_page'] ) ) {
@@ -99,7 +99,7 @@ abstract class Publicize_Base {
 		} elseif ( 'tumblr' == $service_name && isset( $cmeta['connection_data']['meta']['tumblr_base_hostname'] ) ) {
 			 return 'http://' . $cmeta['connection_data']['meta']['tumblr_base_hostname'];
 		} elseif ( 'twitter' == $service_name ) {
-			return 'http://twitter.com/' . $cmeta['external_name'];
+			return 'http://twitter.com/' . substr( $cmeta['external_display'], 1 ); // Has a leading '@'
 		} else if ( 'yahoo' == $service_name ) {
 			return 'http://profile.yahoo.com/' . $cmeta['external_id'];
 		} else {
@@ -112,13 +112,13 @@ abstract class Publicize_Base {
 	*/
 	function get_display_name( $service_name, $c ) {
 		$cmeta = $this->get_connection_meta( $c );
-		
+
 		if ( isset( $cmeta['connection_data']['meta']['display_name'] ) ) {
 			return $cmeta['connection_data']['meta']['display_name'];
-		} elseif ( 'tumblr' == $service_name && isset( $cmeta['connection_data']['meta']['tumblr_base_hostname'] ) ) {
+		} elseif ( $service_name == 'tumblr' && isset( $cmeta['connection_data']['meta']['tumblr_base_hostname'] ) ) {
 			 return $cmeta['connection_data']['meta']['tumblr_base_hostname'];
-		} elseif ( 'twitter' == $service_name ) {
-			return '@' . $cmeta['external_name'];
+		} elseif ( $service_name == 'twitter' ) {
+			return $cmeta['external_display'];
 		} else {
 			$connection_display = $cmeta['external_display'];
 			if ( empty( $connection_display ) )
@@ -129,21 +129,18 @@ abstract class Publicize_Base {
 
 	function get_service_label( $service_name ) {
 		switch ( $service_name ) {
-			case 'twitter':
-				return 'Twitter';
-			break;
-			case 'facebook':
-				return 'Facebook';
-			break;
 			case 'yahoo':
 				return 'Yahoo!';
-			break;
+				break;
 			case 'linkedin':
 				return 'LinkedIn';
-			break;
+				break;
+			case 'twitter':
+			case 'facebook':
 			case 'tumblr':
-				return 'Tumblr';
-			break;
+			default:
+				return ucfirst( $service_name );
+				break;
 		}
 	}
 

@@ -74,7 +74,7 @@ class Publicize_UI {
 	function connected_notice( $service_name ) { ?>
 		<div class='updated'>
 			<p><?php printf( __( 'You have successfully connected your blog with your %s account.', 'jetpack' ), Publicize::get_service_label( $service_name ) ); ?></p>
-		</div> <?php
+		</div><?php
 	}
 
 	/**
@@ -86,7 +86,7 @@ class Publicize_UI {
 		?>
 
   		<form action="" id="publicize-form">
-	  		<h3 id="publicize"><?php _e( 'Publicize' ) ?></h3>
+	  		<h3 id="publicize"><?php _e( 'Publicize', 'jetpack' ) ?></h3>
 	  		<p>
 	  			<?php esc_html_e( 'Connect your blog to popular social networking sites and automatically share new posts with your friends.', 'jetpack' ) ?>
 	  			<?php esc_html_e( 'You can make a connection for just yourself or for all users on your blog. Shared connections are marked with the (Shared) text.', 'jetpack' ); ?>
@@ -95,11 +95,11 @@ class Publicize_UI {
 	  		<div id="publicize-services-block">
 		  		<?php
 		  		foreach ( $this->publicize->get_services( 'all' ) as $name => $service ) :
-		  		$connect_url    = $this->publicize->connect_url( $name );
-		  		?>
+		  			$connect_url = $this->publicize->connect_url( $name );
+		  			?>
 		  			<div class="publicize-service-entry">
 			  			<div id="<?php echo esc_attr( $name ); ?>" class="publicize-service-left">
-			  				<a href="<?php echo esc_url( $connect_url); ?>"><span class="pub-logos" id="<?php echo esc_attr( $name ); ?>">&nbsp;</span></a>
+			  				<a href="<?php echo esc_url( $connect_url ); ?>"><span class="pub-logos" id="<?php echo esc_attr( $name ); ?>">&nbsp;</span></a>
 			  			</div>
 
 			  			<div class="publicize-service-right">
@@ -107,7 +107,6 @@ class Publicize_UI {
 			  					<ul>
 				  					<?php
 									foreach( $connections as $c ) :
-
 										$id = $this->publicize->get_connection_id( $c );
 										$disconnect_url = $this->publicize->disconnect_url( $name, $id );
 
@@ -117,8 +116,8 @@ class Publicize_UI {
 
 										$options_nonce = wp_create_nonce( 'options_page_' . $name . '_' . $id ); ?>
 
-										<script type="text/javascript">
 										<?php if ( $this->publicize->show_options_popup( $name, $c ) ): ?>
+										<script type="text/javascript">
 										jQuery(document).ready( function($) {
 											showOptionsPage.call(
 											this,
@@ -127,36 +126,30 @@ class Publicize_UI {
 											'<?php echo esc_js( $id ); ?>'
 											);
 										} );
-										<?php endif; ?>
 										</script>
+										<?php endif; ?>
 
 										<li>
-
 											<?php
 											if ( !empty( $profile_link ) ) : ?>
 												<a class="publicize-profile-link" href="<?php echo esc_attr( $profile_link ); ?>">
-													<?php echo esc_attr( $connection_display ); ?>
-												</a> <?php
+													<?php echo esc_html( $connection_display ); ?>
+												</a><?php
 											else :
-												echo esc_attr( $connection_display );
+												echo esc_html( $connection_display );
 											endif;
 											?>
 
 											<?php if ( 0 == $cmeta['connection_data']['user_id'] ) : ?>
-												<small>(Shared)</small>
-
+												<small>(<?php esc_html_e( 'Shared', 'jetpack' ); ?>)</small>
 
 												<?php if ( current_user_can( Publicize::GLOBAL_CAP ) ) : ?>
 													<a class="pub-disconnect-button" title="<?php esc_html_e( 'Disconnect', 'jetpack' ); ?>" href="<?php echo esc_url( $disconnect_url ); ?>">×</a>
 												<?php endif; ?>
 
-											<?php
-												else : ?>
+											<?php else : ?>
 												<a class="pub-disconnect-button" title="<?php esc_html_e( 'Disconnect', 'jetpack' ); ?>" href="<?php echo esc_url( $disconnect_url ); ?>">×</a>
-											<?php
-												endif;
-											?>
-
+											<?php endif; ?>
 										</li>
 
 										<?php
@@ -178,37 +171,30 @@ class Publicize_UI {
 
 	function global_checkbox( $service_name, $id ) {
 		if ( current_user_can( Publicize::GLOBAL_CAP ) ) : ?>
-		<p>
-			<input id="globalize_<?php echo $service_name; ?>" type="checkbox" name="global" value="<?php echo wp_create_nonce('publicize-globalize-' . $id ) ?>" />
-			<label for="globalize_<?php echo $service_name; ?>"><?php _e( 'Make this connection available to all users of this blog?', 'jetpack' ); ?></label>
-		</p>
+			<p>
+				<input id="globalize_<?php echo $service_name; ?>" type="checkbox" name="global" value="<?php echo wp_create_nonce( 'publicize-globalize-' . $id ) ?>" />
+				<label for="globalize_<?php echo $service_name; ?>"><?php _e( 'Make this connection available to all users of this blog?', 'jetpack' ); ?></label>
+			</p>
 		<?php endif;
 	}
 
 	function broken_connection( $service_name, $id ) { ?>
 		<div id="thickbox-content">
-
 			<div class='error'>
 				<p><?php printf( __( 'There was a problem connecting to %s. Please disconnect and try again.', 'jetpack' ), Publicize::get_service_label( $service_name ) ); ?></p>
 			</div>
-
-		</div> <?php
-
+		</div><?php
 	}
 
 	function options_page_other( $service_name ) {
 		// Nonce check
-		check_admin_referer( 'options_page_' . $service_name . '_' . $_REQUEST['connection'] );
-
+		check_admin_referer( "options_page_{$service_name}_" . $_REQUEST['connection'] );
 		?>
-
 		<div id="thickbox-content">
-
 			<?php
 			ob_start();
 			Publicize_UI::connected_notice( $service_name );
 			$update_notice = ob_get_clean();
-
 			if ( ! empty( $update_notice ) )
 				echo $update_notice;
 			?>
@@ -219,7 +205,6 @@ class Publicize_UI {
 				<input type="submit" value="<?php esc_attr_e( 'OK', 'jetpack' ) ?>" class="button <?php echo $service_name; ?>-options save-options" name="save" data-connection="<?php echo esc_attr( $_REQUEST['connection'] ); ?>" rel="<?php echo wp_create_nonce( 'save_'.$service_name.'_token_' . $_REQUEST['connection'] ) ?>" />
 			</p> <br />
 		</div>
-
 		<?php
 	}
 
@@ -358,7 +343,7 @@ jQuery( function($) {
 .wpas-twitter-length-limit {
 	color: red;
 }
-</style> <?php
+</style><?php
 	}
 
 	/**
@@ -385,18 +370,17 @@ jQuery( function($) {
 		$active = array(); ?>
 
 		<div id="publicize" class="misc-pub-section misc-pub-section-last">
-
 			<?php
-				_e( 'Publicize:' );
+			_e( 'Publicize:', 'jetpack' );
 
 			if ( 0 < count( $services ) ) :
 					ob_start();
 				?>
 
 				<div id="publicize-form" class="hide-if-js">
-				<ul>
+					<ul>
 
-				<?php
+					<?php
 					foreach ( $services as $name => $connections ) {
 						foreach ( $connections as $connection ) {
 							if ( !$continue = apply_filters( 'wpas_submit_post?', true, $post->ID, $name ) )
@@ -466,15 +450,15 @@ jQuery( function($) {
 						$title = '';
  					?>
 
-				</ul>
+					</ul>
 
-				<label for="wpas-title"><?php _e( 'Custom Message:' ); ?></label>
-				<span id="wpas-title-counter" class="alignright hide-if-no-js">0</span>
+					<label for="wpas-title"><?php _e( 'Custom Message:', 'jetpack' ); ?></label>
+					<span id="wpas-title-counter" class="alignright hide-if-no-js">0</span>
 
-				<textarea name="wpas_title" id="wpas-title"><?php echo $title; ?></textarea>
+					<textarea name="wpas_title" id="wpas-title"><?php echo $title; ?></textarea>
 
-				<a href="#" class="hide-if-no-js" id="publicize-form-hide"><?php _e( 'Hide' ); ?></a>
-				<input type="hidden" name="wpas[0]" value="1" />
+					<a href="#" class="hide-if-no-js" id="publicize-form-hide"><?php _e( 'Hide', 'jetpack' ); ?></a>
+					<input type="hidden" name="wpas[0]" value="1" />
 
 				</div> <?php // #publicize-form
 
@@ -482,7 +466,7 @@ jQuery( function($) {
 
 				$publicize_form = ob_get_clean();
 			else :
-				echo "&nbsp;" . __( 'Not Connected' );
+				echo "&nbsp;" . __( 'Not Connected', 'jetpack' );
 					ob_start();
 				?>
 
@@ -492,19 +476,15 @@ jQuery( function($) {
 					<strong><?php _e( 'Connect to', 'jetpack' ); ?>:</strong>
 
 					<ul class="not-connected">
-
-					<?php foreach ( $available_services as $name => $service ) :
-						$service_name = "Yahoo! Updates" == $this->publicize->get_service_label( $service_name ) ? 'yahoo' : strtolower( $this->publicize->get_service_label( $service_name ) );
-					?>
-
+						<?php foreach ( $available_services as $name => $service ) :
+							$service_name = "Yahoo! Updates" == $this->publicize->get_service_label( $service_name ) ? 'yahoo' : strtolower( $this->publicize->get_service_label( $service_name ) );
+						?>
 						<li>
 							<a class="pub-service" data-service="<?php esc_attr_e( $name ); ?>" title="<?php esc_attr_e( sprintf( __( 'Connect and share your posts on %s', 'jetpack' ), $this->publicize->get_service_label( $service_name ) ) ); ?>" target="_blank" href="<?php echo $this->publicize->connect_url( $service_name ); ?>">
 								<?php echo esc_html( $this->publicize->get_service_label( $service_name ) ); ?>
 							</a>
 						</li>
-
-					<?php endforeach; ?>
-
+						<?php endforeach; ?>
 					</ul>
 
 					<?php if ( 0 < count( $services ) ) : ?>
@@ -512,7 +492,6 @@ jQuery( function($) {
 					<?php else : ?>
 						<a href="#" class="hide-if-no-js" id="publicize-disconnected-form-hide"><?php _e( 'Hide', 'jetpack' ); ?></a>
 					<?php endif; ?>
-
 				</div> <?php // #publicize-form
 
 				$publicize_form = ob_get_clean();
