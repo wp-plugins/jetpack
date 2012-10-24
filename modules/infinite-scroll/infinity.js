@@ -277,7 +277,7 @@ Scroller.prototype.ensureFilledViewport = function() {
 
 	// Account for situations where postsHeight is 0 because child list elements are floated
 	if ( postsHeight === 0 ) {
-		$( '.' + self.element + ' > li' ).each( function() {
+		$( self.element.selector + ' > li' ).each( function() {
 			postsHeight += $( this ).height();
 		} );
 
