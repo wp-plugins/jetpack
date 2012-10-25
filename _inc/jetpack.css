@@ -610,10 +610,12 @@ p.jp-help {
 		}
 		#notes.jetpack-module div.module-image {
 			background-position: -1806px 5px;
-		}
-		
+		}		
 		#json-api.jetpack-module div.module-image {
 			background-position: -1689px 5px;
+		}
+		#post-by-email.jetpack-module div.module-image {
+			background-position: -1009px 5px;
 		}
 
 		.jetpack-module div.module-image p {

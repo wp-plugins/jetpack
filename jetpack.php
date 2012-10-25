@@ -667,6 +667,7 @@ class Jetpack {
 			case 'comments' :
 			case 'carousel' :
 			case 'minileven':
+			case 'post-by-email':
 				break;
 
 			// These modules are default off if we think the site is a private one
