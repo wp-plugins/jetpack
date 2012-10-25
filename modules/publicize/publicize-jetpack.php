@@ -46,8 +46,7 @@ class Publicize extends Publicize_Base {
 					<div class="jetpack-wrap-container">
 						<div class="jetpack-text-container">
 							<h4>
-								<p><?php _e( "To use Publicize you&#8217;ll need to link your account here to your WordPress.com account using the button to the right.", 'jetpack' ) ?></p>
-								<p><?php _e( "Come back to this page once you&#8217;re connected to configure Publicize." ); ?></p>
+								<p><?php _e( "To use Publicize you&#8217;ll need to link your account here to your WordPress.com account using the button to the right. If you don't have one yet you can sign up for free, in just a few seconds.", 'jetpack' ) ?></p>
 							</h4>
 						</div>
 						<div class="jetpack-install-container">
