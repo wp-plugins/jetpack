@@ -123,6 +123,8 @@ class Jetpack_User_Agent_Info {
 	   		return 'blackberry';
 	   	elseif ( $this->is_WindowsPhone7() )
 	   		return 'win7';
+	   	elseif ( $this->is_windows_phone_8() )
+	   		return 'winphone8';
 	   	elseif ( $this->is_opera_mini() )
 	   		return 'opera-mini';
 		elseif ( $this->is_opera_mini_dumb() )
@@ -184,7 +186,7 @@ class Jetpack_User_Agent_Info {
    		return $this->_platform;
    	}
 
-    if ( strpos( $this->useragent, 'windows phone os 7' ) !== false ) {
+    if ( strpos( $this->useragent, 'windows phone' ) !== false ) {
    		$this->_platform = self::PLATFORM_WINDOWS;
    	}
    	elseif ( strpos( $this->useragent, 'windows ce' ) !== false ) {
@@ -249,6 +251,12 @@ class Jetpack_User_Agent_Info {
 		}
 		elseif ( $this->is_android() ) {
 			$this->matched_agent = 'android';
+			$this->isTierIphone = true;
+			$this->isTierRichCss = false;
+			$this->isTierGenericMobile = false;
+		}
+		elseif ( $this->is_windows_phone_8() ) {
+			$this->matched_agent = 'winphone8';
 			$this->isTierIphone = true;
 			$this->isTierRichCss = false;
 			$this->isTierGenericMobile = false;
@@ -705,6 +713,23 @@ class Jetpack_User_Agent_Info {
 	}
 
 	/*
+	 * Detects if the current browser is a Windows Phone 8 device.
+	 * ex: Mozilla/5.0 (compatible; MSIE 10.0; Windows Phone 8.0; Trident/6.0; ARM; Touch; IEMobile/10.0; <Manufacturer>; <Device> [;<Operator>])
+	 */
+	function is_windows_phone_8() {
+		if ( empty( $_SERVER['HTTP_USER_AGENT'] ) )
+			return false;
+			
+		$ua = strtolower( $_SERVER['HTTP_USER_AGENT'] );
+		if ( strpos( $ua, 'windows phone 8' ) === false ) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	
+	/*
 	 * Detects if the current browser is on a Palm device running the new WebOS. This EXCLUDES TouchPad.
 	 *
 	 * ex1: Mozilla/5.0 (webOS/1.4.0; U; en-US) AppleWebKit/532.2 (KHTML, like Gecko) Version/1.0 Safari/532.2 Pre/1.1
@@ -1023,7 +1048,7 @@ class Jetpack_User_Agent_Info {
 			return false;
 	
 		$agent = strtolower( $_SERVER['HTTP_USER_AGENT'] );
-		$pos = strpos( $agent, 'wp-windows8' );
+		$pos   = strpos( $agent, 'wp-windows8' );
 		if ( $pos !== false )
 			return true;
 		else

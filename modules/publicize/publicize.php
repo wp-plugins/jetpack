@@ -3,10 +3,10 @@
 abstract class Publicize_Base {
 
 	/**
-	* Services that are currently connected to the current user
+	* Services that are currently connected to the given user
 	* through publicize.
 	*/
-	var $connected_services;
+	var $connected_services = array();
 
 	/**
 	* Sservices that are supported by publicize. They don't

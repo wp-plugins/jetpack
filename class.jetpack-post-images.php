@@ -379,6 +379,10 @@ class Jetpack_PostImages {
 		// Figure out which image to attach to this post.
 		$media = false;
 
+		$media = apply_filters( 'jetpack_images_pre_get_images', $media, $post_id, $args );
+		if ( $media )
+			return $media; 
+
 		$defaults = array(
 			'width' => 200,  // Required minimum width (if possible to determine)
 			'height' => 200, // Required minimum height (if possible to determine)
@@ -404,6 +408,6 @@ class Jetpack_PostImages {
 				$media = self::from_gravatar( $post_id, $args['avatar_size'], $args['gravatar_default'] );
 		}
 
-		return $media;
+		return apply_filters( 'jetpack_images_get_images', $media, $post_id, $args );
 	}
 }
