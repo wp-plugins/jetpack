@@ -5,19 +5,19 @@
  * Plugin URI: http://wordpress.org/extend/plugins/jetpack/
  * Description: Bring the power of the WordPress.com cloud to your self-hosted WordPress. Jetpack enables you to connect your blog to a WordPress.com account to use the powerful features normally only available to WordPress.com users.
  * Author: Automattic
- * Version: 1.9b5
+ * Version: 1.9
  * Author URI: http://jetpack.me
  * License: GPL2+
  * Text Domain: jetpack
  * Domain Path: /languages/
  */
 
-defined( 'JETPACK__API_BASE' ) or define( 'JETPACK__API_BASE', 'https://jetpack.wordpress.com/jetpack.' );
+defined( 'JETPACK__API_BASE' ) or define( 'JETPACK__API_BASE', 'https://beau.wordpress.com/jetpack.' );
 define( 'JETPACK__API_VERSION', 1 );
 define( 'JETPACK__MINIMUM_WP_VERSION', '3.2' );
 defined( 'JETPACK_CLIENT__AUTH_LOCATION' ) or define( 'JETPACK_CLIENT__AUTH_LOCATION', 'header' );
 defined( 'JETPACK_CLIENT__HTTPS' ) or define( 'JETPACK_CLIENT__HTTPS', 'AUTO' );
-define( 'JETPACK__VERSION', '1.9-alpha' );
+define( 'JETPACK__VERSION', '1.9' );
 define( 'JETPACK__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 defined( 'JETPACK__GLOTPRESS_LOCALES_PATH' ) or define( 'JETPACK__GLOTPRESS_LOCALES_PATH', JETPACK__PLUGIN_DIR . 'locales.php' );
 
@@ -1656,6 +1656,21 @@ p {
 		if ( !empty( $_GET['jetpack_restate'] ) ) {
 			// Should only be used in intermediate redirects to preserve state across redirects
 			Jetpack::restate();
+		}
+
+		if ( isset( $_GET['connect_url_redirect'] ) ) {
+			// User clicked in the iframe to link their accounts
+			if ( ! Jetpack::is_user_connected() ) {
+				$connect_url = Jetpack::build_connect_url( true );
+				if ( isset( $_GET['notes_iframe'] ) )
+					$connect_url .= '&notes_iframe';
+				wp_redirect( $connect_url );
+				exit;
+			} else {
+				Jetpack::state( 'message', 'already_authorized' );
+				wp_safe_redirect( Jetpack::admin_url() );
+				exit;
+			}
 		}
 
 		if ( isset( $_GET['action'] ) ) {
@@ -3767,14 +3782,7 @@ class Jetpack_Sync {
 		return true;
 	}
 
-	/**
-	 * Set up all the data and queue it for the outgoing XML-RPC request
-	 */
-	function sync() {
-		if ( !$this->sync ) {
-			return false;
-		}
-
+	function get_common_sync_data() {
 		$available_modules = Jetpack::get_available_modules();
 		$active_modules = Jetpack::get_active_modules();
 		$modules = array();
@@ -3787,6 +3795,19 @@ class Jetpack_Sync {
 			'modules' => $modules,
 			'version' => JETPACK__VERSION,
 		);
+
+		return $sync_data;
+	}
+
+	/**
+	 * Set up all the data and queue it for the outgoing XML-RPC request
+	 */
+	function sync() {
+		if ( !$this->sync ) {
+			return false;
+		}
+
+		$sync_data = $this->get_common_sync_data();
 
 		foreach ( $this->sync as $sync_operation_type => $sync_operations ) {
 			switch ( $sync_operation_type ) {
@@ -3841,6 +3862,35 @@ class Jetpack_Sync {
 		}
 
 		Jetpack::xmlrpc_async_call( 'jetpack.syncContent', $sync_data );
+	}
+
+	/**
+	 * Format and return content data from a direct xmlrpc request for it.
+	 * 
+	 * @param array $content_ids: array( 'posts' => array of ids, 'comments' => array of ids, 'options' => array of options )
+	 */
+	function get_content( $content_ids ) {
+		$sync_data = $this->get_common_sync_data();
+
+		if ( isset( $content_ids['posts'] ) ) {
+			foreach ( $content_ids['posts'] as $id ) {
+				$sync_data['post'][$id] = $this->get_post( $id );
+			}
+		}
+
+		if ( isset( $content_ids['comments'] ) ) {
+			foreach ( $content_ids['comments'] as $id ) {
+				$sync_data['comment'][$id] = $this->get_post( $id );
+			}
+		}
+
+		if ( isset( $content_ids['options'] ) ) {
+			foreach ( $content_ids['options'] as $option ) {
+				$sync_data['option'][$option] = array( 'value' => get_option( $option ) );
+			}
+		}
+
+		return $sync_data;
 	}
 
 	/**

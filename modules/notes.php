@@ -6,9 +6,10 @@
  * First Introduced: 1.9
  */
 
+if ( !defined( 'JETPACK_NOTES__CACHE_BUSTER' ) ) define( 'JETPACK_NOTES__CACHE_BUSTER', gmdate( 'oW' ) );
+
 class Jetpack_Notifications {
 	var $jetpack = false;
-	var $always_show_toolbar = false;
 
 	/**
 	 * Singleton
@@ -27,11 +28,7 @@ class Jetpack_Notifications {
 	function Jetpack_Notifications() {
 		$this->jetpack = Jetpack::init();
 
-		add_action( 'jetpack_modules_loaded', array( &$this, 'enable_configuration' ) );
 		add_action( 'init', array( &$this, 'action_init' ) );
-		$this->always_show_toolbar = get_option( 'jp_notes_always_show_toolbar', 0 );
-		if ( $this->always_show_toolbar )
-			add_filter( 'show_admin_bar', '__return_true' , 1000 );
 
 		Jetpack_Sync::sync_options( __FILE__,
 			'home',
@@ -73,16 +70,18 @@ class Jetpack_Notifications {
 	}
 
 	function action_init() {
-		wp_enqueue_style( 'notes-admin-bar-rest', $this->wpcom_static_url( '/wp-content/mu-plugins/notes/admin-bar-rest.css' ), array(), '2012-05-18a' );
-		wp_enqueue_style( 'noticons', $this->wpcom_static_url( '/i/noticons/noticons.css' ), array(), '2012-10-02' );
-		wp_enqueue_script( 'spin', $this->wpcom_static_url( '/wp-includes/js/spin.js' ), array( 'jquery' ) );
-		wp_enqueue_script( 'jquery.spin', $this->wpcom_static_url( '/wp-includes/js/jquery/jquery.spin.js' ), array( 'jquery', 'spin' ) );
-		wp_enqueue_script( 'notes-postmessage', $this->wpcom_static_url( '/wp-content/js/postmessage.js' ), array(), '20120525', true );
-		wp_enqueue_script( 'mustache', $this->wpcom_static_url( '/wp-content/js/mustache.js' ), null, '2012-05-04', true );
-		wp_enqueue_script( 'underscore', $this->wpcom_static_url( '/wp-content/js/underscore.js' ), null, '2012-05-04', true );
-		wp_enqueue_script( 'backbone', $this->wpcom_static_url( '/wp-content/js/backbone.js' ), array( 'jquery', 'underscore' ), '2012-05-04', true );
-		wp_enqueue_script( 'notes-rest-common', $this->wpcom_static_url( '/wp-content/mu-plugins/notes/notes-rest-common.js' ), array( 'backbone', 'mustache' ), '2012-05-24a', true );
-		wp_enqueue_script( 'notes-admin-bar-rest', $this->wpcom_static_url( '/wp-content/mu-plugins/notes/admin-bar-rest.js' ), array( 'jquery', 'underscore', 'backbone' ), '20120927', true );
+		if ( !is_user_logged_in() )
+			return;
+		wp_enqueue_style( 'notes-admin-bar-rest', $this->wpcom_static_url( '/wp-content/mu-plugins/notes/admin-bar-rest.css' ), array(), JETPACK_NOTES__CACHE_BUSTER );
+		wp_enqueue_style( 'noticons', $this->wpcom_static_url( '/i/noticons/noticons.css' ), array(), JETPACK_NOTES__CACHE_BUSTER );
+		wp_enqueue_script( 'spin', $this->wpcom_static_url( '/wp-includes/js/spin.js' ), array( 'jquery' ), JETPACK_NOTES__CACHE_BUSTER );
+		wp_enqueue_script( 'jquery.spin', $this->wpcom_static_url( '/wp-includes/js/jquery/jquery.spin.js' ), array( 'jquery', 'spin' ), JETPACK_NOTES__CACHE_BUSTER );
+		wp_enqueue_script( 'notes-postmessage', $this->wpcom_static_url( '/wp-content/js/postmessage.js' ), array(), JETPACK_NOTES__CACHE_BUSTER, true );
+		wp_enqueue_script( 'mustache', $this->wpcom_static_url( '/wp-content/js/mustache.js' ), null, JETPACK_NOTES__CACHE_BUSTER, true );
+		wp_enqueue_script( 'underscore', $this->wpcom_static_url( '/wp-content/js/underscore.js' ), null, JETPACK_NOTES__CACHE_BUSTER, true );
+		wp_enqueue_script( 'backbone', $this->wpcom_static_url( '/wp-content/js/backbone.js' ), array( 'jquery', 'underscore' ), JETPACK_NOTES__CACHE_BUSTER, true );
+		wp_enqueue_script( 'notes-rest-common', $this->wpcom_static_url( '/wp-content/mu-plugins/notes/notes-rest-common.js' ), array( 'backbone', 'mustache' ), JETPACK_NOTES__CACHE_BUSTER, true );
+		wp_enqueue_script( 'notes-admin-bar-rest', $this->wpcom_static_url( '/wp-content/mu-plugins/notes/admin-bar-rest.js' ), array( 'jquery', 'underscore', 'backbone' ), JETPACK_NOTES__CACHE_BUSTER, true );
 		add_action( 'admin_bar_menu', array( &$this, 'admin_bar_menu'), 120 );
 		add_action( 'wp_print_scripts', array( &$this, 'print_js'), 0 );
 	}
@@ -91,9 +90,6 @@ class Jetpack_Notifications {
 		global $wp_admin_bar, $current_blog;
 
 		if ( !is_object( $wp_admin_bar ) )
-			return;
-
-		if ( !is_user_logged_in() && !$this->always_show_toolbar )
 			return;
 
 		$classes = 'wpnt-loading wpn-read';
@@ -122,68 +118,6 @@ class Jetpack_Notifications {
 /* ]]> */
 </script>
 <?php
-	}
-
-	// Add Configuration Page
-	function enable_configuration() {
-		Jetpack::enable_module_configurable( __FILE__ );
-		Jetpack::module_configuration_load( __FILE__, array( &$this, 'load_settings_page' ) );
-		add_action( 'admin_init', array( &$this, 'configure' ) );
-	}
-
-	function load_settings_page() {
-		wp_safe_redirect( admin_url( 'options-discussion.php#jetpack-notifications-settings' ) );
-		exit;
-	}
-
-	/**
-	 * Jetpack_Notifications::configure()
-	 *
-	 * Jetpack Notifications configuration screen.
-	 */
-	function configure() {
-		// Create the section
-		add_settings_section(
-			'jetpack_notes',
-			__( 'Jetpack Notifications Settings', 'jetpack' ),
-			array( $this, 'notes_settings_section' ),
-			'discussion'
-		);
-
-		/** Optionally always show the Toolbar ********************************/
-		add_settings_field(
-			'jetpack_notes_option_always_show_toolbar',
-			__( 'Toolbar', 'jetpack' ),
-			array( $this, 'notes_option_always_show_toolbar' ),
-			'discussion',
-			'jetpack_notes'
-		);
-
-		register_setting(
-			'discussion',
-			'jp_notes_always_show_toolbar'
-		);
-	}
-
-	/**
-	 * Discussions setting section blurb
-	 *
-	 */
-	function notes_settings_section() {
-	?>
-		<p id="jetpack-notifications-settings"><?php _e( 'Change how your site interacts with the WordPress.com Notifications System.', 'jetpack' ); ?></p>
-	<?php
-	}
-
-	function notes_option_always_show_toolbar() {
-	?>
-		<p class="description">
-			<label>
-				<input type="checkbox" name="jp_notes_always_show_toolbar" id="jetpack-notes-always_show_toolbar" value="1" <?php checked( $this->always_show_toolbar ); ?> />
-				<?php _e( "Always show the Toolbar so visitors can view their notifications from your site", 'jetpack' ); ?>
-			</label>
-		</p>
-	<?php
 	}
 
 }

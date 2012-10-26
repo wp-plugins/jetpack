@@ -1,9 +1,9 @@
 === Jetpack by WordPress.com ===
-Contributors: automattic, apeatling, beaulebens, hugobaeta, joen, mdawaffe, andy, designsimply, hew, westi, eoigal, tmoorewp, matt, pento, cfinke, daniloercoli, chellycat, gibrown, jblz, jshreve
+Contributors: automattic, apeatling, beaulebens, hugobaeta, Joen, mdawaffe, andy, designsimply, hew, westi, eoigal, tmoorewp, matt, pento, cfinke, daniloercoli, chellycat, gibrown, jblz, jshreve, barry, alternatekev, azaozz, ethitter, johnjamesjacoby, lancewillett, martinremy, nickmomrik, stephdau, yoavf
 Tags: WordPress.com, statistics, stats, views, tweets, twitter, widget, gravatar, hovercards, profile, equations, latex, math, maths, youtube, shortcode, archives, audio, blip, bliptv, dailymotion, digg, flickr, googlevideo, google, googlemaps, kyte, kytetv, livevideo, redlasso, rockyou, rss, scribd, slide, slideshare, soundcloud, vimeo, shortlinks, wp.me, subscriptions, notifications, notes, json, api, rest
 Requires at least: 3.2
 Tested up to: 3.4.2
-Stable tag: 1.8.3
+Stable tag: 1.9
 
 Supercharge your WordPress site with powerful features previously only available to WordPress.com users.
 
@@ -106,11 +106,13 @@ Use [shortcodes](http://support.wordpress.com/shortcodes/) to embed your media. 
 * Bug Fix: Sharing: Keep "more" pane open so Google+ Button isn't obscured
 * Bug Fix: Carousel: Make sure the original size is used, even when it is exceedingly large.
 * Bug Fix: Exclude iPad from Twitter on iPhone mobile browsing
+* Bug Fix: Sync: On .org user role changes synchronize the change to .com
+* Bug Fix: Contact Form: Fix a bug where some web hosts would reject mail from the contact form due to email address spoofing.
 
 = 1.8.3 =
 * Bug Fix: Subscriptions: Fix a bug where subscriptions were not being sent from the blog.
 * Bug Fix: Twitter: Fix a bug where the Twitter username was being saved as blank.
-* Bug Fix: Fix a bug where Contoct Form notification emails were not being sent.
+* Bug Fix: Fix a bug where Contact Form notification emails were not being sent.
 
 = 1.8.2 =
 * Bug Fix: Subscriptions: Fix a bug where subscriptions were not sent for posts and comments written by some authors.
