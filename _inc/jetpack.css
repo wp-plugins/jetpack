@@ -608,6 +608,9 @@ p.jp-help {
 		#minileven.jetpack-module div.module-image {
 			background-position: -1570px 5px;
 		}
+		#infinite-scroll.jetpack-module div.module-image {
+			background-position: -1905px 5px;
+		}
 
 		.jetpack-module div.module-image p {
 			background-color: #b4d278;
