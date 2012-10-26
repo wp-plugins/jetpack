@@ -758,7 +758,7 @@ add_action( 'init', 'the_neverending_home_page_init', 20 );
 function the_neverending_home_page_theme_support() {
 	$theme_name = get_stylesheet();
 
-	$customization_file = apply_filters( 'infinite_scroll_customization_file', dirname( __FILE__ ) . "/themes/{$theme_name}.php", $theme_name );
+	$customization_file = apply_filters( 'infinite_scroll_customization_file', __DIR__ . "/themes/{$theme_name}.php", $theme_name );
 
 	if ( is_readable( $customization_file ) )
 		require_once( $customization_file );
