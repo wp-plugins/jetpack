@@ -70,13 +70,13 @@
 #infinite-footer .container {
 	background: rgba( 255, 255, 255, 0.8 );
 	border-color: #ccc;
-	border-color: rgba( 0, 0, 0, 0.2 );
-	border-radius: 2px 2px 0 0;
+	border-color: rgba( 0, 0, 0, 0.1 );
 	border-style: solid;
-	border-width: 1px 1px 0 1px;
+	border-width: 1px 0 0;
+	box-sizing: border-box;
 	margin: 0 auto;
 	overflow: hidden;
-	padding: 6px 20px;
+	padding: 1px 20px;
 	width: 640px;
 }
 #infinite-footer .blog-info,
@@ -139,5 +139,14 @@
 	#infinite-footer .blog-info a,
 	#infinite-footer .blog-credits {
 		font-size: 10px;
+	}
+}
+
+/**
+ * No fixed footer on small viewports
+ */
+@media ( max-width: 640px ) {
+	#infinite-footer {
+		position: static;
 	}
 }

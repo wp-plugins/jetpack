@@ -20,8 +20,11 @@ Scroller = function( settings ) {
 	this.page     = 1;
 	this.order    = settings.order;
 	this.throttle = false;
-	this.handle   = '<div id="infinite-handle"><span>' + text + '</span></div>';
-	this.footer   = $( '#infinite-footer' );
+	this.handle   = '<div id="infinite-handle"><span>' + text.replace( '\\', '' ) + '</span></div>';
+
+	// Footer settings
+	this.footer      = $( '#infinite-footer' );
+	this.footer.wrap = settings.footer;
 
 	// We have two type of infinite scroll
 	// cases 'scroll' and 'click'
@@ -122,6 +125,17 @@ Scroller.prototype.gotop = function() {
  */
 Scroller.prototype.thefooter = function() {
 	var self = this;
+	var self  = this,
+		width;
+
+	// Check if we have an id for the page wrapper
+	if ( $.type( this.footer.wrap ) === "string" ) {
+		width = $( 'body #' + this.footer.wrap ).outerWidth();
+
+		// Make the footer match the width of the page
+		if ( width > 479 )
+			this.footer.find( '.container' ).css( 'width', width );
+	}
 
 	// Reveal footer
 	if ( this.window.scrollTop() >= 350 )
