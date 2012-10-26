@@ -10,6 +10,7 @@ class Jetpack_Photon {
 	/**
 	 * Class variables
 	 */
+	// Oh look, a singleton
 	private static $__instance = null;
 
 	// Allowed extensions must match http://code.trac.wordpress.org/browser/photon/index.php#L31
@@ -62,7 +63,12 @@ class Jetpack_Photon {
 	 **/
 
 	/**
-	 * Note: Photon won't re-Photon URLs, so pass them anyway with our size adjustments
+	 * Identify images in post content, and if images are local (uploaded to the current site), pass through Photon.
+	 *
+	 * @param string $content
+	 * @uses this::validate_image_url, jetpack_photon_url, esc_url
+	 * @filter the_content
+	 * @return string
 	 */
 	public function filter_the_content( $content ) {
 		if ( false != preg_match_all( '#<img(.+?)src=["|\'](.+?)["|\'](.+?)/?>#i', $content, $images ) ) {
@@ -190,7 +196,14 @@ class Jetpack_Photon {
 	}
 
 	/**
+	 * Filter post thumbnail image retrieval, passing images through Photon
 	 *
+	 * @param string|bool $image
+	 * @param int $attachment_id
+	 * @param string|array $size
+	 * @uses is_admin, apply_filters, wp_get_attachment_url, this::validate_image_url, this::image_sizes, jetpack_photon_url
+	 * @filter image_downsize
+	 * @return string|bool
 	 */
 	public function filter_image_downsize( $image, $attachment_id, $size ) {
 		// Don't foul up the admin side of things, and provide plugins a way of preventing Photon from being applied to images.
@@ -279,19 +292,6 @@ class Jetpack_Photon {
 			return false;
 		else
 			return preg_match( '#^(' . implode( '|', $allowed_hosts ) . ')#i', $url );
-
-		/* APPROACH CONTAINED WITHIN THIS COMMENT BLOCK SUPPORTS BLACKLISTING HOSTS, AS OPPOSED TO THE WHITELISTING HANDLED ABOVE.
-		$hosts_to_ignore = array(
-			'fbcdn.net',    // Facebook
-			'twimg.com',    // Twitter
-			'flickr.com',   // Flickr (duh)
-			'amazonaws.com' // Instagram, among *many* others
-		);
-
-		$url_host = parse_url( $url, PHP_URL_HOST );
-
-		return ! ( (bool) preg_match( '#(' . implode( '|', $hosts_to_ignore ) . ')$#i', $url_host ) );
-		 */
 	}
 
 	/**
