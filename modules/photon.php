@@ -21,7 +21,10 @@ class Jetpack_Photon {
 	);
 
 	// Don't access this directly. Instead, use this::image_sizes() so it's actually populated with something.
-	protected $image_sizes = array();
+	protected static $image_sizes = null;
+
+	// Don't access this directly. Instead, use this::allowed_hosts().
+	protected static $allowed_hosts = null;
 
 	/**
 	 * Singleton implementation
@@ -260,9 +263,24 @@ class Jetpack_Photon {
 	 * Facebook et al already serve images from CDNs, so no need to duplicate the effort.
 	 *
 	 * @param string $url
+	 * @uses this::check_url_scheme_and_port, this::allowed_hosts
 	 * @return bool
 	 */
 	protected function validate_image_url( $url ) {
+		// Bail if scheme isn't http or port is set that isn't port 80
+		if ( ! $this->check_url_scheme_and_port( $url ) )
+			return false;
+
+		// Get list of allowed hosts for Photon-ification
+		$allowed_hosts = $this->allowed_hosts();
+
+		// Compare URL
+		if ( empty( $allowed_hosts ) )
+			return false;
+		else
+			return preg_match( '#^(' . implode( '|', $allowed_hosts ) . ')#i', $url );
+
+		/* APPROACH CONTAINED WITHIN THIS COMMENT BLOCK SUPPORTS BLACKLISTING HOSTS, AS OPPOSED TO THE WHITELISTING HANDLED ABOVE.
 		$hosts_to_ignore = array(
 			'fbcdn.net',    // Facebook
 			'twimg.com',    // Twitter
@@ -273,6 +291,71 @@ class Jetpack_Photon {
 		$url_host = parse_url( $url, PHP_URL_HOST );
 
 		return ! ( (bool) preg_match( '#(' . implode( '|', $hosts_to_ignore ) . ')$#i', $url_host ) );
+		 */
+	}
+
+	/**
+	 * Build array of hosts permissible for Photon-ification
+	 *
+	 * @uses get_option, get_current_blog_id, get_original)url, apply_filters, this::normalize_allowed_url
+	 * @return array
+	 */
+	function allowed_hosts() {
+		if ( null == self::$allowed_hosts ) {
+			// Base URL hosts to consider
+			$allowed_hosts = array(
+				get_option( 'home' ),
+				get_option( 'siteurl' )
+			);
+
+			// Account for mapped domains care of WordPress MU Domain Mapping
+			if ( defined( 'DOMAIN_MAPPING' ) && 1 == DOMAIN_MAPPING && function_exists( 'get_original_url' ) ) {
+				$current_blog_id = get_current_blog_id();
+
+				$allowed_hosts[] = get_original_url( 'home', $current_blog_id );
+				$allowed_hosts[] = get_original_url( 'siteurl', $current_blog_id );
+			}
+
+			// Allow more domains to be whitelisted
+			$allowed_hosts = apply_filters( 'jetpack_photon_allowed_hosts', $allowed_hosts );
+
+			// Normalize URLs for comparison
+			$allowed_hosts = array_map( array( $this, 'normalize_allowed_url' ), $allowed_hosts );
+			$allowed_hosts = array_filter( $allowed_hosts );
+			$allowed_hosts = array_unique( $allowed_hosts );
+
+			self::$allowed_hosts = $allowed_hosts;
+		}
+
+		return is_array( self::$allowed_hosts ) ? self::$allowed_hosts : array();
+	}
+
+	/**
+	 * Ensure URLs are comparable and apply a bit of sanity checking as well.
+	 *
+	 * @param string $url
+	 * @uses trailinslashit, this::check_url_scheme_and_port
+	 * @return bool|string
+	 */
+	protected function normalize_allowed_url( $url ) {
+		$url = trailingslashit( $url );
+
+		// Ensure that
+		if ( ! $this->check_url_scheme_and_port( $url ) )
+			return false;
+
+		return $url;
+	}
+
+	/**
+	 * Check if protocol and port of a given URL are compatible with Photon.
+	 * Photon can only process images served over http on port 80.
+	 *
+	 * @param string $url
+	 * @return bool
+	 */
+	protected function check_url_scheme_and_port( $url ) {
+		return ( 'http' == parse_url( $url, PHP_URL_SCHEME ) || in_array( parse_url( $url, PHP_URL_PORT ), array( 80, null ) ) );
 	}
 
 	/**
@@ -284,7 +367,7 @@ class Jetpack_Photon {
 	 * @return array
 	 */
 	protected function image_sizes() {
-		if ( empty( $this->image_sizes ) ) {
+		if ( null == self::$image_sizes ) {
 			global $_wp_additional_image_sizes;
 
 			// Populate an array matching the data structure of $_wp_additional_image_sizes so we have a consistent structure for image sizes
@@ -311,12 +394,12 @@ class Jetpack_Photon {
 
 			// Update class variable, merging in $_wp_additional_image_sizes if any are set
 			if ( is_array( $_wp_additional_image_sizes ) && ! empty( $_wp_additional_image_sizes ) )
-				$this->image_sizes = array_merge( $images, $_wp_additional_image_sizes );
+				self::$image_sizes = array_merge( $images, $_wp_additional_image_sizes );
 			else
-				$this->image_sizes = $images;
+				self::$image_sizes = $images;
 		}
 
-		return $this->image_sizes;
+		return is_array( self::$image_sizes ) ? self::$image_sizes : array();
 	}
 }
 
