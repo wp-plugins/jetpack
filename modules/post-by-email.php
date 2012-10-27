@@ -7,6 +7,17 @@
  * Sort Order: 4
  */
 
+add_action( 'jetpack_modules_loaded', array( 'Jetpack_Post_By_Email', 'init' ) );
+
+Jetpack_Sync::sync_options( __FILE__,
+	'large_size_w',
+	'large_size_h',
+	'thumbnail_size_w',
+	'thumbnail_size_h',
+	'medium_size_w',
+	'medium_size_h'
+);
+
 class Jetpack_Post_By_Email {
 	function &init() {
 		static $instance = NULL;
@@ -87,5 +98,3 @@ class Jetpack_Post_By_Email {
 		die();
 	}
 }
-
-Jetpack_Post_By_Email::init();
