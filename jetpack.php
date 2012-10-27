@@ -1378,6 +1378,7 @@ p {
 					'file' => $attachment->post_title,
 					'url'  => wp_get_attachment_url( $attachment_id ),
 					'type' => $attachment->post_mime_type,
+					'meta' => wp_get_attachment_metadata( $attachment_id ),
 				);
 			}
 		}
