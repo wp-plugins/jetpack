@@ -1363,7 +1363,11 @@ p {
 			}
 
 			$_FILES['.jetpack.upload.'] = $file;
-			$attachment_id = media_handle_upload( '.jetpack.upload.', 0, array(), array(
+			$post_id = isset( $_POST['post_id'][$index] ) ? absint( $_POST['post_id'][$index] ) : 0;
+			if ( !current_user_can( 'edit_post', $post_id ) ) {
+				$post_id = 0;
+			}
+			$attachment_id = media_handle_upload( '.jetpack.upload.', $post_id, array(), array(
 				'action' => 'jetpack_upload_file',
 			) );
 
