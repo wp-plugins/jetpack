@@ -518,7 +518,7 @@ class Grunion_Contact_Form extends Crunion_Contact_Form_Shortcode {
 			$post = get_post( $attributes['id'] );
 
 			if ( $post ) {
-				$default_subject = sprintf( _x( '%1$s %2$s', '%1$s = blog name, %2$s = post title' ), $default_subject, Grunion_Contact_Form_Plugin::strip_tags( $post->post_title ) );
+				$default_subject = sprintf( _x( '%1$s %2$s', '%1$s = blog name, %2$s = post title' , 'jetpack'), $default_subject, Grunion_Contact_Form_Plugin::strip_tags( $post->post_title ) );
 				$post_author = get_userdata( $post->post_author );
 				$default_to = $post_author->user_email;
 			} 
@@ -954,15 +954,17 @@ class Grunion_Contact_Form extends Crunion_Contact_Form_Shortcode {
 			$to[$to_key] = Grunion_Contact_Form_Plugin::strip_tags( $to_value );
 		}
 
-		$from_email_addr = $to[0];
-		if ( !empty( $comment_author_email ) ) {
-			$from_email_addr = $comment_author_email;
+		$blog_url = parse_url( site_url() );
+		$from_email_addr = 'wordpress@' . $blog_url['host'];
+
+		$reply_to_addr = $to[0];
+		if ( ! empty( $comment_author_email ) ) {
+			$reply_to_addr = $comment_author_email;
 		}
 
-		$headers = 'From: ' . $comment_author  .
-			' <' . $from_email_addr  . ">\r\n" .
-			'Reply-To: ' . $from_email_addr  . "\r\n" .
-			"Content-Type: text/plain; charset=\"" . get_option('blog_charset') . "\""; 
+		$headers = 	'From: ' . $comment_author  .' <' . $from_email_addr  . ">\r\n" .
+					'Reply-To: ' . $comment_author . ' <' . $reply_to_addr  . ">\r\n" .
+					"Content-Type: text/plain; charset=\"" . get_option('blog_charset') . "\""; 
 
 		$subject = apply_filters( 'contact_form_subject', $contact_form_subject );
 

@@ -423,8 +423,20 @@ abstract class WPCOM_JSON_API_Endpoint {
 			);
 			$return[$key] = (object) $this->cast_and_filter( $value, $docs );
 			break;
+		case 'attachment' :
+			$docs = array(
+				'ID'        => '(int)',
+				'URL'       => '(URL)',
+				'guid'      => '(string)',
+				'mime_type' => '(string)',
+				'width'     => '(int)',
+				'height'    => '(int)',
+				'duration'  => '(int)',
+			);
+			$return[$key] = (object) $this->cast_and_filter( $value, apply_filters( 'wpcom_json_api_attachment_cast_and_filter', $docs ) );
+			break;
 		default :
-			trigger_error( 'Unknown API casting type', E_USER_WARNING );
+			trigger_error( "Unknown API casting type {$type['type']}", E_USER_WARNING );
 		}
 	}
 
@@ -1087,7 +1099,7 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 	}
 
 	function the_password_form() {
-		return __( 'This post is password protected.' );
+		return __( 'This post is password protected.' , 'jetpack');
 	}
 
 	function get_post_by( $field, $post_id, $context = 'display' ) {
@@ -1454,21 +1466,19 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 	 * @return (object)
 	 */
 	function get_attachment( $attachment ) {
-		$ID = $attachment->ID;
-		$guid = $attachment->guid;
-		$mime_type = $attachment->post_mime_type;
-		$metadata = wp_get_attachment_metadata( $ID );
+		$metadata = wp_get_attachment_metadata( $attachment->ID );
 
 		$result = array(
-			'ID'		=> $ID,
-			'guid'		=> $guid,
-			'mime_type'	=> $mime_type,
-			'width'		=> $metadata['width'],
-			'height'	=> $metadata['height'],
+			'ID'		=> (int) $attachment->ID,
+			'URL'           => (string) wp_get_attachment_url( $attachment->ID ),
+			'guid'		=> (string) $attachment->guid,
+			'mime_type'	=> (string) $attachment->post_mime_type,
+			'width'		=> (int) $metadata['width'],
+			'height'	=> (int) $metadata['height'],
 		);
 
 		if ( isset( $metadata['duration'] ) ) {
-			$result['duration'] = $metadata['duration'];
+			$result['duration'] = (int) $metadata['duration'];
 		}
 
 		return (object) apply_filters( 'get_attachment', $result );
@@ -2569,7 +2579,7 @@ class WPCOM_JSON_API_Update_Comment_Endpoint extends WPCOM_JSON_API_Comment_Endp
 
 		$return = $this->get_comment( $comment_id, $args['context'] );
 		if ( !$return ) {
-			return new WP_Error( 400, __( 'Comment cache problem?' ) );
+			return new WP_Error( 400, __( 'Comment cache problem?' , 'jetpack') );
 		}
 		if ( is_wp_error( $return ) ) {
 			return $return;

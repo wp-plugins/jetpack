@@ -1,12 +1,12 @@
-# Translation of 1.9 in Finnish
+# Translation of 1.9 in Thai
 # This file is distributed under the same license as the 1.9 package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2012-10-26 12:52:51+0000\n"
+"PO-Revision-Date: 2012-10-26 12:52:56+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: GlotPress/0.1\n"
 "Project-Id-Version: 1.9\n"
 
@@ -92,7 +92,7 @@ msgid "Apply this CSS to the Mobile Theme"
 msgstr ""
 
 msgid "Notifications"
-msgstr ""
+msgstr "ข่าวถึงคุณ"
 
 #: modules/contact-form/grunion-contact-form.php:648
 msgid "go back"
@@ -153,14 +153,12 @@ msgctxt "%1$s = deactivation URL, %2$s = \"Deactivate {list of Jetpack module/fe
 msgid "If your site is not publicly accessible, consider <a href=\"%1$s\" title=\"%2$s\">deactivating this feature</a>."
 msgid_plural "If your site is not publicly accessible, consider <a href=\"%1$s\" title=\"%2$s\">deactivating these features</a>."
 msgstr[0] ""
-msgstr[1] ""
 
 #: jetpack.php:2007
 msgctxt "%l = list of Jetpack module/feature names"
 msgid "Like your site's RSS feeds, %l allows access to your posts and other content to third parties."
 msgid_plural "Like your site's RSS feeds, %l allow access to your posts and other content to third parties."
 msgstr[0] ""
-msgstr[1] ""
 
 #: jetpack.php:2004
 msgid "Is this site private?"
@@ -171,7 +169,6 @@ msgctxt "%l = list of Jetpack module/feature names"
 msgid "<strong>%l Deactivated!</strong> You can activate it again at any time using the activate button on the module card."
 msgid_plural "<strong>%l Deactivated!</strong> You can activate them again at any time using the activate buttons on their module cards."
 msgstr[0] ""
-msgstr[1] ""
 
 #: class.json-api-endpoints.php:2572
 msgid "Comment cache problem?"
@@ -179,11 +176,11 @@ msgstr ""
 
 #: class.json-api-endpoints.php:1090
 msgid "This post is password protected."
-msgstr "Tämä kirjoitus on suojattu salasanalla."
+msgstr "กระทู้นี้ถูกป้องกันด้วยรหัสผ่าน."
 
 #: modules/widgets/twitter.php:262
 msgid "Twitter username:"
-msgstr "Twitter-käyttäjätunnus:"
+msgstr ""
 
 #: modules/widgets/twitter.php:269
 msgid "Maximum number of Tweets to show:"
@@ -191,7 +188,7 @@ msgstr ""
 
 #: modules/widgets/twitter.php:283
 msgid "Hide replies"
-msgstr "Piilota vastaukset"
+msgstr ""
 
 #: modules/widgets/twitter.php:290
 msgid "Hide Tweets pushed by Publicize"
@@ -199,7 +196,7 @@ msgstr ""
 
 #: modules/widgets/twitter.php:297
 msgid "Include retweets"
-msgstr "Sisällytä vastaukset"
+msgstr ""
 
 #: modules/widgets/twitter.php:304
 msgid "Display Follow Button"
@@ -210,7 +207,7 @@ msgid "Text to display between Tweet and timestamp:"
 msgstr ""
 
 msgid "http://wordpress.org/extend/plugins/jetpack/"
-msgstr "http://wordpress.org/extend/plugins/jetpack/"
+msgstr ""
 
 msgid "Bring the power of the WordPress.com cloud to your self-hosted WordPress. Jetpack enables you to connect your blog to a WordPress.com account to use the powerful features normally only available to WordPress.com users."
 msgstr ""
@@ -219,7 +216,7 @@ msgid "Automattic"
 msgstr "Automattic"
 
 msgid "http://jetpack.me"
-msgstr "http://jetpack.me"
+msgstr ""
 
 msgid "Improve your spelling, style, and grammar with the <a href=\"http://www.afterthedeadline.com/\">After&nbsp;the&nbsp;Deadline</a> Proofreading service."
 msgstr ""
@@ -231,7 +228,7 @@ msgid "A new comment system that has integrated social media login options."
 msgstr ""
 
 msgid "Easily insert a contact form any where on your site."
-msgstr "Lisää lomake helposti mihin tahansa sivustoillesi."
+msgstr ""
 
 msgid "Customize the appearance of your site using CSS but without modifying your theme."
 msgstr ""
@@ -286,15 +283,15 @@ msgstr ""
 
 #: modules/widgets/gravatar-profile.php:207
 msgid "Edit Your Profile"
-msgstr "Muokkaa profiilia"
+msgstr "แก้ไขข้อมูลส่วนตัวของคุณ"
 
 #: modules/widgets/gravatar-profile.php:207
 msgid "What's a Gravatar?"
-msgstr "Mikä Gravatar on?"
+msgstr ""
 
 #: modules/widgets/image-widget.php:12
 msgid "Display an image in your sidebar"
-msgstr "Näyttää kuvan sivupalkissasi"
+msgstr ""
 
 #: modules/widgets/image-widget.php:14
 msgid "Image (Jetpack)"
@@ -302,51 +299,51 @@ msgstr ""
 
 #: modules/widgets/image-widget.php:110
 msgid "Image URL:"
-msgstr "Kuvan URL-osoite:"
+msgstr ""
 
 #: modules/widgets/image-widget.php:113
 msgid "Alternate text:"
-msgstr "Vaihtoehtoinen teksti:"
+msgstr ""
 
 #: modules/widgets/image-widget.php:116
 msgid "Image title:"
-msgstr "Kuvan otsikko:"
+msgstr ""
 
 #: modules/widgets/image-widget.php:119
 msgid "Caption:"
-msgstr "Kuvateksti:"
+msgstr ""
 
 #: modules/widgets/image-widget.php:124
 msgid "None"
-msgstr "Ei mitään"
+msgstr "ไม่มี"
 
 #: modules/widgets/image-widget.php:125
 msgid "Left"
-msgstr "Vasemmalle"
+msgstr "ซ้าย"
 
 #: modules/widgets/image-widget.php:126
 msgid "Center"
-msgstr "Keskelle"
+msgstr "ตรงกลาง"
 
 #: modules/widgets/image-widget.php:127
 msgid "Right"
-msgstr "Oikealle"
+msgstr "ขวา"
 
 #: modules/widgets/image-widget.php:129
 msgid "Image Alignment:"
-msgstr "Kuvan tasaus:"
+msgstr ""
 
 #: modules/widgets/image-widget.php:139
 msgid "Width:"
-msgstr "Leveys:"
+msgstr ""
 
 #: modules/widgets/image-widget.php:142
 msgid "Height:"
-msgstr "Korkeus:"
+msgstr ""
 
 #: modules/widgets/image-widget.php:145
 msgid "If empty, we will attempt to determine the image size."
-msgstr "Tyhjänä kuvankoko määritetään automaattisesti."
+msgstr ""
 
 #: modules/widgets/image-widget.php:146
 msgid "Link URL (when the image is clicked):"
@@ -354,7 +351,7 @@ msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:12
 msgid "Links to your blog's RSS feeds"
-msgstr "Linkit blogisi RSS-syötteisiin"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:13
 msgid "RSS Links (Jetpack)"
@@ -363,93 +360,93 @@ msgstr ""
 #: modules/widgets/rsslinks-widget.php:62 modules/widgets/top-posts.php:73
 #: modules/widgets/twitter.php:255
 msgid "Title:"
-msgstr "Otsikko:"
+msgstr "หัวข้อ:"
 
 #: modules/widgets/rsslinks-widget.php:67
 #: modules/widgets/rsslinks-widget.php:133
 msgid "Posts"
-msgstr "Artikkelit"
+msgstr "เรื่อง"
 
 #: modules/widgets/rsslinks-widget.php:68
 #: modules/widgets/rsslinks-widget.php:136
 msgid "Comments"
-msgstr "Kommentit"
+msgstr "ความเห็น"
 
 #: modules/widgets/rsslinks-widget.php:69
 msgid "Posts & Comments"
-msgstr "Artikkelit & Kommentit"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:71
 msgid "Feed(s) to Display:"
-msgstr "Näytettävät syötteet:"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:81
 msgid "Text Link"
-msgstr "Tekstilinkki"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:82
 msgid "Image Link"
-msgstr "Kuvalinkki"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:83
 msgid "Text & Image Links"
-msgstr "Teksti- ja kuvalinkit"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:85
 msgid "Format:"
-msgstr "Muoto:"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:96
 msgid "Image Settings:"
-msgstr "Kuva-asetukset:"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:99
 msgid "Small"
-msgstr "Pieni"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:100
 msgid "Medium"
-msgstr "Keskikokoinen"
+msgstr "ขนาดกลาง"
 
 #: modules/widgets/rsslinks-widget.php:101
 msgid "Large"
-msgstr "Suuri"
+msgstr "ขนาดใหญ่"
 
 #: modules/widgets/rsslinks-widget.php:103
 msgid "Image Size:"
-msgstr "Kuvan koko:"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:113
 msgid "Red"
-msgstr "Punainen"
+msgstr "สีแดง"
 
 #: modules/widgets/rsslinks-widget.php:114
 msgid "Orange"
-msgstr "Oranssi"
+msgstr "สีส้ม"
 
 #: modules/widgets/rsslinks-widget.php:115
 msgid "Green"
-msgstr "Vihreä"
+msgstr "สีเขียว"
 
 #: modules/widgets/rsslinks-widget.php:116
 msgid "Blue"
-msgstr "Sininen"
+msgstr "สีน้ำเงิน"
 
 #: modules/widgets/rsslinks-widget.php:117
 msgid "Purple"
-msgstr "Lila"
+msgstr "สีม่วง"
 
 #: modules/widgets/rsslinks-widget.php:118
 msgid "Pink"
-msgstr "Vaaleanpunainen"
+msgstr "สีชมพู"
 
 #: modules/widgets/rsslinks-widget.php:119
 msgid "Silver"
-msgstr "Hopea"
+msgstr "สีเงิน"
 
 #: modules/widgets/rsslinks-widget.php:121
 msgid "Image Color:"
-msgstr "Kuvan väri:"
+msgstr ""
 
 #: modules/widgets/rsslinks-widget.php:140
 msgid "Subscribe to %s"
@@ -457,7 +454,7 @@ msgstr ""
 
 #: modules/widgets/top-posts.php:35 modules/widgets/top-posts.php:41
 msgid "Top Posts &amp; Pages"
-msgstr "Suosituimmat artikkelit &amp; sivut"
+msgstr ""
 
 #: modules/widgets/top-posts.php:37
 msgid "Shows your most viewed posts and pages."
@@ -465,7 +462,7 @@ msgstr ""
 
 #: modules/widgets/top-posts.php:78
 msgid "Number of posts to show:"
-msgstr "Näytettävien artikkeleiden lukumäärä:"
+msgstr "จำนวนเรื่องที่จะแสดง"
 
 #: modules/widgets/top-posts.php:83
 msgid "Display as:"
@@ -493,7 +490,7 @@ msgstr ""
 
 #: modules/widgets/twitter.php:22
 msgid "Display your Tweets from Twitter"
-msgstr "Näytä twiittisi Twitteristä"
+msgstr ""
 
 #: modules/widgets/twitter.php:31
 msgid "Please configure your Twitter username for the <a href=\"%s\">Twitter Widget</a>."
@@ -501,19 +498,19 @@ msgstr ""
 
 #: modules/widgets/twitter.php:41
 msgid "Twitter Updates"
-msgstr "Twitter-päivitykset"
+msgstr ""
 
 #: modules/widgets/twitter.php:179 modules/widgets/twitter.php:200
 msgid "Error: Twitter did not respond. Please wait a few minutes and refresh this page."
-msgstr "Virhe: Twitter ei vastaa. Odota muutama minuutti ja lataa sitten tämä sivu uudelleen."
+msgstr ""
 
 #: modules/widgets/twitter.php:193
 msgid "Error: Please make sure the Twitter account is <a href=\"%s\">public</a>."
-msgstr "Virhe: Varmista, että Twitter-tilisi on <a href=\"%s\">julkinen</a>."
+msgstr ""
 
 #: modules/stats.php:708
 msgid "the past year"
-msgstr "viime vuosi"
+msgstr ""
 
 #: modules/stats.php:730
 msgid "Chart stats by"
@@ -521,31 +518,31 @@ msgstr ""
 
 #: modules/stats.php:743
 msgid "Show top posts over"
-msgstr "Näytä luetuimmat artikkelit päällimmäisinä"
+msgstr ""
 
 #: modules/stats.php:756
 msgid "Show top search terms over"
-msgstr "Näytä käytetyimmät hakusanat päälimmäisinä"
+msgstr ""
 
 #: modules/stats.php:921
 msgid "%1$s %2$s Views"
-msgstr "%1$s %2$s näyttökertaa"
+msgstr ""
 
 #: modules/stats.php:934
 msgid "View All"
-msgstr "Näytä kaikki"
+msgstr "ดูทั้งหมด"
 
 #: modules/stats.php:938
 msgid "Top Posts"
-msgstr "Suosituimmat artikkelit"
+msgstr ""
 
 #: modules/stats.php:942 modules/stats.php:966
 msgid "Sorry, nothing to report."
-msgstr "Ei raportoitavaa."
+msgstr ""
 
 #: modules/stats.php:962
 msgid "Top Searches"
-msgstr "Haetuimmat"
+msgstr ""
 
 #: modules/subscriptions.php:108
 msgid "Jetpack Subscriptions Settings"
@@ -589,37 +586,36 @@ msgstr ""
 
 #: modules/subscriptions.php:554
 msgid "An email was just sent to confirm your subscription. Please find the email now and click activate to start subscribing."
-msgstr "Sähköpostiisi lähetettiin juuri tilausvahvistus. Kävisitkö ystävällisesti aktivoimassa tilauksesi sähköpostistasi."
+msgstr ""
 
 #: modules/subscriptions.php:564
 msgid "The email you entered was invalid, please check and try again."
-msgstr "Syöttämäsi sähköpostiosoite oli virheellinen. Tarkistaisitko sen ja yrittäisitkö uudelleen?"
+msgstr ""
 
 #: modules/subscriptions.php:567
 msgid "You have already subscribed to this site, please check your inbox."
-msgstr "Olet jo tilannut artikkelit tältä sivulta, tarkistaisitko sähköpostisi."
+msgstr ""
 
 #: modules/subscriptions.php:574
 msgid "There was an error when subscribing, please try again."
-msgstr "Tilauksessa tapahtui virhe. Yrittäisitkö uudelleen?"
+msgstr ""
 
 #: modules/subscriptions.php:592
 msgid "Join %s other subscriber"
 msgid_plural "Join %s other subscribers"
-msgstr[0] "Liity %s tilaajan joukkoon"
-msgstr[1] "Liity %s tilaajien joukkoon"
+msgstr[0] ""
 
 #: modules/subscriptions.php:596
 msgid "Email Address"
-msgstr "Sähköpostiosoite"
+msgstr "อีเมล์"
 
 #: modules/subscriptions.php:671
 msgid "Subscribe to Blog via Email"
-msgstr "Tilaa blogin artikkelit sähköpostiisi"
+msgstr ""
 
 #: modules/subscriptions.php:672
 msgid "Enter your email address to subscribe to this blog and receive notifications of new posts by email."
-msgstr "Syötä sähköpostiosoitteesi tilataksesi blogin artikkelit ja saadaksesi päivityksiä sähköpostitse."
+msgstr ""
 
 #: modules/subscriptions.php:674
 msgid "Click to subscribe to this blog and receive notifications of new posts by email."
@@ -631,7 +627,7 @@ msgstr ""
 
 #: modules/subscriptions.php:698 modules/widgets/image-widget.php:107
 msgid "Widget title:"
-msgstr "Vimpaimen otsikko:"
+msgstr ""
 
 #: modules/subscriptions.php:704
 msgid "Optional text to display to your readers:"
@@ -645,11 +641,10 @@ msgstr ""
 msgid "Show total number of subscribers? (%s subscriber)"
 msgid_plural "Show total number of subscribers? (%s subscribers)"
 msgstr[0] ""
-msgstr[1] ""
 
 #: modules/vaultpress.php:22
 msgid "Active"
-msgstr "Käytössä"
+msgstr "เคลื่อนไหว"
 
 #: modules/widgets/facebook-likebox.php:29
 msgid "Facebook Like Box"
@@ -666,7 +661,7 @@ msgstr ""
 #: modules/widgets/facebook-likebox.php:115
 #: modules/widgets/gravatar-profile.php:164
 msgid "Title"
-msgstr "Otsikko"
+msgstr "หัวข้อ"
 
 #: modules/widgets/facebook-likebox.php:122
 msgid "Facebook Page URL"
@@ -678,11 +673,11 @@ msgstr ""
 
 #: modules/widgets/facebook-likebox.php:131
 msgid "Width"
-msgstr "Leveys"
+msgstr "ความกว้าง"
 
 #: modules/widgets/facebook-likebox.php:138
 msgid "Height"
-msgstr "Korkeus"
+msgstr "ความสูง"
 
 #: modules/widgets/facebook-likebox.php:157
 msgid "Show Faces"
@@ -710,11 +705,11 @@ msgstr ""
 
 #: modules/widgets/gravatar-profile.php:19
 msgid "Gravatar Profile"
-msgstr "Gravatar-profiili"
+msgstr ""
 
 #: modules/widgets/gravatar-profile.php:21
 msgid "Display a mini version of your Gravatar Profile"
-msgstr "Näytä pieni versio Gravatar-profiilistasi"
+msgstr ""
 
 #: modules/widgets/gravatar-profile.php:37
 msgid "You need to select what to show in this <a href=\"%s\">Gravatar Profile widget</a>."
@@ -722,7 +717,7 @@ msgstr ""
 
 #: modules/widgets/gravatar-profile.php:91
 msgid "View Full Profile &rarr;"
-msgstr "Katso koko profiili &rarr;"
+msgstr ""
 
 #: modules/widgets/gravatar-profile.php:99
 msgid "Error loading profile"
@@ -730,11 +725,11 @@ msgstr ""
 
 #: modules/widgets/gravatar-profile.php:111
 msgid "Personal Links"
-msgstr "Henkilökohtaiset linkit"
+msgstr ""
 
 #: modules/widgets/gravatar-profile.php:131
 msgid "Verified Services"
-msgstr "Varmennetut palvelut"
+msgstr ""
 
 #: modules/widgets/gravatar-profile.php:142
 msgctxt "1: User Name, 2: Service Name (Facebook, Twitter, ...)"
@@ -747,7 +742,7 @@ msgstr ""
 
 #: modules/widgets/gravatar-profile.php:174
 msgid "Custom"
-msgstr "Mukautettu"
+msgstr "ปรับแต่ง"
 
 #: modules/widgets/gravatar-profile.php:184
 msgid "Custom Email Address"
@@ -755,19 +750,19 @@ msgstr ""
 
 #: modules/widgets/gravatar-profile.php:192
 msgid "Show Personal Links"
-msgstr "Näytä henkilökohtaiset linkit"
+msgstr ""
 
 #: modules/widgets/gravatar-profile.php:194
 msgid "Links to your websites, blogs, or any other sites that help describe who you are."
-msgstr "Linkit nettisivuihin, blogeihin ja muihin sivustoihin, jotka auttavat kuvailemaan, millainen olet."
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:374
 msgid "Icon URL"
-msgstr "Kuvakkeen URL-osoite"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:377
 msgid "Enter the URL of a 16x16px icon you want to use for this service."
-msgstr "Syötä URL-osoite 16x16px kokoiseen kuvaan, jota haluat käyttää tämän palvelun kuvakkeena."
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:383
 msgid "Create Share Button"
@@ -775,11 +770,11 @@ msgstr ""
 
 #: modules/sharedaddy/sharing.php:395
 msgid "An error occurred creating your new sharing service - please check you gave valid details."
-msgstr "Virhe luodessa uutta jakopalvelua - tarkista antamasi tiedot."
+msgstr ""
 
 #: modules/shortcodes/archives.php:50
 msgid "Your blog does not currently have any published posts."
-msgstr "Blogissasi ei ole tällä hetkellä yhtään julkaistua artikkelia."
+msgstr ""
 
 #: modules/shortcodes/audio.php:180
 msgid "Download: <a href=\"%s\">%s</a><br />"
@@ -807,67 +802,67 @@ msgstr ""
 
 #: modules/shortcodes/videopress.php:871
 msgid "This video is intended for mature audiences."
-msgstr "Tämä video on tarkoitettu täysi-ikäisille."
+msgstr ""
 
 #: modules/shortcodes/videopress.php:871
 msgid "Please verify your birthday."
-msgstr "Varmista syntymäpäiväsi."
+msgstr ""
 
 #: modules/shortcodes/videopress.php:887
 msgid "January"
-msgstr "tammikuu"
+msgstr "มกราคม"
 
 #: modules/shortcodes/videopress.php:887
 msgid "February"
-msgstr "helmikuu"
+msgstr "กุมภาพันธ์"
 
 #: modules/shortcodes/videopress.php:887
 msgid "March"
-msgstr "maaliskuu"
+msgstr "มีนาคม"
 
 #: modules/shortcodes/videopress.php:887
 msgid "April"
-msgstr "huhtikuu"
+msgstr "เมษายน"
 
 #: modules/shortcodes/videopress.php:887
 msgid "May"
-msgstr "toukokuu"
+msgstr "พฤษภาคม"
 
 #: modules/shortcodes/videopress.php:887
 msgid "June"
-msgstr "kesäkuu"
+msgstr "มิถุนายน"
 
 #: modules/shortcodes/videopress.php:887
 msgid "July"
-msgstr "heinäkuu"
+msgstr "กรกฎาคม"
 
 #: modules/shortcodes/videopress.php:887
 msgid "August"
-msgstr "elokuu"
+msgstr "สิงหาคม"
 
 #: modules/shortcodes/videopress.php:887
 msgid "September"
-msgstr "syyskuu"
+msgstr "กันยายน"
 
 #: modules/shortcodes/videopress.php:887
 msgid "October"
-msgstr "lokakuu"
+msgstr "ตุลาคม"
 
 #: modules/shortcodes/videopress.php:887
 msgid "November"
-msgstr "marraskuu"
+msgstr "พฤศจิกายน"
 
 #: modules/shortcodes/videopress.php:887
 msgid "December"
-msgstr "joulukuu"
+msgstr "ธันวาคม"
 
 #: modules/shortcodes/videopress.php:923
 msgid "Submit"
-msgstr "Lähetä"
+msgstr "ส่ง"
 
 #: modules/shortcodes/videopress.php:926
 msgid "More information"
-msgstr "Lisätietoja"
+msgstr "ข้อมูลเพิ่มเติม"
 
 #: modules/shortcodes/videopress.php:969
 msgid "You do not have sufficient <a rel=\"nofollow\" href=\"%s\">freedom levels</a> to view this video. Support free software and upgrade."
@@ -894,15 +889,15 @@ msgstr ""
 
 #: modules/shortcodes/videopress.php:1306
 msgid "Loading video..."
-msgstr "Videota ladataan..."
+msgstr ""
 
 #: modules/stats.php:252 modules/stats.php:678
 msgid "Site Stats"
-msgstr "Sivuston tilastot"
+msgstr ""
 
 #: modules/stats.php:343
 msgid "Loading&hellip;"
-msgstr "Ladataan&hellip;"
+msgstr ""
 
 #: modules/stats.php:344
 msgid "Your Site Stats work better with Javascript enabled."
@@ -918,15 +913,15 @@ msgstr ""
 
 #: modules/stats.php:420 modules/stats.php:908
 msgid "We were unable to get your stats just now. Please try again."
-msgstr "Tilastojasi ei voitu ladata. Yritä uudelleen."
+msgstr ""
 
 #: modules/stats.php:523
 msgid "Visit <a href=\"%s\">Site Stats</a> to see your stats."
-msgstr "Mene <a href=\"%s\">Sivuston tilastot</a> -sivulle nähdäksesi tilastot."
+msgstr ""
 
 #: modules/stats.php:528
 msgid "Admin bar"
-msgstr "Hallintapalkki"
+msgstr ""
 
 #: modules/stats.php:529
 msgid "Put a chart showing 48 hours of views in the admin bar."
@@ -934,7 +929,7 @@ msgstr ""
 
 #: modules/stats.php:530
 msgid "Registered users"
-msgstr "Rekisteröityneet käyttäjät"
+msgstr ""
 
 #: modules/stats.php:531
 msgid "Count the page views of registered users who are logged in."
@@ -958,19 +953,19 @@ msgstr ""
 
 #: modules/stats.php:534
 msgid "Report visibility"
-msgstr "Raportin näkyvyys"
+msgstr ""
 
 #: modules/stats.php:536
 msgid "Select the roles that will be able to view stats reports."
-msgstr "Valitse rooli, jolla on oikeus nähdä tilastoraportit."
+msgstr ""
 
 #: modules/stats.php:547
 msgid "Save configuration"
-msgstr "Tallenna asetukset"
+msgstr ""
 
 #: modules/stats.php:603
 msgid "Stats"
-msgstr "Tilastot"
+msgstr "สถิติ"
 
 #: modules/stats.php:605
 msgid "Views over 48 hours. Click for more Site Stats."
@@ -978,114 +973,114 @@ msgstr ""
 
 #: modules/stats.php:699
 msgid "day"
-msgstr "päivä"
+msgstr "วัน"
 
 #: modules/stats.php:700
 msgid "week"
-msgstr "viikko"
+msgstr "สัปดาห์"
 
 #: modules/stats.php:701
 msgid "month"
-msgstr "kuukausi"
+msgstr "เดือน"
 
 #: modules/stats.php:704
 msgid "the past day"
-msgstr "tänään"
+msgstr ""
 
 #: modules/stats.php:705
 msgid "the past week"
-msgstr "tällä viikolla"
+msgstr ""
 
 #: modules/stats.php:706
 msgid "the past month"
-msgstr "viime kuu"
+msgstr ""
 
 #: modules/stats.php:707
 msgid "the past quarter"
-msgstr "kuluva neljännes"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:489
 #: modules/sharedaddy/sharing-sources.php:496
 msgid "Reddit"
-msgstr "Reddit"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:496
 msgid "Click to share on Reddit"
-msgstr "Jaa Redditissä"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:523
 msgid "Digg"
-msgstr "Digg"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:532
 #: modules/sharedaddy/sharing-sources.php:535
 msgid "Click to Digg this post"
-msgstr "Jaa Diggissä"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:535
 msgctxt "share to"
 msgid "Digg"
-msgstr "Digg"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:579
 msgid "LinkedIn"
-msgstr "LinkedIn"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:593
 msgctxt "share to"
 msgid "LinkedIn"
-msgstr "LinkedIn"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:593
 msgid "Click to share on LinkedIn"
-msgstr "Jaa LinkedIn:ssä"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:659
 msgid "Facebook"
-msgstr "Facebook"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:734
 msgctxt "share to"
 msgid "Facebook"
-msgstr "Facebook"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:734
 msgid "Share on Facebook"
-msgstr "Jaa Facebookissa"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:765
 msgid "Print"
-msgstr "Tulosta"
+msgstr "พิมพ์"
 
 #: modules/sharedaddy/sharing-sources.php:769
 msgctxt "share to"
 msgid "Print"
-msgstr "Tulosta"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:769
 msgid "Click to print"
-msgstr "Tulosta"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:785
 msgid "Press This"
-msgstr "Julkaise tämä"
+msgstr "Press This"
 
 #: modules/sharedaddy/sharing-sources.php:813
 msgctxt "share to"
 msgid "Press This"
-msgstr "Julkaise tämä"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:813
 msgid "Click to Press This!"
-msgstr "Klikkaa julkaistaksesi tämän!"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:831
 msgid "Google +1"
-msgstr "Google +1"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:926
 msgid "Click to share"
-msgstr "Jaa"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:981
 msgid "URL"
@@ -1093,19 +1088,19 @@ msgstr "URL"
 
 #: modules/sharedaddy/sharing-sources.php:986
 msgid "Icon"
-msgstr "Kuvake"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:993
 msgid "Save"
-msgstr "Tallenna"
+msgstr "บันทึก"
 
 #: modules/sharedaddy/sharing-sources.php:994
 msgid "Remove Service"
-msgstr "Poista palvelu"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:1073
 msgid "Tumblr"
-msgstr ""
+msgstr "Tumblr"
 
 #: modules/sharedaddy/sharing-sources.php:1080
 msgctxt "share to"
@@ -1135,7 +1130,7 @@ msgstr ""
 
 #: modules/sharedaddy/sharing.php:51 modules/sharedaddy/sharing.php:163
 msgid "Sharing Settings"
-msgstr "Jakamisen asetukset"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:153
 msgid "Warning! Multibyte support missing!"
@@ -1143,11 +1138,11 @@ msgstr ""
 
 #: modules/sharedaddy/sharing.php:154
 msgid "This plugin will work without it, but multibyte support is used <a href=\"%s\">if available</a>. You may see minor problems with Tweets and other sharing services."
-msgstr "This plugin will work without it, but multibyte support is used <a href=\"%s\">if available</a>. You may see minor problems with Tweets and other sharing services."
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:158
 msgid "Settings have been saved"
-msgstr "Asetukset tallennettu."
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:169
 msgid "Sharing Buttons"
@@ -1159,23 +1154,23 @@ msgstr ""
 
 #: modules/sharedaddy/sharing.php:176
 msgid "Available Services"
-msgstr "Saatavilla olevat palvelut"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:177
 msgid "Drag and drop the services you'd like to enable into the box below."
-msgstr "Raahaa alla olevaan laatikkoon ne palvelut, jotka haluat ottaa käyttöön."
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:178
 msgid "Add a new service"
-msgstr "Lisää uusi palvelu"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:198
 msgid "Enabled Services"
-msgstr "Sallitut palvelut"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:201
 msgid "Services dragged here will appear individually."
-msgstr "Tähän raahatut palvelut näkyvät yksittäisinä kuvakkeina."
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:204
 msgid "Drag and drop available services here."
@@ -1183,11 +1178,11 @@ msgstr ""
 
 #: modules/sharedaddy/sharing.php:215
 msgid "Services dragged here will be hidden behind a share button."
-msgstr "Tähän raahatut palvelut piilotetaan Jaa-alasvetolaatikon alle."
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:230
 msgid "Live Preview"
-msgstr "Esikatselu"
+msgstr "ดูแบบเสมือนจริง"
 
 #: modules/sharedaddy/sharing.php:233
 msgid "Sharing is off. Add services above to enable."
@@ -1195,59 +1190,59 @@ msgstr ""
 
 #: modules/sharedaddy/sharing.php:300
 msgid "Button style"
-msgstr "Painikkeen tyyli"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:303
 msgid "Icon + text"
-msgstr "Kuvake ja teksti"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:304
 msgid "Icon only"
-msgstr "Vain kuvake"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:305
 msgid "Text only"
-msgstr "Vain teksti"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:306
 msgid "Official buttons"
-msgstr "Viralliset painikkeet"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:311
 msgid "Sharing label"
-msgstr "Jakolause"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:317
 msgid "Open links in"
-msgstr "Avaa linkit"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:320
 msgid "New window"
-msgstr "uudessa ikkunassa"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:321
 msgid "Same window"
-msgstr "samassa ikkunassa"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:326
 msgid "Show buttons on"
-msgstr "Näytä painikkeet:"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:332
 msgid "Front Page, Archive Pages, and Search Results"
-msgstr "Etusivu, arkistosivut ja hakutulokset"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:348
 msgid "Save Changes"
-msgstr "Tallenna muutokset"
+msgstr "บันทึกการเปลี่ยนแปลง"
 
 #: modules/sharedaddy/sharing.php:359
 msgid "Service name"
-msgstr "Palvelun nimi"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:365
 msgid "Sharing URL"
-msgstr "Jaon URL-osoite"
+msgstr ""
 
 #: modules/sharedaddy/sharing.php:369
 msgid "You can add the following variables to your service sharing URL:"
@@ -1302,7 +1297,7 @@ msgid "Subsriptions Screenshot"
 msgstr ""
 
 msgid "Subscriptions"
-msgstr "Tilaukset"
+msgstr "สมัครรับข่าว"
 
 #: modules/module-info.php:400
 msgid "Easily allow any visitor to subscribe to all of your posts via email through a widget in your blog&#8217;s sidebar.  Every time you publish a post, WordPress.com will send a notification to all your subscribers."
@@ -1359,7 +1354,7 @@ msgid "With Carousel active, any standard WordPress galleries you have embedded 
 msgstr ""
 
 msgid "Custom CSS"
-msgstr "Oma CSS"
+msgstr ""
 
 #: modules/module-info.php:542
 msgid "The Custom CSS editor gives you the ability to add to or replace your theme's CSS, all while supplying syntax coloring, auto-indentation, and immediate feedback on the validity of the CSS you're writing."
@@ -1386,7 +1381,7 @@ msgstr ""
 
 #: modules/sharedaddy/sharedaddy.php:18
 msgid "Shared Post"
-msgstr "Jaetut artikkelit"
+msgstr ""
 
 #: modules/sharedaddy/sharedaddy.php:35
 msgid "Show sharing buttons."
@@ -1394,7 +1389,7 @@ msgstr ""
 
 #: modules/sharedaddy/sharedaddy.php:112
 msgid "Disable CSS and JS"
-msgstr "Poista CSS ja JS käytöstä"
+msgstr ""
 
 #: modules/sharedaddy/sharedaddy.php:114
 msgid "Advanced.  If this option is checked, you must include these files in your theme manually for the sharing links to work."
@@ -1402,109 +1397,109 @@ msgstr ""
 
 #: modules/sharedaddy/sharing-service.php:12
 msgid "Share this:"
-msgstr "Jaa:"
+msgstr ""
 
 #: modules/sharedaddy/sharing-service.php:523
 #: modules/sharedaddy/sharing.php:245 modules/sharedaddy/sharing.php:278
 msgid "More"
-msgstr "Lisää"
+msgstr "เพิ่มเติม"
 
 #: modules/sharedaddy/sharing-service.php:525
 msgid "Share"
-msgstr "Jaa"
+msgstr "แบ่งปัน"
 
 #: modules/sharedaddy/sharing-sources.php:242
 msgid "This post has been shared!"
-msgstr "Artikkeli jaettiin!"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:243
 msgid "You have shared this post with %s"
-msgstr "Olet jakanut artikkelin käyttäjän %s kanssa"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:244
 msgid "Close"
-msgstr "Sulje"
+msgstr "ปิด"
 
 #: modules/sharedaddy/sharing-sources.php:266
 msgctxt "share to"
 msgid "Email"
-msgstr "Sähköpostitse"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:266
 msgid "Click to email this to a friend"
-msgstr "Lähetä tämä kaverille sähköpostitse"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:279
 msgid "Send to Email Address"
-msgstr "Lähetä sähköpostiosoitteeseen"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:287
 msgid "Your Name"
-msgstr "Nimesi"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:290
 msgid "Your Email Address"
-msgstr "Sähköpostiosoitteesi"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:298
 msgid "Send Email"
-msgstr "Lähetä sähköposti"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:299
 msgid "Cancel"
-msgstr "Peruuta"
+msgstr "ยกเลิก"
 
 #: modules/sharedaddy/sharing-sources.php:302
 msgid "Post was not sent - check your email addresses!"
-msgstr "Viestiä ei lähetetty - tarkista sähköpostiosoitteesi!"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:306
 msgid "Email check failed, please try again"
-msgstr "Sähköpostivarmistus epäonnistui. Yritä uudelleen."
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:310
 msgid "Sorry, your blog cannot share posts by email."
-msgstr "Valitettavasti blogisi artikkeleita ei voida jakaa sähköpostin välityksellä."
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:330 modules/widgets/twitter.php:22
 msgid "Twitter"
-msgstr "Twitter"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:376
 msgctxt "share to"
 msgid "Twitter"
-msgstr "Twitter"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:376
 msgid "Click to share on Twitter"
-msgstr "Jaa Twitterissä"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:451
 msgid "StumbleUpon"
-msgstr "StumbleUpon"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:462
 msgctxt "share to"
 msgid "StumbleUpon"
-msgstr "StumbleUpon"
+msgstr ""
 
 #: modules/sharedaddy/sharing-sources.php:462
 msgid "Click to share on StumbleUpon"
-msgstr "Jaa StumbleUponissa"
+msgstr ""
 
 #: modules/minileven/theme/pub/minileven/index.php:57
 msgid "Nothing Found"
-msgstr "Mitään ei löytynyt"
+msgstr "ไม่พบสิ่งใด"
 
 #: modules/minileven/theme/pub/minileven/index.php:61
 msgid "Apologies, but no results were found for the requested archive. Perhaps searching will help find a related post."
-msgstr ""
+msgstr "ขอโทษด้วย  แต่ไม่มีผลลัพท์สำหรับคลังเก็บที่ต้องการ  บางทีการค้นหาจะช่วยหาเรื่องที่เกี่ยวข้องได้"
 
 #: modules/minileven/theme/pub/minileven/searchform.php:9
 #: modules/minileven/theme/pub/minileven/searchform.php:10
 #: modules/minileven/theme/pub/minileven/searchform.php:11
 msgid "Search"
-msgstr "Etsi"
+msgstr "ค้นหา"
 
 #: modules/minileven.php:48
 msgid "Excerpts"
@@ -1569,11 +1564,11 @@ msgstr ""
 
 #: modules/module-info.php:53 modules/module-info.php:68
 msgid "Gravatar Hovercard"
-msgstr "Gravatar Hovercard"
+msgstr ""
 
 #: modules/module-info.php:58 modules/module-info.php:73
 msgid "What&#8217;s a Hovercard?"
-msgstr "Mikä on Hovercard?"
+msgstr ""
 
 #: modules/module-info.php:59
 msgid "Hovercards enhance plain Gravatar images with information about a person: name, bio, pictures, their contact info, and other services they use on the web like Twitter, Facebook, or LinkedIn."
@@ -1592,7 +1587,7 @@ msgid "To see hovercards, look at any blog post on your blog that has comments. 
 msgstr ""
 
 msgid "Shortcode Embeds"
-msgstr "Shortcode-upotukset"
+msgstr ""
 
 #: modules/module-info.php:95 modules/module-info.php:108
 msgid "Shortcodes allow you to easily and safely embed media from other places in your site. With just one simple code, you can tell WordPress to embed YouTube, Flickr, and other media."
@@ -1604,10 +1599,10 @@ msgstr ""
 
 #: modules/module-info.php:132
 msgid "Available shortcodes are: %l."
-msgstr "Käytettävät pikakoodit ovat: %l."
+msgstr ""
 
 msgid "WP.me Shortlinks"
-msgstr "WP.me-pikalinkit"
+msgstr ""
 
 #: modules/module-info.php:152 modules/module-info.php:166
 msgid "Instead of typing or copy-pasting long URLs, you can now get a short and simple link to your posts and pages. This uses the super compact wp.me domain name, and gives you a unique URL you can use that will be safe and reliable."
@@ -1622,7 +1617,7 @@ msgid "To use shortlinks, go to any already published post (or publish something
 msgstr ""
 
 msgid "WordPress.com Stats"
-msgstr "WordPress.com-tilastot"
+msgstr ""
 
 #: modules/module-info.php:187 modules/module-info.php:200
 msgid "There are many plugins and services that provide statistics, but data can be overwhelming. WordPress.com Stats makes the most popular metrics easy to understand through a clear and attractive interface."
@@ -1630,11 +1625,11 @@ msgstr ""
 
 #: modules/module-info.php:201
 msgid "You can <a href=\"%s\">view your stats dashboard here</a>."
-msgstr "Voit <a href=\"%s\">tarkastella sivustosi tilastoja täällä</a>."
+msgstr ""
 
 #: modules/module-info.php:250 modules/module-info.php:265
 msgid "LaTeX"
-msgstr "LaTeX"
+msgstr ""
 
 #: modules/module-info.php:255 modules/module-info.php:270
 msgid "%s is a powerful markup language for writing complex mathematical equations, formulas, etc."
@@ -1653,11 +1648,11 @@ msgid "Use <code>$latex your latex code here$</code> or <code>[latex]your latex 
 msgstr ""
 
 msgid "Sharing"
-msgstr "Jakaminen"
+msgstr ""
 
 #: modules/module-info.php:290
 msgid "Share your posts with Twitter, Facebook, and a host of other services. You can configure services to appear as icons, text, or both. Some services have additional options to display smart buttons, such as Twitter, which will update the number of times the post has been shared."
-msgstr "Jaa artikkelisi Twitterissä, Facebookissa ja muissa sosiaalisissa palveluissa. Voit käyttää jakopainikkeina kuvakkeita, tekstitä tai molempia. Joidenkin palveluiden kohdalla on mahdollisuus käyttää \"älykkäitä painikkeita\". Esimerkiksi Twitterin älykäs painike näyttää artikkelin jakokerrat."
+msgstr ""
 
 #: modules/module-info.php:294
 msgid "The following services are included: Twitter, Facebook, Reddit, StumbleUpon, PressThis, Digg, LinkedIn, Google +1, Print, and Email."
@@ -1731,7 +1726,7 @@ msgstr ""
 
 #: modules/custom-css/custom-css.php:774
 msgid "CSS Stylesheet Editor"
-msgstr "CSS-tyyliohjemuokkain"
+msgstr ""
 
 #: modules/custom-css/custom-css.php:775
 msgid ""
@@ -1741,23 +1736,23 @@ msgstr ""
 
 #: modules/custom-css/custom-css.php:795
 msgid "Preview"
-msgstr "Esikatsele"
+msgstr "ดูก่อน"
 
 #: modules/custom-css/custom-css.php:796
 msgid "Save Stylesheet &amp; Buy Upgrade"
-msgstr "Tallenna tyyliohje &amp; osta päivitys"
+msgstr ""
 
 #: modules/custom-css/custom-css.php:796
 msgid "Save Stylesheet"
-msgstr "Tallenna tyyliohje"
+msgstr ""
 
 #: modules/custom-css/custom-css.php:801
 msgid "CSS Settings"
-msgstr "CSS-tyyliohjeen asetukset"
+msgstr ""
 
 #: modules/custom-css/custom-css.php:808
 msgid "CSS Revisions"
-msgstr "CSS-versiohistoria"
+msgstr ""
 
 #: modules/custom-css/custom-css.php:844
 msgid "Add my CSS to <strong>%s&apos;s</strong> CSS stylesheet."
@@ -1772,15 +1767,15 @@ msgid "<a href=\"%s\">View the original stylesheet</a> for the %s theme. Use thi
 msgstr ""
 
 msgid "Gravatar Hovercards"
-msgstr "Gravatar-käyntikortit"
+msgstr ""
 
 #: modules/gravatar-hovercards.php:56
 msgid "View people's profiles when you mouse over their Gravatars"
-msgstr "Näytä ihmisten profiilit, kun siirrät hiiresi heidän Gravatariensa päälle."
+msgstr ""
 
 #: modules/gravatar-hovercards.php:83
 msgid "Put your mouse over your Gravatar to check out your profile."
-msgstr "Siirrä hiiresi Gravatarisi päälle katsoaksesi, miltä profiilisi näyttää."
+msgstr ""
 
 #: modules/minileven/minileven.php:90
 msgid "View Mobile Site"
@@ -1788,61 +1783,60 @@ msgstr ""
 
 #: modules/minileven/theme/pub/minileven/comments.php:15
 msgid "This post is password protected. Enter the password to view any comments."
-msgstr "Tämä kommentti on salasanasuojattu. Syötä salasana nähdäksesi kommentit."
+msgstr "เรื่องนี้มีรหัสผ่านป้องกัน  ใส่รหัสผ่านเพื่อดูความเห็นใด ๆ"
 
 #: modules/minileven/theme/pub/minileven/comments.php:45
 msgid "Comment navigation"
-msgstr ""
+msgstr "เมนูนำทางความเห็น"
 
 #: modules/minileven/theme/pub/minileven/comments.php:46
 msgid "&larr; Older Comments"
-msgstr "&larr; Vanhemmat kommentit"
+msgstr "&larr; ความเห็นที่เก่ากว่า"
 
 #: modules/minileven/theme/pub/minileven/comments.php:47
 msgid "Newer Comments &rarr;"
-msgstr "Uudemmat kommentit &rarr;"
+msgstr "ความเห็นที่ใหม่กว่า &rarr;"
 
 #: modules/minileven/theme/pub/minileven/content-gallery.php:14
 #: modules/minileven/theme/pub/minileven/content-gallery.php:58
 #: modules/minileven/theme/pub/minileven/content.php:13
 #: modules/minileven/theme/pub/minileven/content.php:17
 msgid "Permalink to %s"
-msgstr "Kestolinkki kohteeseen %s"
+msgstr "ลิงก์ถาวรไป %s"
 
 #: modules/minileven/theme/pub/minileven/content-gallery.php:15
 msgid "Gallery"
-msgstr "Galleria"
+msgstr "คลังภาพ"
 
 #: modules/minileven/theme/pub/minileven/content-gallery.php:21
 #: modules/minileven/theme/pub/minileven/content.php:36
 #: modules/minileven/theme/pub/minileven/inc/tweaks.php:26
 msgid "Continue reading <span class=\"meta-nav\">&rarr;</span>"
-msgstr "Lue loppuun <span class=\"meta-nav\">&rarr;</span>"
+msgstr "อ่านเพิ่มเติม <span class=\"meta-nav\">&rarr;</span>"
 
 #: modules/minileven/theme/pub/minileven/content-gallery.php:57
 msgid "This gallery contains <a %1$s>%2$s photo</a>."
 msgid_plural "This gallery contains <a %1$s>%2$s photos</a>."
-msgstr[0] "Tässä galleriassa on <a %1$s>%2$s kuva</a>."
-msgstr[1] "Tässä galleriassa on <a %1$s>%2$s kuvaa</a>."
+msgstr[0] "คลังรูปนี้ประกอบด้วย <a %1$s>รูป %2$s</a>"
 
 #: modules/minileven/theme/pub/minileven/content-gallery.php:65
 #: modules/minileven/theme/pub/minileven/content.php:38
 #: modules/minileven/theme/pub/minileven/image.php:64
 #: modules/minileven/theme/pub/minileven/page.php:27
 msgid "Pages:"
-msgstr "Sivut:"
+msgstr "หน้า:"
 
 #: modules/minileven/theme/pub/minileven/content-gallery.php:71
 #: modules/minileven/theme/pub/minileven/content.php:46
 #: modules/minileven/theme/pub/minileven/image.php:80
 msgid "<b>1</b> Reply"
-msgstr "<b>1</b> Vastaus"
+msgstr "<b>1</b> ตอบ"
 
 #: modules/minileven/theme/pub/minileven/content-gallery.php:71
 #: modules/minileven/theme/pub/minileven/content.php:46
 #: modules/minileven/theme/pub/minileven/image.php:80
 msgid "<b>%</b> Replies"
-msgstr "<b>%</b> Vastausta"
+msgstr "<b>%</b> ความเห็น"
 
 #: modules/minileven/theme/pub/minileven/content-gallery.php:74
 #: modules/minileven/theme/pub/minileven/content.php:48
@@ -1850,11 +1844,11 @@ msgstr "<b>%</b> Vastausta"
 #: modules/minileven/theme/pub/minileven/inc/template-tags.php:66
 #: modules/minileven/theme/pub/minileven/page.php:31
 msgid "Edit"
-msgstr "Muokkaa"
+msgstr "แก้ไข"
 
 #: modules/minileven/theme/pub/minileven/content.php:14
 msgid "Featured"
-msgstr "Suositellut"
+msgstr "พิเศษ"
 
 #: modules/minileven/theme/pub/minileven/content.php:23
 msgid "Posted by "
@@ -1862,57 +1856,57 @@ msgstr ""
 
 #: modules/minileven/theme/pub/minileven/content.php:25
 msgid "%s"
-msgstr "%s"
+msgstr "%s "
 
 #: modules/minileven/theme/pub/minileven/content.php:46
 #: modules/minileven/theme/pub/minileven/image.php:80
 msgid "Leave a reply"
-msgstr "Jätä viesti"
+msgstr "ฝากความเห็น"
 
 #: modules/minileven/theme/pub/minileven/content.php:54
 #: modules/minileven/theme/pub/minileven/inc/template-tags.php:19
 msgid "Post navigation"
-msgstr ""
+msgstr "เมนูนำทางเรื่อง"
 
 #: modules/minileven/theme/pub/minileven/content.php:55
 msgid "&laquo; Previous"
-msgstr "&laquo; Edellinen"
+msgstr "ก่อนหน้า"
 
 #: modules/minileven/theme/pub/minileven/content.php:56
 msgid "Next &raquo;"
-msgstr "Seuraava &raquo;"
+msgstr "ต่อไป"
 
 #: modules/minileven/theme/pub/minileven/footer.php:22
 msgid "http://wordpress.org/"
-msgstr "http://wordpress.org/"
+msgstr "http://th.wordpress.org/"
 
 #: modules/minileven/theme/pub/minileven/footer.php:22
 msgid "Semantic Personal Publishing Platform"
-msgstr "Semanttinen henkilökohtainen julkaisualusta"
+msgstr "แพลตฟอร์มการเผยแพร่ความหมายส่วนบุคคล"
 
 #: modules/minileven/theme/pub/minileven/footer.php:22
 msgid "Proudly powered by %s"
-msgstr "Palvelun tarjoaa %s"
+msgstr "ภูมิใจนำเสนอโดย %s"
 
 #: modules/minileven/theme/pub/minileven/functions.php:54
 msgid "Primary Menu"
-msgstr "Ensisijainen valikko"
+msgstr "เมนูหลัก"
 
 #: modules/minileven/theme/pub/minileven/functions.php:92
 msgid "Main Sidebar"
-msgstr "Sivupalkki"
+msgstr "ด้านข้างหลัก"
 
 #: modules/minileven/theme/pub/minileven/header.php:32
 msgid "Page %s"
-msgstr "Sivu %s"
+msgstr "หน้า %s"
 
 #: modules/minileven/theme/pub/minileven/header.php:50
 msgid "Menu"
-msgstr "Valikko"
+msgstr "เมนู"
 
 #: modules/minileven/theme/pub/minileven/header.php:53
 msgid "Skip to primary content"
-msgstr ""
+msgstr "ข้ามไปยังเนื้อหาหลัก"
 
 #: modules/minileven/theme/pub/minileven/image.php:73
 msgid "<span class=\"entry-gallery\">&laquo; <a href=\"%1$s\" title=\"Back to %2$s\" rel=\"gallery\">Back to Gallery</a></span>"
@@ -1920,7 +1914,7 @@ msgstr ""
 
 #: modules/minileven/theme/pub/minileven/image.php:87
 msgid "Image navigation"
-msgstr "Kuvien selailu"
+msgstr "เมนูนำทางรูปภาพ"
 
 #: modules/minileven/theme/pub/minileven/image.php:88
 msgid "&raquo; Previous"
@@ -1940,23 +1934,23 @@ msgstr ""
 
 #: modules/minileven/theme/pub/minileven/inc/template-tags.php:38
 msgid "Pingback:"
-msgstr "Päivitysilmoitus:"
+msgstr "Pingback:"
 
 #: modules/minileven/theme/pub/minileven/inc/template-tags.php:55
 msgid "%1$s on %2$s"
-msgstr "%1$s: %2$s"
+msgstr "%1$s บน %2$s"
 
 #: modules/minileven/theme/pub/minileven/inc/template-tags.php:61
 msgid "%1$s at %2$s"
-msgstr "%1$s  %2$s"
+msgstr "%1$s ที่ %2$s"
 
 #: modules/minileven/theme/pub/minileven/inc/template-tags.php:70
 msgid "Your comment is awaiting moderation."
-msgstr "Kommenttisi odottaa hyväksyntää."
+msgstr "ความเห็นของคุณกำลังรอตรวจสอบ"
 
 #: modules/minileven/theme/pub/minileven/inc/template-tags.php:79
 msgid "Reply <span>&darr;</span>"
-msgstr ""
+msgstr "ตอบกลับ <span>&darr;</span>"
 
 #: modules/minileven/theme/pub/minileven/inc/template-tags.php:93
 msgid "<span class=\"entry-date\"><a href=\"%1$s\" title=\"%2$s\" rel=\"bookmark\"><time datetime=\"%3$s\" pubdate>%4$s</time></a></span>"
@@ -1964,19 +1958,19 @@ msgstr ""
 
 #: modules/minileven/theme/pub/minileven/index.php:23
 msgid "Daily Archives: %s"
-msgstr "Päivittäiset arkistot: %s"
+msgstr "คลัีงเก็บรายวัน: %s"
 
 #: modules/minileven/theme/pub/minileven/index.php:25
 msgid "Monthly Archives: %s"
-msgstr "Kuukausittainen arkisto:%s"
+msgstr "คลังเก็บรายเดือน: %s"
 
 #: modules/minileven/theme/pub/minileven/index.php:27
 msgid "Yearly Archives: %s"
-msgstr "Vuosittaiset arkistot: %s"
+msgstr "คลังเก็บแบบปี: %s"
 
 #: modules/minileven/theme/pub/minileven/index.php:29
 msgid "Posted in %s"
-msgstr "Kategoria(t): %s"
+msgstr "บันทึกโพสใน %s"
 
 #: modules/minileven/theme/pub/minileven/index.php:31
 msgid "Tagged with %s"
@@ -1984,43 +1978,42 @@ msgstr ""
 
 #: modules/minileven/theme/pub/minileven/index.php:33
 msgid "Posted by"
-msgstr "Kirjoittanut"
+msgstr ""
 
 #: modules/minileven/theme/pub/minileven/index.php:35
 msgid "Blog Archives"
-msgstr "Blogin arkistot"
+msgstr "คลังเก็บบล็อก"
 
 #: modules/minileven/theme/pub/minileven/index.php:43
 msgid "Search Results for: %s"
-msgstr "Hakutulokset: %s"
+msgstr "ผลลัพท์การค้นหาสำหรับ: %s"
 
 #: modules/contact-form/grunion-contact-form.php:73
 #: modules/contact-form/grunion-form-view.php:136
 msgid "Feedbacks"
-msgstr "Palautteet"
+msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:74
 msgid "Feedback"
-msgstr "Palaute"
+msgstr "ผลตอบรับ"
 
 #: modules/contact-form/grunion-contact-form.php:75
 msgid "Search Feedback"
-msgstr "Etsi palautteita"
+msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:76
 #: modules/contact-form/grunion-contact-form.php:77
 msgid "No feedback found"
-msgstr "Ei palautteita."
+msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:94
 msgid "Spam <span class=\"count\">(%s)</span>"
 msgid_plural "Spam <span class=\"count\">(%s)</span>"
-msgstr[0] "Roskaviesti <span class=\"count\">(%s)</span>"
-msgstr[1] "Roskaviestit <span class=\"count\">(%s)</span>"
+msgstr[0] ""
 
 #: modules/contact-form/admin.php:27
 msgid "Add a custom form"
-msgstr "Lisää mukautettu kenttä"
+msgstr ""
 
 #: modules/contact-form/grunion-form-view.php:8
 msgctxt "Label for HTML form \"Name\" field in contact form builder"
@@ -2156,7 +2149,7 @@ msgstr ""
 #: modules/contact-form/grunion-form-view.php:148
 #: modules/sharedaddy/sharing-sources.php:976
 msgid "Label"
-msgstr "Teksti"
+msgstr "ป้ายชื่อ"
 
 #: modules/contact-form/grunion-form-view.php:149
 msgid "New field"
@@ -2180,7 +2173,7 @@ msgstr ""
 
 #: modules/contact-form/grunion-form-view.php:158
 msgid "Text"
-msgstr "Teksti"
+msgstr "ข้อความ"
 
 #: modules/contact-form/grunion-form-view.php:159
 msgid "Textarea"
@@ -2188,7 +2181,7 @@ msgstr ""
 
 #: modules/contact-form/grunion-form-view.php:166
 msgid "Options"
-msgstr "Asetukset"
+msgstr "ตัวเลือก"
 
 #: modules/contact-form/grunion-form-view.php:167
 msgid "First option"
@@ -2224,7 +2217,7 @@ msgstr ""
 
 #: modules/contact-form/grunion-form-view.php:199
 msgid "Enter your email address"
-msgstr "Syötä sähköpostiosoitteesi"
+msgstr ""
 
 #: modules/contact-form/grunion-form-view.php:202
 msgid "What should the subject line be?"
@@ -2236,15 +2229,15 @@ msgstr ""
 
 #: modules/custom-css/custom-css.php:525
 msgid "Preview: changes must be saved or they will be lost"
-msgstr "Esikatselu: muutokset täytyy tallentaa tai ne katoavat"
+msgstr ""
 
 #: modules/custom-css/custom-css.php:553
 msgid "Edit CSS"
-msgstr "CSS-muokkain"
+msgstr "แก้ไข CSS"
 
 #: modules/custom-css/custom-css.php:567
 msgid "CSS"
-msgstr "CSS"
+msgstr ""
 
 #: modules/custom-css/custom-css.php:606
 msgid "Custom CSS Stylesheet"
@@ -2252,7 +2245,7 @@ msgstr ""
 
 #: modules/custom-css/custom-css.php:766
 msgid "Stylesheet saved."
-msgstr "Tyyliohje tallennettu."
+msgstr "บันทึก Stylesheet เรียบร้อยแล้ว."
 
 #: modules/carousel/jetpack-carousel.php:360
 msgid "Image Gallery Carousel"
@@ -2264,7 +2257,7 @@ msgstr ""
 
 #: modules/carousel/jetpack-carousel.php:367
 msgid "Background color"
-msgstr "Taustan väri"
+msgstr ""
 
 #: modules/carousel/jetpack-carousel.php:370
 msgid "Metadata"
@@ -2280,11 +2273,11 @@ msgstr ""
 
 #: modules/carousel/jetpack-carousel.php:443
 msgid "Black"
-msgstr "Musta"
+msgstr "สีดำ"
 
 #: modules/carousel/jetpack-carousel.php:443
 msgid "White"
-msgstr "Valkoinen"
+msgstr "สีขาว"
 
 #: modules/carousel/jetpack-carousel.php:451
 msgid "Display images in full-size carousel slideshow."
@@ -2293,15 +2286,15 @@ msgstr ""
 #: modules/comments/admin.php:50 modules/comments/comments.php:178
 #: modules/minileven/theme/pub/minileven/content-gallery.php:71
 msgid "Leave a Reply"
-msgstr "Vastaa"
+msgstr "ใส่ความเห็น"
 
 #: modules/comments/admin.php:54 modules/widgets/facebook-likebox.php:147
 msgid "Light"
-msgstr "Vaalea"
+msgstr "สว่าง"
 
 #: modules/comments/admin.php:55 modules/widgets/facebook-likebox.php:148
 msgid "Dark"
-msgstr "Tumma"
+msgstr "มืด"
 
 #: modules/comments/admin.php:56
 msgid "Transparent"
@@ -2317,7 +2310,7 @@ msgstr ""
 #: modules/comments/admin.php:97 modules/comments/admin.php:168
 #: modules/widgets/facebook-likebox.php:145
 msgid "Color Scheme"
-msgstr "Värikaava"
+msgstr "เฉดสี"
 
 #: modules/comments/admin.php:118
 msgid "Adjust your Jetpack Comments form with a clever greeting and color-scheme."
@@ -2329,15 +2322,15 @@ msgstr ""
 
 #: modules/comments/base.php:84
 msgid "Invalid request"
-msgstr "Virheellinen pyyntö"
+msgstr ""
 
 #: modules/comments/base.php:231
 msgid "Error: please fill the required fields (name, email)."
-msgstr "Virhe: syötä tiedot vaadittuihin kenttiin (nimi, sähköposti)."
+msgstr "ผิดพลาด: โปรดกรอกข้อมูลที่ต้องการ (ชื่อ, อีเมล์)"
 
 #: modules/comments/base.php:233
 msgid "Error: please enter a valid email address."
-msgstr "Virhe: syötä kelvollinen sähköpostiosoite"
+msgstr "ผิดพลาด: กรุณาใส่อีเมล์ที่ใช้งานได้"
 
 #: modules/comments/comments.php:154
 msgid "You must <a href=\"%s\">log in</a> to post a comment."
@@ -2345,7 +2338,7 @@ msgstr ""
 
 #: modules/comments/comments.php:217
 msgid "Cancel Reply"
-msgstr "Peru vastaus"
+msgstr ""
 
 #: modules/comments/comments.php:351
 msgid "Invalid security token."
@@ -2357,45 +2350,45 @@ msgstr ""
 
 #: modules/contact-form/admin.php:129
 msgid "From"
-msgstr "Lähettäjä"
+msgstr ""
 
 #: modules/contact-form/admin.php:130
 #: modules/contact-form/grunion-contact-form.php:556
 msgid "Message"
-msgstr "Viesti"
+msgstr "ข้อความ"
 
 #: modules/contact-form/admin.php:131
 msgid "Date"
-msgstr "Päivämäärä"
+msgstr "วันที่"
 
 #: modules/contact-form/admin.php:201
 msgid "Restore this item from the Trash"
-msgstr "Palauta tämä kohde roskakorista"
+msgstr "กู้คืนสิ่งนี้จากถังขยะ"
 
 #: modules/contact-form/admin.php:203
 msgid "Restore"
-msgstr "Palauta"
+msgstr "ย้อนกลับ"
 
 #: modules/contact-form/admin.php:206 modules/contact-form/admin.php:305
 msgid "Delete this item permanently"
-msgstr "Poista tämä kohde pysyvästi"
+msgstr "ลบสิ่งนี้ถาวร"
 
 #: modules/contact-form/admin.php:208 modules/contact-form/admin.php:307
 msgid "Delete Permanently"
-msgstr "Poista pysyvästi"
+msgstr "ลบถาวร"
 
 #: modules/contact-form/admin.php:239
 msgid "Mark this message as spam"
-msgstr "Merkitse tämä viesti roskaksi"
+msgstr ""
 
 #: modules/contact-form/admin.php:246 modules/contact-form/admin.php:248
 #: modules/contact-form/admin.php:540
 msgid "Trash"
-msgstr "Roskakoriin"
+msgstr "ถังขยะ"
 
 #: modules/contact-form/admin.php:299
 msgid "Mark this message as NOT spam"
-msgstr "Palauta tämä viesti roskaviesteistä"
+msgstr ""
 
 #: modules/contact-form/admin.php:338
 msgid "Y-m-d @ g:i:s A"
@@ -2403,46 +2396,46 @@ msgstr ""
 
 #: modules/contact-form/admin.php:462
 msgid "You are not allowed to manage this item."
-msgstr "Sinulla ei ole oikeuksia hallita tätä kohdetta."
+msgstr ""
 
 #: modules/contact-form/admin.php:496
 msgid "You are not allowed to move this item out of the Trash."
-msgstr "Sinulla ei ole oikeuksia poistaa tätä pois roskiksesta."
+msgstr "คุณไม่มีสิทธิ์ย้ายสิ้งนี้ออกจากถังขยะ"
 
 #: modules/contact-form/admin.php:499
 msgid "Error in restoring from Trash."
-msgstr "Roskakorista palauttaminen ei onnistunut."
+msgstr "ผิดพลาดระหว่างการกู้คืนจากถังขยะ"
 
 #: modules/contact-form/admin.php:503
 msgid "You are not allowed to move this item to the Trash."
-msgstr "Sinulla ei ole oikeutta siirtää tätä kohdetta roskakoriin."
+msgstr "คุณไม่มีสิทธิ์ย้ายรายการนี้ไปถังขยะ"
 
 #: modules/contact-form/admin.php:506
 msgid "Error in moving to Trash."
-msgstr "Roskakoriin siirto ei onnistunut."
+msgstr "ผิดพลาดระหว่างย้ายไปถังขยะ"
 
 #: modules/contact-form/admin.php:530
 msgid "Messages"
-msgstr "Viestit"
+msgstr "ข้อความ"
 
 #: modules/contact-form/admin.php:553
 msgid "Spam"
-msgstr "Roskaviestit"
+msgstr "สแปม"
 
 #: modules/contact-form/grunion-contact-form.php:546
 #: modules/contact-form/grunion-form-view.php:156
 msgid "Name"
-msgstr "Nimi"
+msgstr "ชื่อ"
 
 #: modules/contact-form/grunion-contact-form.php:547
 #: modules/contact-form/grunion-form-view.php:155
 #: modules/sharedaddy/sharing-sources.php:200
 msgid "Email"
-msgstr "Sähköpostiosoite"
+msgstr "อีเมล์"
 
 #: modules/contact-form/grunion-contact-form.php:552
 msgid "Subject"
-msgstr "Aihe"
+msgstr "ชื่อเรื่อง"
 
 #: modules/contact-form/grunion-contact-form.php:1289
 #: modules/contact-form/grunion-contact-form.php:1295
@@ -2451,31 +2444,31 @@ msgstr "Aihe"
 #: modules/contact-form/grunion-contact-form.php:1320
 #: modules/contact-form/grunion-contact-form.php:1333
 msgid "(required)"
-msgstr "(Vaaditaan)"
+msgstr "(ต้องการ)"
 
 #: modules/contact-form/grunion-contact-form.php:1313
 msgid "Yes"
-msgstr "Kyllä"
+msgstr "ใช่"
 
 #: modules/contact-form/grunion-contact-form.php:1236
 msgid "%s requires a valid email address"
-msgstr "%s vaatii oikean sähköpostiosoitteen"
+msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:1242
 msgid "%s is required"
-msgstr "%s vaaditaan"
+msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:633
 msgid "Error!"
-msgstr "Virhe!"
+msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:729
 msgid "Submit &#187;"
-msgstr "Lähetä &#187;"
+msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:647
 msgid "Message Sent"
-msgstr "Viesti lähetetty"
+msgstr "ส่งข้อความ"
 
 #: modules/contact-form/grunion-contact-form.php:971
 msgid "l F j, Y \\a\\t g:i a"
@@ -2483,32 +2476,32 @@ msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:991
 msgid "Time:"
-msgstr "Aika:"
+msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:992
 msgid "IP Address:"
-msgstr "IP-osoite:"
+msgstr "ที่อยู่ IP:"
 
 #: modules/contact-form/grunion-contact-form.php:993
 msgid "Contact Form URL:"
-msgstr "Yhteydenottolomakkeen URL-osoite:"
+msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:999
 msgid "Sent by a verified %s user."
-msgstr "Lähetetty varmistetulta  %s-käyttäjältä."
+msgstr ""
 
 #: modules/contact-form/grunion-contact-form.php:1003
 msgid "Sent by an unverified visitor to your site."
-msgstr ""
+msgstr "ส่งมาจากผู้เยี่ยมชมเว็บของคุณ (คนนี้่ยังไม่เคยผ่านการตรวจสอบ)"
 
 #: modules/after-the-deadline/atd-l10n.php:26
 #: modules/after-the-deadline.php:224
 msgid "Proofread Writing"
-msgstr "Oikolue kirjoitus"
+msgstr "พิสูจน์อักษรบทความ"
 
 #: modules/after-the-deadline/atd-l10n.php:28
 msgid "No writing errors were found."
-msgstr "Yhtään kirjoitusvirhettä ei löytynyt."
+msgstr "ไม่พบข้อผิดพลาดในบทความ"
 
 #: modules/after-the-deadline/atd-l10n.php:29
 msgid "There was a problem communicating with the Proofreading service. Try again in one minute."
@@ -2516,21 +2509,18 @@ msgstr ""
 
 #: modules/after-the-deadline/atd-l10n.php:30
 msgid "There was an error communicating with the proofreading service."
-msgstr "Virhe tapahtui kommunikoitaessa oikolukupalvelun kanssa."
+msgstr "มีความผิดพลาดในการสื่อสารกับบริการพิสูจน์ตัวอักษร"
 
 #: modules/after-the-deadline/atd-l10n.php:32
 msgid "Replace selection with:"
-msgstr "Korvaa kohta:"
+msgstr "แทนที่ส่วนที่เลือกด้วย:"
 
 #: modules/after-the-deadline/atd-l10n.php:33
 msgid ""
 "The proofreader has suggestions for this post. Are you sure you want to publish it?\n"
 "\n"
 "Press OK to publish your post, or Cancel to view the suggestions and edit your post."
-msgstr ""
-"Oikolukijalla on ehdotuksia koskien tätä artikkelia. Oletko varma, että haluat päivittää sen?\n"
-"\n"
-"Paina OK päivittääksesi tai Peruuta nähdäksesi ehdotukset ja muokataksesi artikkelia."
+msgstr "ตัวพิสูจน์อักษรมีคำแนะนำสำหรับเรื่องนี้ คุณแน่ใจรึเปล่าว่าต้องการอัปเดตมัน? กด OK เพื่อเผยแพร่เรื่องของคุณ หรือกด Cancel เพื่อดูคำแนะนำแล้วแก้ไขเรื่องของคุณ "
 
 #: modules/after-the-deadline/atd-l10n.php:34
 msgid ""
@@ -2538,81 +2528,81 @@ msgid ""
 "\n"
 "Press OK to update your post, or Cancel to view the suggestions and edit your post."
 msgstr ""
-"Oikolukijalla on ehdotuksia koskien tätä artikkelia. Oletko varma, että haluat päivittää sen?\n"
+"ตัวพิสูจน์อักษรมีคำแนะนำสำหรับเรื่องนี้  คุณแน่ใจรึเปล่าว่าต้องการอัปเดตมัน?\n"
 "\n"
-"Paina OK päivittääksesi tai Peruuta katsoaksesi ehdotuksia ja muokataksesi artikkelia."
+"กด OK เพื่ออัปเิดตเรื่องของคุณ หรือกด Cancel เพื่อดูคำแนะนำแล้วแก้ไขเรื่องของคุณ"
 
 #: modules/after-the-deadline/config-options.php:48
 msgid "Proofreading"
-msgstr "Oikoluku"
+msgstr "การพิสูจน์อักษร"
 
 #: modules/after-the-deadline/config-options.php:50
 msgid "Automatically proofread content when:"
-msgstr "Oikolue sisältö automaattisesti, kun:"
+msgstr "พิสูจน์ข้อความอัตโนมัติเมื่อ:"
 
 #: modules/after-the-deadline/config-options.php:53
 msgid "a post or page is first published"
-msgstr "artikkeli tai sivu julkaistaan ensimmäistä kertaa"
+msgstr "เผยแพร่เรื่องหรือหน้าครั้งแรกแล้ว"
 
 #: modules/after-the-deadline/config-options.php:55
 msgid "a post or page is updated"
-msgstr "artikkeli tai sivu on päivitetty."
+msgstr "อัปเดตเรื่องหรือหน้าแล้ว"
 
 #: modules/after-the-deadline/config-options.php:58
 msgid "English Options"
-msgstr "Englannin asetukset"
+msgstr "ตัวเลือกภาษาอังกฤษ"
 
 #: modules/after-the-deadline/config-options.php:60
 msgid "Enable proofreading for the following grammar and style rules when writing posts and pages:"
-msgstr "Salli oikoluku seuraavilla kieliopeilla ja tyylisäännöillä artikkeleita ja sivuja kirjoittaessa:"
+msgstr "เปิดใช้งานการพิสูจน์อักษรสำหรับไวยากรณ์และกฎรูปแบบการเขียนเมื่อเขียนเรื่องและหน้า:"
 
 #: modules/after-the-deadline/config-options.php:63
 msgid "Bias Language"
-msgstr "Viallinen kieli"
+msgstr "ภาษาที่ขัดกัน"
 
 #: modules/after-the-deadline/config-options.php:65
 msgid "Clich&eacute;s"
-msgstr "Kliseet"
+msgstr "สำนวนซ้ำ ๆ"
 
 #: modules/after-the-deadline/config-options.php:67
 msgid "Complex Phrases"
-msgstr "Monimutkaiset fraasit"
+msgstr "วลีที่ซับซ้อน"
 
 #: modules/after-the-deadline/config-options.php:69
 msgid "Diacritical Marks"
-msgstr "Tarkemerkit"
+msgstr "ออกเสียงวรรณยุกต์"
 
 #: modules/after-the-deadline/config-options.php:71
 msgid "Double Negatives"
-msgstr "Tuplakiellot"
+msgstr "ปฎิเสธซ้อนปฎิเสธ"
 
 #: modules/after-the-deadline/config-options.php:73
 msgid "Hidden Verbs"
-msgstr "Piilotetut verbit"
+msgstr "กริยาที่ซ่อนอยู่"
 
 #: modules/after-the-deadline/config-options.php:75
 msgid "Jargon"
-msgstr "Slangi"
+msgstr "ศัพท์เฉพาะ"
 
 #: modules/after-the-deadline/config-options.php:77
 msgid "Passive Voice"
-msgstr "Passiivinen kieli"
+msgstr "กรรมวาจก (ผู้ถูกกระทำ)"
 
 #: modules/after-the-deadline/config-options.php:79
 msgid "Phrases to Avoid"
-msgstr "Fraasit ovat kierteleviä"
+msgstr "วลีที่หลีกเลี่ยง"
 
 #: modules/after-the-deadline/config-options.php:81
 msgid "Redundant Phrases"
-msgstr "Tarpeettomat fraasit"
+msgstr "วลีที่ซ้ำซ้อน"
 
 #: modules/after-the-deadline/config-options.php:83
 msgid "<a href=\"%s\">Learn more</a> about these options."
-msgstr "<a href=\"%s\">Lue lisää</a> näistä asetuksista."
+msgstr "<a href=\"%s\">เรียนรู้เพิ่มเติม</a> เกี่ยวกับตัวเลือกเหล่านี้"
 
 #: modules/after-the-deadline/config-options.php:86
 msgid "Language"
-msgstr "Kieli"
+msgstr "ภาษา"
 
 #: modules/after-the-deadline/config-options.php:89
 msgctxt "%1$s = http://codex.wordpress.org/Installing_WordPress_in_Your_Language, %2$s = WPLANG"
@@ -2621,23 +2611,23 @@ msgstr ""
 
 #: modules/after-the-deadline/config-options.php:95
 msgid "Use automatically detected language to proofread posts and pages"
-msgstr "Käytä automaattisesti valittua kieltä artikkelien ja sivujen oikolukemisessa."
+msgstr "ใช้การตรวจจับภาษาอัตโนมัติเพื่อพิสูจน์อักษรเรื่องและหน้า"
 
 #: modules/after-the-deadline/config-unignore.php:126
 msgid "Ignored Phrases"
-msgstr "Ohitettavat fraasit"
+msgstr "ไม่สนใจวลี"
 
 #: modules/after-the-deadline/config-unignore.php:128
 msgid "Identify words and phrases to ignore while proofreading your posts and pages:"
-msgstr "Nämä sanat ohitetaan, kun artikkeleitasi ja sivujasi oikoluetaan:"
+msgstr "ระบุคำและวลีที่จะไม่สนใจเมื่อทำการพิสูจน์อักษรเรื่องและหน้าของคุณ:"
 
 #: modules/after-the-deadline/config-unignore.php:130
 msgid "Add"
-msgstr "Lisää"
+msgstr "เพิ่ม"
 
 #: modules/after-the-deadline/config-unignore.php:135
 msgid "Be sure to click \"Update Profile\" at the bottom of the screen to save your changes."
-msgstr "Tallentaaksesi asetukset varmasti paina \"Päivitä käyttäjätiedot\"-nappia ruudun alalaidassa."
+msgstr "แน่ใจว่ากด \"อัปเดตข้อมูลส่วนตัว\" ที่ด้านล่างของหน้าจอเพื่อบันทึกการเปลี่ยนแปลงของคุณ"
 
 #: modules/carousel/jetpack-carousel.php:110
 msgid "Comment"
@@ -2645,11 +2635,11 @@ msgstr ""
 
 #: modules/carousel/jetpack-carousel.php:111
 msgid "Post Comment"
-msgstr "Lähetä kommentti"
+msgstr "ความเห็นเรื่อง"
 
 #: modules/carousel/jetpack-carousel.php:112
 msgid "Loading Comments..."
-msgstr "Ladataan kommentteja..."
+msgstr ""
 
 #: modules/carousel/jetpack-carousel.php:113
 msgid "View full size <span class=\"photo-size\">%1$s<span class=\"photo-size-times\">&times;</span>%2$s</span>"
@@ -2673,7 +2663,7 @@ msgstr ""
 
 #: modules/carousel/jetpack-carousel.php:118
 msgid "Your comment was approved."
-msgstr "Kommenttisi hyväksyttiin."
+msgstr ""
 
 #: modules/carousel/jetpack-carousel.php:119
 msgid "Your comment is in moderation."
@@ -2681,7 +2671,7 @@ msgstr ""
 
 #: modules/carousel/jetpack-carousel.php:120
 msgid "Camera"
-msgstr "Kamera"
+msgstr ""
 
 #: modules/carousel/jetpack-carousel.php:121
 msgid "Aperture"
@@ -2711,7 +2701,7 @@ msgstr ""
 #: modules/contact-form/grunion-contact-form.php:548
 #: modules/contact-form/grunion-form-view.php:160
 msgid "Website"
-msgstr "Kotisivu"
+msgstr "เว็บไซท์"
 
 #: modules/carousel/jetpack-carousel.php:246
 msgid "Missing attachment ID."
@@ -2785,21 +2775,19 @@ msgstr ""
 msgid "Jetpack contains the most recent version of the old %l plugin."
 msgid_plural "Jetpack contains the most recent versions of the old %l plugins."
 msgstr[0] ""
-msgstr[1] ""
 
 #: jetpack.php:1938
 msgid "The old version has been deactivated and can be removed from your site."
 msgid_plural "The old versions have been deactivated and can be removed from your site."
 msgstr[0] ""
-msgstr[1] ""
 
 #: jetpack.php:2162
 msgid "Connected to WordPress.com"
-msgstr "Yhdistä WordPress.com:iin"
+msgstr ""
 
 #: jetpack.php:2162
 msgid "Disconnect from WordPress.com"
-msgstr "Katkaise yhteys WordPress.comiin"
+msgstr ""
 
 #: jetpack.php:2167
 msgid "User linked to WordPress.com"
@@ -2839,53 +2827,53 @@ msgstr ""
 
 #: jetpack.php:2251
 msgid "Checking email updates status&hellip;"
-msgstr "Tarkistetaan sähköpostipäivitysten tila&hellip;"
+msgstr ""
 
 #: jetpack.php:2257
 msgctxt "%s = Unsubscribe link"
 msgid "You are currently subscribed to email updates. %s"
-msgstr "Vastaanotat sähköpostipäivityksiä. %s"
+msgstr ""
 
 #: jetpack.php:2258
 msgid "Unsubscribe"
-msgstr "Lopeta tilaus"
+msgstr "ยกเลิกรับข้อมูล"
 
 #: jetpack.php:2262
 msgctxt "%s = Subscribe link"
 msgid "Want to receive updates about Jetpack by email? %s"
-msgstr "Haluatko vastaanottaa Jetpackiin liittyviä päivityksiä sähköpostitse? %s"
+msgstr ""
 
 #: jetpack.php:2263 modules/subscriptions.php:673
 msgid "Subscribe"
-msgstr "Tilaa"
+msgstr "สมัครรับข้อมูล"
 
 #: jetpack.php:2270
 msgid "You have been subscribed to receive email updates."
-msgstr "Olet tilannut päivitysilmoitukset sähköpostiisi."
+msgstr ""
 
 #: jetpack.php:2272
 msgid "You will no longer receive email updates about Jetpack."
-msgstr "Et tule saamaan enää sähköpostipäivityksiä Jetpack:iltä."
+msgstr ""
 
 #: jetpack.php:2285
 msgid "An <span>Automattic</span> Airline"
-msgstr "<span>Automattic:n</span> lennokas luomus"
+msgstr ""
 
 #: jetpack.php:2288
 msgid "Privacy Policy"
-msgstr "Tietosuoja"
+msgstr ""
 
 #: jetpack.php:2289
 msgid "Terms of Service"
-msgstr "Käyttöehdot"
+msgstr "เงื่อนไขการให้บริการ"
 
 #: jetpack.php:2291
 msgid "Debug"
-msgstr "Vikasietotila"
+msgstr ""
 
 #: jetpack.php:2293 modules/sharedaddy/sharedaddy.php:82
 msgid "Support"
-msgstr "Tuki"
+msgstr "ช่วยเหลือ"
 
 #: jetpack.php:2313
 msgid "This is sensitive information.  Please do not post your BLOG_TOKEN or USER_TOKEN publicly; they are like passwords."
@@ -2893,44 +2881,44 @@ msgstr ""
 
 #: jetpack.php:2357
 msgid "Configure %s"
-msgstr "Säädä %s"
+msgstr ""
 
 #: jetpack.php:2416
 msgid "Deactivate"
-msgstr "Poista käytöstä"
+msgstr "ปิดการใช้งาน"
 
 #: jetpack.php:2426
 msgid "Activate"
-msgstr "Ota käyttöön"
+msgstr "ใช้งาน"
 
 #: jetpack.php:2443
 msgid "Free"
-msgstr "Ilmainen"
+msgstr ""
 
 #: jetpack.php:2443
 msgid "Purchase"
-msgstr "Osta"
+msgstr ""
 
 #: jetpack.php:2451
 msgid "New"
-msgstr "Uusi"
+msgstr ""
 
 #: jetpack.php:2454
 msgid "Updated"
-msgstr "Päivitetty."
+msgstr ""
 
 #: jetpack.php:2482
 msgid "Configure"
-msgstr "Aseta"
+msgstr "ปรับแต่ง"
 
 #: jetpack.php:2516
 msgid "Coming soon&#8230;"
-msgstr "Tulossa pian&#8230;"
+msgstr ""
 
 #: jetpack.php:2669 jetpack.php:2671 jetpack.php:2673 jetpack.php:2676
 #: jetpack.php:3597
 msgid "Error Details: %s"
-msgstr "Virhetiedot: %s"
+msgstr ""
 
 #: jetpack.php:2832
 msgid "Jetpack Plugin Version"
@@ -2942,7 +2930,7 @@ msgstr ""
 
 #: jetpack.php:3553
 msgid "An administrator for this blog must set up the Jetpack connection."
-msgstr "Blogin pääkäyttäjän täytyy luoda Jetpack-yhteys."
+msgstr ""
 
 #: jetpack.php:3558
 msgid "You need to register your Jetpack before connecting it."
@@ -2955,47 +2943,47 @@ msgstr ""
 
 #: modules/after-the-deadline/atd-l10n.php:12
 msgid "Spelling"
-msgstr "Oikeinkirjoitus"
+msgstr "การสะกด"
 
 #: modules/after-the-deadline/atd-l10n.php:13
 msgid "Repeated Word"
-msgstr "Toistuva sana"
+msgstr "คำที่ซ้ำกัน"
 
 #: modules/after-the-deadline/atd-l10n.php:15
 msgid "No suggestions"
-msgstr "Ei ehdotuksia."
+msgstr "ไม่มีคำแนะนำ"
 
 #: modules/after-the-deadline/atd-l10n.php:17
 msgid "Explain..."
-msgstr "Selitä..."
+msgstr "อธิบาย..."
 
 #: modules/after-the-deadline/atd-l10n.php:18
 msgid "Ignore suggestion"
-msgstr "Ohita ehdotus"
+msgstr "ไม่สนใจคำแนะนำ"
 
 #: modules/after-the-deadline/atd-l10n.php:19
 msgid "Ignore always"
-msgstr "Ohita aina"
+msgstr "ไม่สนใจตลอด"
 
 #: modules/after-the-deadline/atd-l10n.php:20
 msgid "Ignore all"
-msgstr "Ohita kaikki"
+msgstr "ไม่สนใจทั้งหมด"
 
 #: modules/after-the-deadline/atd-l10n.php:22
 msgid "Edit Selection..."
-msgstr "Muokkaa kohtaa..."
+msgstr "แก้ไขส่วนที่เลือก..."
 
 #: modules/after-the-deadline/atd-l10n.php:24
 msgid "proofread"
-msgstr "oikoluettu"
+msgstr "พิสูจน์อักษร"
 
 #: modules/after-the-deadline/atd-l10n.php:25
 msgid "edit text"
-msgstr "muokkaa tekstiä"
+msgstr "แก้ไขข้อความ"
 
 #: jetpack.php:1007
 msgid "Jetpack requires WordPress version %s or later."
-msgstr "Jetpack vaatii WordPressin version %s tai uudemman."
+msgstr ""
 
 #: jetpack.php:1203 jetpack.php:1219
 msgid "Jetpack contains the most recent version of the old &#8220;%1$s&#8221; plugin."
@@ -3005,14 +2993,13 @@ msgstr ""
 msgid "One New Jetpack Module"
 msgid_plural "%s New Jetpack Modules"
 msgstr[0] ""
-msgstr[1] ""
 
 #: jetpack.php:1243
 msgid "Jetpack"
 msgstr ""
 
 msgid "Jetpack by WordPress.com"
-msgstr "Jetpackin on luonut WordPress.com"
+msgstr ""
 
 #: jetpack.php:1391 jetpack.php:1415 jetpack.php:2175
 msgid "Jetpack supercharges your self-hosted WordPress site with the awesome cloud power of WordPress.com."
@@ -3032,7 +3019,7 @@ msgstr ""
 
 #: jetpack.php:1395 jetpack.php:1438
 msgid "For more information:"
-msgstr "Muuta tukea"
+msgstr "สำหรับข้อมูลเพิ่มเติม"
 
 #: jetpack.php:1396 jetpack.php:1439
 msgid "Jetpack FAQ"
@@ -3044,7 +3031,7 @@ msgstr ""
 
 #: jetpack.php:1412
 msgid "Overview"
-msgstr ""
+msgstr "ภาพรวม"
 
 #: jetpack.php:1423
 msgid "Modules"
@@ -3073,7 +3060,7 @@ msgstr ""
 #: jetpack.php:1509 modules/sharedaddy/sharedaddy.php:74
 #: modules/sharedaddy/sharedaddy.php:81
 msgid "Settings"
-msgstr "Asetukset"
+msgstr "ตั้งค่า"
 
 #: jetpack.php:1526
 msgid "Dismiss this notice and deactivate Jetpack."
@@ -3089,7 +3076,7 @@ msgstr ""
 
 #: jetpack.php:1540 jetpack.php:2203
 msgid "Connect to WordPress.com"
-msgstr "Yhdistä WordPress.com:iin"
+msgstr ""
 
 #: jetpack.php:1542 modules/module-info.php:45 modules/module-info.php:81
 #: modules/module-info.php:138 modules/module-info.php:173
@@ -3102,7 +3089,7 @@ msgstr "Yhdistä WordPress.com:iin"
 #: modules/module-info.php:549 modules/module-info.php:571
 #: modules/module-info.php:593
 msgid "Learn More"
-msgstr "Lue lisää"
+msgstr ""
 
 #: jetpack.php:1555
 msgid "<strong>Jetpack is activated!</strong> Each site on your network must be connected individually by an admin on that site."
@@ -3166,7 +3153,7 @@ msgstr ""
 
 #: jetpack.php:1791
 msgid "Try connecting again."
-msgstr "Yritä yhdistää uudelleen."
+msgstr ""
 
 #: jetpack.php:1815
 msgid "Welcome to <strong>Jetpack %s</strong>!"

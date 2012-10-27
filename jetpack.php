@@ -5,7 +5,7 @@
  * Plugin URI: http://wordpress.org/extend/plugins/jetpack/
  * Description: Bring the power of the WordPress.com cloud to your self-hosted WordPress. Jetpack enables you to connect your blog to a WordPress.com account to use the powerful features normally only available to WordPress.com users.
  * Author: Automattic
- * Version: 1.9b5
+ * Version: 1.9
  * Author URI: http://jetpack.me
  * License: GPL2+
  * Text Domain: jetpack
@@ -17,7 +17,7 @@ define( 'JETPACK__API_VERSION', 1 );
 define( 'JETPACK__MINIMUM_WP_VERSION', '3.2' );
 defined( 'JETPACK_CLIENT__AUTH_LOCATION' ) or define( 'JETPACK_CLIENT__AUTH_LOCATION', 'header' );
 defined( 'JETPACK_CLIENT__HTTPS' ) or define( 'JETPACK_CLIENT__HTTPS', 'AUTO' );
-define( 'JETPACK__VERSION', '1.9-alpha' );
+define( 'JETPACK__VERSION', '1.9' );
 define( 'JETPACK__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 defined( 'JETPACK__GLOTPRESS_LOCALES_PATH' ) or define( 'JETPACK__GLOTPRESS_LOCALES_PATH', JETPACK__PLUGIN_DIR . 'locales.php' );
 
@@ -270,15 +270,66 @@ class Jetpack {
 	}
 
 	/**
-	 * Is the current user linked to a WordPress.com user?
+	 * Is a given user (or the current user if none is specified) linked to a WordPress.com user?
 	 */
-	function is_user_connected() {
-		return (bool) Jetpack_Data::get_access_token( get_current_user_id() );
+	function is_user_connected( $user_id = false ) {
+		$user_id = false === $user_id ? get_current_user_id() : absint( $user_id );
+		if ( !$user_id ) {
+			return false;
+		}
+		return (bool) Jetpack_Data::get_access_token( $user_id );
 	}
 
 	function current_user_is_connection_owner() {
 		$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
 		return $user_token && is_object( $user_token ) && isset( $user_token->external_user_id ) && get_current_user_id() === $user_token->external_user_id;
+	}
+
+	/**
+	* Synchronize connected user role changes
+	*/
+	function user_role_change( $user_id ) {
+		if ( $this->is_active() && $this->is_user_connected( $user_id ) ) {
+
+			$current_user_id = get_current_user_id();
+			wp_set_current_user( $user_id );
+			$role = $this->translate_current_user_to_role();
+			$signed_role = $this->sign_role( $role );
+			wp_set_current_user( $current_user_id );
+
+			$master_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
+			$master_user_id = absint( $master_token->external_user_id );
+
+			if ( !$master_user_id )
+				return; // this shouldn't happen
+
+			$this->xmlrpc_async_call( 'jetpack.updateRole', $user_id, $signed_role );
+			//@todo retry on failure
+
+			//try to choose a new master if we're demoting the current one
+			if ( $user_id == $master_user_id && 'administrator' != $role ) {
+				$query = new WP_User_Query( array(
+						'fields'  => array( 'id' ),
+						'role'    => 'administrator',
+						'orderby' => 'id',
+						'exclude' => array( $master_user_id ),
+					)
+				);
+				$new_master = false;
+				foreach ( $query->results as $result ) {
+					$uid = absint( $result->id );
+					if ( $uid && $this->is_user_connected( $uid ) ) {
+						$new_master = $uid;
+						break;
+					}
+				}
+
+				if ( $new_master ) {
+					Jetpack::update_option( 'master_user', $new_master );
+				}
+				// else disconnect..?
+			}
+		}
 	}
 
 	/**
@@ -1100,6 +1151,9 @@ p {
 			// Artificially throw errors in certain whitelisted cases during plugin activation
 			add_action( 'activate_plugin', array( $this, 'throw_error_on_activate_plugin' ) );
 
+			// Kick off synchronization of user role when it changes
+			add_action( 'set_user_role', array( $this, 'user_role_change' ) );
+
 			// Add retina images hotfix to admin
 			global $wp_db_version;
 			if ( $wp_db_version > 19470  ) {
@@ -1581,6 +1635,21 @@ p {
 		if ( !empty( $_GET['jetpack_restate'] ) ) {
 			// Should only be used in intermediate redirects to preserve state across redirects
 			Jetpack::restate();
+		}
+
+		if ( isset( $_GET['connect_url_redirect'] ) ) {
+			// User clicked in the iframe to link their accounts
+			if ( ! Jetpack::is_user_connected() ) {
+				$connect_url = Jetpack::build_connect_url( true );
+				if ( isset( $_GET['notes_iframe'] ) )
+					$connect_url .= '&notes_iframe';
+				wp_redirect( $connect_url );
+				exit;
+			} else {
+				Jetpack::state( 'message', 'already_authorized' );
+				wp_safe_redirect( Jetpack::admin_url() );
+				exit;
+			}
 		}
 
 		if ( isset( $_GET['action'] ) ) {
@@ -3692,14 +3761,7 @@ class Jetpack_Sync {
 		return true;
 	}
 
-	/**
-	 * Set up all the data and queue it for the outgoing XML-RPC request
-	 */
-	function sync() {
-		if ( !$this->sync ) {
-			return false;
-		}
-
+	function get_common_sync_data() {
 		$available_modules = Jetpack::get_available_modules();
 		$active_modules = Jetpack::get_active_modules();
 		$modules = array();
@@ -3712,6 +3774,19 @@ class Jetpack_Sync {
 			'modules' => $modules,
 			'version' => JETPACK__VERSION,
 		);
+
+		return $sync_data;
+	}
+
+	/**
+	 * Set up all the data and queue it for the outgoing XML-RPC request
+	 */
+	function sync() {
+		if ( !$this->sync ) {
+			return false;
+		}
+
+		$sync_data = $this->get_common_sync_data();
 
 		foreach ( $this->sync as $sync_operation_type => $sync_operations ) {
 			switch ( $sync_operation_type ) {
@@ -3766,6 +3841,35 @@ class Jetpack_Sync {
 		}
 
 		Jetpack::xmlrpc_async_call( 'jetpack.syncContent', $sync_data );
+	}
+
+	/**
+	 * Format and return content data from a direct xmlrpc request for it.
+	 * 
+	 * @param array $content_ids: array( 'posts' => array of ids, 'comments' => array of ids, 'options' => array of options )
+	 */
+	function get_content( $content_ids ) {
+		$sync_data = $this->get_common_sync_data();
+
+		if ( isset( $content_ids['posts'] ) ) {
+			foreach ( $content_ids['posts'] as $id ) {
+				$sync_data['post'][$id] = $this->get_post( $id );
+			}
+		}
+
+		if ( isset( $content_ids['comments'] ) ) {
+			foreach ( $content_ids['comments'] as $id ) {
+				$sync_data['comment'][$id] = $this->get_post( $id );
+			}
+		}
+
+		if ( isset( $content_ids['options'] ) ) {
+			foreach ( $content_ids['options'] as $option ) {
+				$sync_data['option'][$option] = array( 'value' => get_option( $option ) );
+			}
+		}
+
+		return $sync_data;
 	}
 
 	/**
