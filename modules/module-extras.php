@@ -9,10 +9,11 @@
  */
 
 /**
- * Load theme's infinite scroll annotation file, if present in the IS plugin
+ * Load theme's infinite scroll annotation file, if present in the IS plugin.
+ * The `setup_theme` action is used because the annotation files should be using `after_setup_theme` to register support for IS.
  *
  * @uses is_admin, get_stylesheet, apply_filters
- * @action after_setup_theme
+ * @action setup_theme
  * @return null
  */
 function jetpack_load_infinite_scroll_annotation() {
@@ -25,7 +26,7 @@ function jetpack_load_infinite_scroll_annotation() {
 			require_once( $customization_file );
 	}
 }
-add_action( 'after_setup_theme', 'jetpack_load_infinite_scroll_annotation' );
+add_action( 'setup_theme', 'jetpack_load_infinite_scroll_annotation' );
 
 /**
  * Prevent IS from being activated if theme doesn't support it
