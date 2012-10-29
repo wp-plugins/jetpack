@@ -382,7 +382,9 @@ class The_Neverending_Home_Page {
 	 * to always display a fixed amount.
 	 */
 	function posts_per_page_query( $query ) {
-		if ( is_home() && $query->is_main_query() )
+		global $wp_the_query;
+
+		if ( is_home() && $query === $wp_the_query ) // After 3.3, this line would be: if ( is_home() && $query->is_main_query() )
 			$query->query_vars['posts_per_page'] = self::get_settings()->posts_per_page;
 
 		return $query;
@@ -745,7 +747,12 @@ class The_Neverending_Home_Page {
 		if ( 'scroll' != self::get_settings()->type || ! is_home() )
 			return;
 
-		$theme_name = wp_get_theme()->name;
+		if ( function_exists( 'wp_get_theme' ) ) {
+			$theme_name = wp_get_theme()->Name;
+		}
+		else {
+			$theme_name = get_current_theme();
+		}
 
 		?>
 		<div id="infinite-footer">
