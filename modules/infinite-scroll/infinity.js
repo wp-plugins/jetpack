@@ -10,17 +10,18 @@ Scroller = function( settings ) {
 	var self = this;
 
 	// Initialize our variables
-	this.id       = settings.id;
-	this.body     = $( document.body );
-	this.window   = $( window );
-	this.element  = $( '#' + settings.id );
-	this.wrapperClass  = settings.wrapper_class;
-	this.ready    = true;
-	this.disabled = false;
-	this.page     = 1;
-	this.order    = settings.order;
-	this.throttle = false;
-	this.handle   = '<div id="infinite-handle"><span>' + text.replace( '\\', '' ) + '</span></div>';
+	this.id               = settings.id;
+	this.body             = $( document.body );
+	this.window           = $( window );
+	this.element          = $( '#' + settings.id );
+	this.wrapperClass     = settings.wrapper_class;
+	this.ready            = true;
+	this.disabled         = false;
+	this.page             = 1;
+	this.order            = settings.order;
+	this.throttle         = false;
+	this.handle           = '<div id="infinite-handle"><span>' + text.replace( '\\', '' ) + '</span></div>';
+	this.google_analytics = settings.google_analytics;
 
 	// Footer settings
 	this.footer      = $( '#infinite-footer' );
@@ -272,6 +273,10 @@ Scroller.prototype.refresh = function() {
 				// If 'click' type, add back the handle
 				if ( type == 'click' )
 					self.element.append( self.handle );
+
+				// Fire Google Analytics pageview
+				if ( self.google_analytics && 'object' == typeof _gaq )
+					_gaq.push(['_trackPageview', '/page/' + self.page + '/']);
 			}
 		});
 

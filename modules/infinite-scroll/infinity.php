@@ -15,6 +15,9 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
  * styling from each theme; including fixed footer.
  */
 class The_Neverending_Home_Page {
+	/**
+	 *
+	 */
 	function __construct() {
 		add_filter( 'pre_get_posts',                  array( $this, 'posts_per_page_query' ) );
 
@@ -34,6 +37,9 @@ class The_Neverending_Home_Page {
 	 */
 	static $the_time = null;
 	static $settings = null; // Don't access directly, instead use self::get_settings().
+
+	static $option_name_enabled = 'infinite_scroll';
+	static $option_name_google_analytics = 'infinite_scroll_google_analytics';
 
 	/**
 	 * Parse IS settings provided by theme
@@ -177,7 +183,7 @@ class The_Neverending_Home_Page {
 			// Ensure that IS is enabled and no footer widgets exist if the IS type isn't already "click".
 			if ( 'click' != $settings['type'] ) {
 				// Check the setting status
-				$disabled = '' === get_option( 'infinite_scroll' ) ? true : false;
+				$disabled = '' === get_option( self::$option_name_enabled ) ? true : false;
 
 				// Footer content or Reading option check
 				if ( $settings['footer_widgets'] || $disabled )
@@ -227,8 +233,12 @@ class The_Neverending_Home_Page {
 			return;
 
 		// Add the setting field [infinite_scroll] and place it in Settings > Reading
-		add_settings_field( 'infinite_scroll', '<span id="infinite-scroll-options">' . __( 'To infinity and beyond' ) . '</span>', array( $this, 'infinite_setting_html' ), 'reading' );
-		register_setting( 'reading', 'infinite_scroll', 'esc_attr' );
+		add_settings_field( self::$option_name_enabled, '<span id="infinite-scroll-options">' . __( 'To infinity and beyond' ) . '</span>', array( $this, 'infinite_setting_html' ), 'reading' );
+		register_setting( 'reading', self::$option_name_enabled, 'esc_attr' );
+
+		// Add setting field for Google Analytics tracking in IS
+		add_settings_field( self::$option_name_google_analytics, '<span id="infinite-scroll-google-analytics">' . __( 'Use Google Analytics with Infinite Scroll' ) . '</span>', array( $this, 'infinite_setting_google_analytics_html' ), 'reading' );
+		register_setting( 'reading', self::$option_name_google_analytics, array( $this, 'sanitize_boolean_value' ) );
 	}
 
 	/**
@@ -242,8 +252,22 @@ class The_Neverending_Home_Page {
 		if ( self::get_settings()->footer_widgets || 'click' == self::get_settings()->requested_type ) {
 			echo '<label>' . $notice . '</label>';
 		} else {
-			echo '<label><input name="infinite_scroll" type="checkbox" value="1" ' . checked( 1, '' !== get_option( 'infinite_scroll' ), false ) . ' /> ' . __( 'Scroll Infinitely' ) . '</br><small>' . sprintf( __( '(Shows %s posts on each load)' ), number_format_i18n( self::get_settings()->posts_per_page ) ) . '</small>' . '</label>';
+			echo '<label><input name="infinite_scroll" type="checkbox" value="1" ' . checked( 1, '' !== get_option( self::$option_name_enabled ), false ) . ' /> ' . __( 'Scroll Infinitely' ) . '</br><small>' . sprintf( __( '(Shows %s posts on each load)' ), number_format_i18n( self::get_settings()->posts_per_page ) ) . '</small>' . '</label>';
 		}
+	}
+
+	/**
+	 *
+	 */
+	function infinite_setting_google_analytics_html() {
+		echo '<label><input name="infinite_scroll_google_analytics" type="checkbox" value="1" ' . checked( true, (bool) get_option( self::$option_name_google_analytics, false ), false ) . ' /> ' . __( 'Track each Infinite Scroll post load as a page view in Google Analytics' ) . '</br><small>' . __( 'Check the box above to record each load of posts via Infinite Scroll as a page view.' ) . '</small>' . '</label>';
+	}
+
+	/**
+	 *
+	 */
+	public function sanitize_boolean_value( $value ) {
+		return (bool) $value;
 	}
 
 	/**
@@ -268,7 +292,7 @@ class The_Neverending_Home_Page {
 		add_filter( 'body_class', array( $this, 'body_class' ) );
 
 		// Add our scripts.
-		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), '20121025' );
+		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), '20121030' );
 
 		// Add our default styles.
 		wp_enqueue_style( 'the-neverending-homepage', plugins_url( 'infinity.css', __FILE__ ), array(), '20120612' );
@@ -434,7 +458,8 @@ class The_Neverending_Home_Page {
 			'totop'         => esc_js( __( 'Scroll back to top' ) ),
 			'order'         => 'DESC',
 			'scripts'       => array(),
-			'styles'        => array()
+			'styles'        => array(),
+			'google_analytics' => (bool) get_option( self::$option_name_google_analytics )
 		);
 
 		// Optional order param
