@@ -64,6 +64,7 @@ class Jetpack_Post_By_Email {
 		}
 		// TODO: Add a spinner, or some such feedback for when the API calls are occurring
 ?>
+		<div id="jp-pbe-error"></div>
 		<input type="button" name="jp-pbe-enable" id="jp-pbe-enable" value="<? _e( 'Enable Post By Email', 'jetpack' ); ?> "<?php echo $enable_hidden; ?> />
 		<div id="jp-pbe-info"<?php echo $info_hidden; ?>>
 			<span id="jp-pbe-email-wrapper"><strong><?php _e( 'Email Address:', 'jetpack' ); ?></strong> <span id="jp-pbe-email"><?php echo $email; ?></span></span><br/>
@@ -78,23 +79,103 @@ class Jetpack_Post_By_Email {
 
 	// TODO: API call to get the actual email address
 	function get_post_by_email_address() {
-		return NULL;
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client( array(
+			'user_id' => JETPACK_MASTER_USER,
+		) );
+		$xml->query( 'jetpack.getPostByEmailAddress' );
+
+		if ( $xml->isError() )
+			return NULL;
+
+		$response = $xml->getResponse();
+		if ( empty( $response ) )
+			return NULL;
+
+		return $response;
 	}
 
-	// TODO: API call to enable PBE
 	function create_post_by_email_address() {
-		echo 'test@email.address';
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client( array(
+			'user_id' => JETPACK_MASTER_USER,
+		) );
+		$xml->query( 'jetpack.createPostByEmailAddress' );
+
+		if ( $xml->isError() ) {
+			echo json_encode( array(
+						'response' => 'error',
+						'message' => __( 'Unable to create your Post By Email address. Please try again later.', 'jetpack' )
+			) );
+			die();
+		}
+
+		$response = $xml->getResponse();
+		if ( empty( $response ) ) {
+			echo json_encode( array(
+						'response' => 'error',
+						'message' => __( 'Unable to create your Post By Email address. Please try again later.', 'jetpack' )
+			) );
+			die();
+		}
+
+		echo $response;
 		die();
 	}
 
-	// TODO: API call to regenerate the email address
 	function regenerate_post_by_email_address() {
-		echo 'new@email.address';
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client( array(
+			'user_id' => JETPACK_MASTER_USER,
+		) );
+		$xml->query( 'jetpack.regeneratePostByEmailAddress' );
+
+		//if ( $xml->isError() ) {
+			echo json_encode( array(
+						'response' => 'error',
+						'message' => __( 'Unable to regenerate your Post By Email address. Please try again later.', 'jetpack' )
+			) );
+			die();
+		//}
+
+		$response = $xml->getResponse();
+		if ( empty( $response ) ) {
+			echo json_encode( array(
+						'response' => 'error',
+						'message' => __( 'Unable to regenerate your Post By Email address. Please try again later.', 'jetpack' )
+			) );
+			die();
+		}
+
+		echo $response;
 		die();
 	}
 
-	// TODO: API call to disable PBE
 	function delete_post_by_email_address() {
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client( array(
+			'user_id' => JETPACK_MASTER_USER,
+		) );
+		$xml->query( 'jetpack.deletePostByEmailAddress' );
+
+		if ( $xml->isError() ) {
+			echo json_encode( array(
+						'response' => 'error',
+						'message' => __( 'Unable to disable your Post By Email address. Please try again later.', 'jetpack' )
+			) );
+			die();
+		}
+
+		$response = $xml->getResponse();
+		if ( empty( $response ) ) {
+			echo json_encode( array(
+						'response' => 'error',
+						'message' => __( 'Unable to disable your Post By Email address. Please try again later.', 'jetpack' )
+			) );
+			die();
+		}
+
+		echo $response;
 		die();
 	}
 }
