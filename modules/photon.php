@@ -78,15 +78,6 @@ class Jetpack_Photon {
 				if ( ! $this->validate_image_url( $src ) )
 					continue;
 
-				// Ensure that the image source is acceptable
-				$url_info = parse_url( $src );
-
-				if ( ! is_array( $url_info ) || ! isset( $url_info['host'] ) )
-					continue;
-
-				if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions ) )
-					continue;
-
 				// Find the width and height attributes
 				$width = $height = false;
 
@@ -269,39 +260,40 @@ class Jetpack_Photon {
 	 **/
 
 	/**
-	 * Exclude certain hosts from Photon-ification
-	 * Facebook et al already serve images from CDNs, so no need to duplicate the effort.
+	 * Ensure image URL is valid for Photon.
+	 * Though Photon functions address some of the URL issues, we should avoid unnecessary processing if we know early on that the image isn't supported.
 	 *
 	 * @param string $url
-	 * @uses this::check_url_scheme_and_port
+	 * @uses wp_parse_args
 	 * @return bool
 	 */
 	protected function validate_image_url( $url ) {
+		// Parse URL and ensure needed keys exist, since the array returned by `parse_url` only includes the URL components it finds.
+		$url_info = wp_parse_args( parse_url( $url ), array(
+			'scheme' => null,
+			'host'   => null,
+			'port'   => null,
+			'path'   => null
+		) );
+
 		// Bail if scheme isn't http or port is set that isn't port 80
-		if ( ! $this->check_url_scheme_and_port( $url ) )
+		if ( 'http' != $url_info['scheme'] || ! in_array( $url_info['port'], array( 80, null ) ) )
 			return false;
 
-		$hosts_to_ignore = array(
-			'fbcdn.net',    // Facebook
-			'twimg.com',    // Twitter
-			'flickr.com',   // Flickr (duh)
-			'amazonaws.com' // Instagram, among *many* others
-		);
+		// Bail if no host is found
+		if ( is_null( $url_info['host'] ) )
+			return false;
 
-		$url_host = parse_url( $url, PHP_URL_HOST );
+		// Bail if no path is found
+		if ( is_null( $url_info['path'] ) )
+			return false;
 
-		return ! ( (bool) preg_match( '#(' . implode( '|', $hosts_to_ignore ) . ')$#i', $url_host ) );
-	}
+		// Ensure image extension is acceptable
+		if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions ) )
+			return false;
 
-	/**
-	 * Check if protocol and port of a given URL are compatible with Photon.
-	 * Photon can only process images served over http on port 80.
-	 *
-	 * @param string $url
-	 * @return bool
-	 */
-	protected function check_url_scheme_and_port( $url ) {
-		return ( 'http' == parse_url( $url, PHP_URL_SCHEME ) || in_array( parse_url( $url, PHP_URL_PORT ), array( 80, null ) ) );
+		// If we got this far, we should have an acceptable image URL
+		return true;
 	}
 
 	/**
