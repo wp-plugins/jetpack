@@ -19,7 +19,7 @@ function jetpack_load_infinite_scroll_annotation() {
 	if ( is_admin() && isset( $_GET['page'] ) && 'jetpack' == $_GET['page'] ) {
 		$theme_name = get_stylesheet();
 
-		$customization_file = apply_filters( 'infinite_scroll_customization_file', __DIR__ . "/infinite-scroll/themes/{$theme_name}.php", $theme_name );
+		$customization_file = apply_filters( 'infinite_scroll_customization_file', dirname( __FILE__ ) . "/infinite-scroll/themes/{$theme_name}.php", $theme_name );
 
 		if ( is_readable( $customization_file ) )
 			require_once( $customization_file );

@@ -379,7 +379,7 @@ class Jetpack {
 		do_action( 'jetpack_modules_loaded' );
 
 		// Load module-specific code that is needed even when a module isn't active. Loaded here because code contained therein may need actions such as setup_theme.
-		require_once( __DIR__ . '/modules/module-extras.php' );
+		require_once( dirname( __FILE__ ) . '/modules/module-extras.php' );
 	}
 
 /* Jetpack Options API */
