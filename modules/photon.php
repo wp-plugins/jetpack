@@ -40,7 +40,7 @@ class Jetpack_Photon {
 	 * Register actions and filters, but only if basic Photon functions are available.
 	 * The basic functions are found in ./functions.photon.php.
 	 *
-	 * @uses add_filter
+	 * @uses add_filter, add_action
 	 * @return null
 	 */
 	private function __construct() {
@@ -63,7 +63,7 @@ class Jetpack_Photon {
 	 * Identify images in post content, and if images are local (uploaded to the current site), pass through Photon.
 	 *
 	 * @param string $content
-	 * @uses this::validate_image_url, jetpack_photon_url, esc_url
+	 * @uses this::validate_image_url, apply_filters, jetpack_photon_url, esc_url
 	 * @filter the_content
 	 * @return string
 	 */
@@ -82,13 +82,11 @@ class Jetpack_Photon {
 				$width = $height = false;
 
 				// First, check the image tag
-				foreach ( array( 1, 3 ) as $search_index ) {
-					if ( false === $width && preg_match( '#width=["|\']?(\d+)["|\']?#i', $images[ $search_index ][ $index ], $width_string ) )
-						$width = (int) $width_string[1];
+				if ( preg_match( '#width=["|\']?(\d+)["|\']?#i', $tag, $width_string ) )
+					$width = (int) $width_string[1];
 
-					if ( false === $height && preg_match( '#height=["|\']?(\d+)["|\']?#i', $images[ $search_index ][ $index ], $height_string ) )
-						$height = (int) $height_string[1];
-				}
+				if ( preg_match( '#height=["|\']?(\d+)["|\']?#i', $tag, $height_string ) )
+					$height = (int) $height_string[1];
 
 				// If image tag lacks width and height arguments, try to determine from strings WP appends to resized image filenames.
 				if ( false === $width && false === $height && false != preg_match( '#(-\d+x\d+)\.(' . implode('|', $this->extensions ) . '){1}$#i', $src, $width_height_string ) ) {
@@ -129,10 +127,13 @@ class Jetpack_Photon {
 				if ( false != preg_match( '#(-\d+x\d+)\.(' . implode('|', $this->extensions ) . '){1}$#i', $src, $src_parts ) )
 					$src = str_replace( $src_parts[1], '', $src );
 
+				// Build array of Photon args and expose to filter before passing to Photon URL function
 				$args = array();
 
 				if ( false !== $width && false !== $height )
 					$args['fit'] = $width . ',' . $height;
+
+				$args = apply_filters( 'jetpack_photon_post_image_args', $args, compact( 'tag', 'src', 'src_orig', 'width', 'height' ) );
 
 				$photon_url = jetpack_photon_url( $src, $args );
 
@@ -145,7 +146,7 @@ class Jetpack_Photon {
 					$photon_url = esc_url( $photon_url );
 					$new_tag = str_replace( $src_orig, $photon_url, $new_tag );
 
-					// Remove the width and height arguments from the tag to prevent stretching
+					// Remove the width and height arguments from the tag to prevent distortion
 					$new_tag = preg_replace( '#(width|height)=["|\']?(\d+)["|\']?\s{1}#i', '', $new_tag );
 
 					$content = str_replace( $tag, $new_tag, $content );
