@@ -272,10 +272,14 @@ class The_Neverending_Home_Page {
 
 	/**
 	 * Does the legwork to determine whether the feature is enabled.
+	 *
+	 * @uses current_theme_supports, self::archive_supports_infinity, self::get_settings, self::set_last_post_time, add_filter, wp_enqueue_script, plugins_url, wp_enqueue_style, add_action
+	 * @action template_redirect
+	 * @return null
 	 */
 	function action_template_redirect() {
 		// Check that we support infinite scroll, and are on the home page.
-		if ( ! current_theme_supports( 'infinite-scroll' ) || ! is_home() )
+		if ( ! current_theme_supports( 'infinite-scroll' ) || ! self::archive_supports_infinity() )
 			return;
 
 		$id = self::get_settings()->container;
@@ -378,16 +382,18 @@ class The_Neverending_Home_Page {
 	}
 
 	/**
-	 * Let's overwrite the default post_per_page setting
-	 * to always display a fixed amount.
+	 * Let's overwrite the default post_per_page setting to always display a fixed amount.
+	 *
+	 * @global $wp_the_query Used to provide compatibility back to WP 3.2
+	 * @param object $query
+	 * @uses self::archive_supports_infinity, self::get_settings
+	 * @return null
 	 */
 	function posts_per_page_query( $query ) {
 		global $wp_the_query;
 
-		if ( is_home() && $query === $wp_the_query ) // After 3.3, this line would be: if ( is_home() && $query->is_main_query() )
-			$query->query_vars['posts_per_page'] = self::get_settings()->posts_per_page;
-
-		return $query;
+		if ( self::archive_supports_infinity() && $query === $wp_the_query ) // After 3.3, this line would be: if ( self::archive_supports_infinity() && $query->is_main_query() )
+			$query->set( 'posts_per_page', self::get_settings()->posts_per_page );
 	}
 
 	/**
@@ -732,7 +738,20 @@ class The_Neverending_Home_Page {
 	}
 
 	/**
+	 * Allow plugins to filter what archives Infinite Scroll supports
+	 *
+	 * @uses apply_filters, is_home, is_archive, self::get_settings
+	 * @return bool
+	 */
+	private function archive_supports_infinity() {
+		return (bool) apply_filters( 'infinite_scroll_archive_supported', ( is_home() || is_archive() ), self::get_settings() );
+	}
+
+	/**
 	 * The Infinite Blog Footer
+	 *
+	 * @uses self::get_settings, self::set_last_post_time, self::archive_supports_infinity, wp_get_theme, get_current_theme, home_url, esc_attr, get_bloginfo, bloginfo, __
+	 * @return string or null
 	 */
 	function footer() {
 		// Bail if theme requested footer not show
@@ -744,15 +763,10 @@ class The_Neverending_Home_Page {
 			return;
 
 		// We only need the new footer for the 'scroll' type
-		if ( 'scroll' != self::get_settings()->type || ! is_home() )
+		if ( 'scroll' != self::get_settings()->type || ! self::archive_supports_infinity() )
 			return;
 
-		if ( function_exists( 'wp_get_theme' ) ) {
-			$theme_name = wp_get_theme()->Name;
-		}
-		else {
-			$theme_name = get_current_theme();
-		}
+		$theme_name = function_exists( 'wp_get_theme' ) ? wp_get_theme()->Name : get_current_theme();
 
 		?>
 		<div id="infinite-footer">
