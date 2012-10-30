@@ -275,8 +275,8 @@ Scroller.prototype.refresh = function() {
 					self.element.append( self.handle );
 
 				// Fire Google Analytics pageview
-				if ( self.google_analytics && 'object' == typeof _gaq )
-					_gaq.push(['_trackPageview', '/page/' + self.page + '/']);
+				if ( 'string' == typeof self.google_analytics && 'object' == typeof _gaq )
+					_gaq.push(['_trackPageview', self.google_analytics.replace( /%d/, self.page ) ]);
 			}
 		});
 

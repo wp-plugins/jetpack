@@ -467,7 +467,7 @@ class The_Neverending_Home_Page {
 			'order'         => 'DESC',
 			'scripts'       => array(),
 			'styles'        => array(),
-			'google_analytics' => (bool) get_option( self::$option_name_google_analytics )
+			'google_analytics' => self::get_analytics_path()
 		);
 
 		// Optional order param
@@ -489,6 +489,53 @@ class The_Neverending_Home_Page {
 		//]]>
 		</script>
 		<?php
+	}
+
+	/**
+	 * Build path for Google Analytics tracking based on site's permalink structure
+	 *
+	 * @global $wp_rewrite
+	 * @global $wp
+	 * @uses get_option, user_trailingslashit, sanitize_text_field, add_query_arg
+	 * @return string|bool
+	 */
+	private function get_analytics_path() {
+		// Only needed if Google Analytics tracking is enabled
+		if ( ! (bool) get_option( self::$option_name_google_analytics ) )
+			return false;
+
+		global $wp_rewrite;
+
+		if ( $wp_rewrite->using_permalinks() ) {
+			global $wp;
+
+			// If called too early, bail
+			if ( ! isset( $wp->request ) )
+				return false;
+
+			// Determine path for paginated version of current request
+			if ( false != preg_match( '#' . $wp_rewrite->pagination_base . '/\d+/?$#i', $wp->request ) )
+				$path = preg_replace( '#' . $wp_rewrite->pagination_base . '/\d+$#i', $wp_rewrite->pagination_base . '/%d', $wp->request );
+			else
+				$path = $wp->request . '/' . $wp_rewrite->pagination_base . '/%d';
+
+			// Slashes everywhere we need them
+			if ( 0 !== strpos( $path, '/' ) )
+				$path = '/' . $path;
+
+			$path = user_trailingslashit( $path );
+		}
+		else {
+			// Clean up raw $_GET input
+			$path = array_map( 'sanitize_text_field', $_GET );
+			$path = array_filter( $path );
+
+			$path['paged'] = '%d';
+
+			$path = add_query_arg( $path, '/' );
+		}
+
+		return empty( $path ) ? false : $path;
 	}
 
 	/**
