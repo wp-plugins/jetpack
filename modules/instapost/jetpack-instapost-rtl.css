@@ -1,0 +1,327 @@
+
+#ipt-form {
+	font-familt: sans-serif;
+	text-align: right;
+}
+
+/* =Post Format Nav Bar
+----------------------------------------------- */
+
+#ipt-form ul#ipt-form-formats {
+	float: right;
+}
+
+#ipt-form ul#ipt-form-formats li {
+	padding-left: 0;
+	padding-right: 15px;
+}
+
+#ipt-form ul#ipt-form-formats li:last-child a {
+	border-left: none;
+}
+
+#ipt-form ul#ipt-form-formats li:first-child a span.ipt-inner {
+	border-left: 1px solid #E2E2E2;
+	border-right: none;
+}
+
+#ipt-form ul#ipt-form-formats li a span.ipt-icon {
+	background-position: right center;
+}
+
+#ipt-form ul#ipt-form-formats li a span.ipt-icon {
+	background-position: right top;
+}
+#ipt-form ul#ipt-form-formats li a#ipt-form-format-aside span.ipt-icon {
+	background-position: 0 1px;
+}
+#ipt-form ul#ipt-form-formats li.selected a#ipt-form-format-aside span.ipt-icon {
+	background-position: 0 -42px;
+}
+#ipt-form ul#ipt-form-formats li a#ipt-form-format-image span.ipt-icon {
+	background-position: -67px 1px;
+}
+#ipt-form ul#ipt-form-formats li.selected a#ipt-form-format-image span.ipt-icon {
+	background-position: -67px -41px;
+}
+#ipt-form ul#ipt-form-formats li a#ipt-form-format-quote span.ipt-icon {
+	background-position: -237px 1px;
+}
+#ipt-form ul#ipt-form-formats li.selected a#ipt-form-format-quote span.ipt-icon {
+	background-position: -237px -41px;
+}
+#ipt-form ul#ipt-form-formats li a#ipt-form-format-link span.ipt-icon {
+	background-position: -323px 1px;
+}
+#ipt-form ul#ipt-form-formats li.selected a#ipt-form-format-link span.ipt-icon {
+	background-position: -323px -41px;
+}
+#ipt-form ul#ipt-form-formats li a#ipt-form-format-status span.ipt-icon {
+	background-position: -406px 1px;
+}
+#ipt-form ul#ipt-form-formats li.selected a#ipt-form-format-status span.ipt-icon {
+	background-position: -406px -39px;
+}
+#ipt-form ul#ipt-form-formats li a#ipt-form-format-video span.ipt-icon {
+	background-position: -153px 1px;
+}
+#ipt-form ul#ipt-form-formats li.selected a#ipt-form-format-video span.ipt-icon {
+	background-position: -153px -41px;
+}
+#ipt-form ul#ipt-form-formats li a:hover {
+	text-decoration: none;
+}
+
+#ipt-form ul#ipt-form-formats li.selected a {
+	text-shadow: none;
+}
+
+
+/* =Shared Body Styles
+----------------------------------------------- */
+
+#ipt-form .ipt-form-body {
+	position: relative;
+	margin-left: 0;
+	margin-right: 265px;
+}
+
+
+#ipt-form div.ipt-loading,
+#ipt-form div.ipt-embedding {
+	background-position: right center;
+	text-align: right;
+	padding-left: 0;
+	padding-right: 22px;
+}
+
+#ipt-form #ipt-post-published {
+	margin: 5px 265px 15px 0;
+}
+
+/* =Input Fields
+----------------------------------------------- */
+
+#ipt-form .ipt-form-body div.ipt-i {
+	text-align: right;
+}
+
+#ipt-form .ipt-form-body input[type=text],
+#ipt-form .ipt-form-body textarea {
+	font-family: sans-serif;
+}
+
+/* =Action/Publish Bar
+----------------------------------------------- */
+
+.ipt-form-actions {
+	left: auto;
+	right: 0;
+}
+
+.ipt-form-actions input,
+#ipt-form button,
+#ipt-report-buttons a#ipt-report-theme {
+	font-family: sans-serif;
+}
+
+.ipt-form-actions #ipt-form-publish {
+	float: left;
+}
+
+.ipt-extra-buttons {
+	float: left;
+	margin-left: 0;
+	margin-right: 11px;
+}
+.ipt-form-actions .ipt-tags-ui {
+	float: right;
+	text-align: right;
+	padding-left: 0;
+	padding-right: 266px;
+}
+
+
+.ipt-form-actions #ipt-tags-label {
+	right: auto;
+	left: 8px;
+}
+
+.ipt-form-actions .ipt-notify {
+	float: right;
+}
+
+/* user blogs dropdown */
+.ipt-form-actions .usersblogs {
+	float: left;
+}
+
+.ipt-form-actions .postto {
+	border-width: 1px 1px 1px 0;
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+	
+}
+
+.ipt-form-actions .postto li img {
+	float: right;
+	margin: 5px 5px 0 0;
+}
+
+.ipt-form-actions .postto li div {
+	padding: 4px 7px 8px 3px;
+}
+
+.usersblogs .blog-select-arrow {
+	background: url("images/down-arrow.png") no-repeat scroll 5px 14px #fff;
+	border-width: 1px;
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
+	border-bottom-left-radius: 3px;
+	border-top-left-radius: 3px;
+	float: left;
+	left: autol
+	right: 0;
+}
+
+
+/* =TinyMCE style overrides
+----------------------------------------------- */
+
+#ipt-form td.mceToolbar {
+	padding: 4px 4px 2px 8px;
+}
+
+#ipt-form td.mceIframeContainer {
+	border-bottom-right-radius: 3px;
+	border-bottom-left-radius: 3px;
+}
+
+#ipt-form .ipt-mce label {
+	left: auto;
+	right: 12px;
+}
+
+#ipt-form .wp_themeSkin .mceColorPreview {
+	margin: -5px 2px 0 0;
+}
+
+#ipt-form #ipteditor_formatselect_text {
+	padding: 1px 5px 1px 2px;
+}
+
+/* =Upload Photo/Video File Input
+----------------------------------------------- */
+
+#ipt-form label.ipt-form-upload-label {
+	padding: 10px 40px 4px 10px;
+}
+
+#ipt-form label.ipt-form-upload-label span.input input {
+    left: auto;
+    right: -600px;
+}
+
+#ipt-form #instapost-dropper {
+	left: auto;
+	right: -2%;
+}
+
+/* =Preview Post
+----------------------------------------------- */
+
+#ipt-form span#ipt-preview-label {
+	font-family: sans-serif;
+}
+
+#ipt-form #ipt-nopreview {
+	margin: 0 75px 30px 0;
+}
+
+
+/* =Aside Post Format
+----------------------------------------------- */
+
+#ipt-form .ipt-form-body-aside #ipt-aside-title {
+	margin-right: 0;
+	margin-left: 130px;
+}
+#ipt-form .ipt-form-body-aside form#ipt-form-aside-upload-image {
+	float: left;
+	text-align: left;
+}
+
+#ipt-form .ipt-form-body-aside label.ipt-form-upload-label {
+	padding: 11px 38px 4px 7px;
+	background-position: 85px 50%;
+}
+
+/* =Image/Video Post Format
+----------------------------------------------- */
+
+#ipt-form .ipt-form-upload-zone {
+	float: right;
+}
+
+#ipt-form .ipt-form-upload-zone button {
+	right: auto;
+	left: 12px;
+}
+#ipt-form #ipt-upload-video-via-url button {
+	right: auto;
+	left: 6px;
+}
+
+#ipt-form .ipt-form-video .ipt-form-upload-zone .ipt-form-upload-label {
+	padding-left: 0;
+	padding-right: 45px;
+}
+
+#ipt-form .ipt-meta {
+	margin-left: 0;
+	margin-right: 225px;
+}
+
+#ipt-form a.ipt-url-upload {
+	right: auto;
+	left: 6px;
+}
+
+/* =Video Post Format
+----------------------------------------------- */
+#ipt-form .ipt-form-body-video label.ipt-form-upload-label {
+	background: #fff url( images/button-video.png ) 15px 50% no-repeat;
+}
+
+/* =Link Post Format
+----------------------------------------------- */
+
+#ipt-form .ipt-ed-label {
+	padding: 48px 10px 0 0;
+}
+
+/* =Full Multiblog UI styles for instapost in admin bar and popup.
+----------------------------------------------- */
+
+body#ipt-full-ui {
+	font-family:  sans-serif;
+}
+
+#ipt-full-ui #instapost div.blog-avatar {
+	float: right;
+	margin-right: 0;
+	margin-left: 17px;
+}
+
+#ipt-full-ui ul#iframe-options li {
+	float: right;
+	margin-right: 0;
+	margin-left: 5px;
+}
+
+#instapost-published {
+	left: auto;
+	right: 260px;
+}
