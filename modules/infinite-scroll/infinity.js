@@ -268,12 +268,14 @@ Scroller.prototype.refresh = function() {
 				// Increment the page number
 				self.page++;
 
-				if ( type == 'scroll' ) {
-					// Record stats in pagetype[infinite], and bump general views
-					new Image().src = document.location.protocol + '//stats.wordpress.com/g.gif?' + stats + '&x_pagetype=infinite&post=0&baba=' + Math.random();
-				} else if ( type == 'click' ) {
-					// Record stats in pagetype[infinite-click], and bump general views
-					new Image().src = document.location.protocol + '//stats.wordpress.com/g.gif?' + stats + '&x_pagetype=infinite-click&post=0&baba=' + Math.random();
+				if ( stats ) {
+					if ( type == 'scroll' ) {
+						// Record stats in pagetype[infinite], and bump general views
+						new Image().src = document.location.protocol + '//stats.wordpress.com/g.gif?' + stats + '&x_pagetype=infinite&post=0&baba=' + Math.random();
+					} else if ( type == 'click' ) {
+						// Record stats in pagetype[infinite-click], and bump general views
+						new Image().src = document.location.protocol + '//stats.wordpress.com/g.gif?' + stats + '&x_pagetype=infinite-click&post=0&baba=' + Math.random();
+					}
 				}
 
 				// Render the results

@@ -47,6 +47,33 @@ function infinite_scroll_register_spin_scripts() {
 add_action( 'wp_enqueue_scripts', 'infinite_scroll_register_spin_scripts', 5 );
 
 /**
+ * Provide WP Stats info for tracking Infinite Scroll loads
+ *
+ * @uses Jetpack::get_active_modules, is_user_logged_in, stats_get_options, Jetpack::get_option, get_option, JETPACK__API_VERSION, JETPACK__VERSION
+ * @filter infinite_scroll_js_settings
+ * @return array
+ */
+function infinite_scroll_wp_stats( $settings ) {
+	// Abort if Stats module isn't active
+	if ( in_array( 'stats', Jetpack::get_active_modules() ) ) {
+		// Abort if user is logged in but logged-in users shouldn't be tracked.
+		if ( is_user_logged_in() ) {
+			$stats_options = stats_get_options();
+			$track_loggedin_users = isset( $stats_options['reg_users'] ) ? (bool) $stats_options['reg_users'] : false;
+
+			if ( ! $track_loggedin_users )
+				return $settings;
+		}
+
+		// We made it this far, so gather the data needed to track IS views
+		$settings['stats'] = 'blog=' . Jetpack::get_option( 'id' ) . '&host=' . parse_url( get_option( 'home' ), PHP_URL_HOST ) . '&v=ext&j=' . JETPACK__API_VERSION . ':' . JETPACK__VERSION;
+	}
+
+	return $settings;
+}
+add_filter( 'infinite_scroll_js_settings', 'infinite_scroll_wp_stats' );
+
+/**
  * Load main IS file
  */
 require_once( dirname( __FILE__ ) . "/infinite-scroll/infinity.php" );
