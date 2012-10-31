@@ -213,8 +213,10 @@ Scroller.prototype.refresh = function() {
 				// If additional scripts are required by the incoming set of posts, parse them
 				if ( response.scripts ) {
 					$( response.scripts ).each( function() {
+						// Add script handle to list of those already parsed
 						window.infiniteScroll.settings.scripts.push( this.handle );
 
+						// Output extra data, if present
 						if ( this.extra_data ) {
 							var data = document.createElement('script'),
 								dataContent = document.createTextNode( "//<![CDATA[ \n" + this.extra_data + "\n//]]>" );
@@ -225,6 +227,7 @@ Scroller.prototype.refresh = function() {
 							document.getElementsByTagName( this.footer ? 'body' : 'head' )[0].appendChild(data);
 						}
 
+						// Build script tag and append to DOM in requested location
 						var script = document.createElement('script');
 						script.type = 'text/javascript';
 						script.src = this.src;
@@ -235,20 +238,30 @@ Scroller.prototype.refresh = function() {
 
 				// If additional stylesheets are required by the incoming set of posts, parse them
 				if ( response.styles ) {
+					// IE requires special handling due to WP's support for conditional comments when styles are registered or enqueued.
+					var isIE = ( -1 != navigator.userAgent.search( 'MSIE' ) );
+					if ( isIE ) {
+						var browserVersion = navigator.userAgent.match(/MSIE\s?(\d+)\.?\d*;/);
+						var browserVersion = parseInt( browserVersion[1] );
+					}
+
 					$( response.styles ).each( function() {
+						// Add stylesheet handle to list of those already parsed
 						window.infiniteScroll.settings.styles.push( this.handle );
 
-						if ( this.conditional_start ) {
-							var style = document.createComment( this.conditional_start + '\n<link rel="stylesheet" id="' + this.handle + '-css" href="' + this.src + '" />\n' + this.conditional_end );
-						}
-						else {
-							var style = document.createElement('link');
-							style.rel = 'stylesheet';
-							style.href = this.src;
-							style.id = this.handle + '-css';
-						}
+						// Build link tag
+						var style = document.createElement('link');
+						style.rel = 'stylesheet';
+						style.href = this.src;
+						style.id = this.handle + '-css';
 
-						document.getElementsByTagName('head')[0].appendChild(style);
+						// Destroy link tag if a conditional statement is present and either the browser isn't IE, or the conditional doesn't evaluate true
+						if ( this.conditional && ( ! isIE || ! eval( this.conditional.replace( /%ver/g, browserVersion ) ) ) )
+							var style = false;
+
+						// Append link tag if necessary
+						if ( style )
+							document.getElementsByTagName('head')[0].appendChild(style);
 					} );
 				}
 
@@ -262,10 +275,6 @@ Scroller.prototype.refresh = function() {
 					// Record stats in pagetype[infinite-click], and bump general views
 					new Image().src = document.location.protocol + '//stats.wordpress.com/g.gif?' + stats + '&x_pagetype=infinite-click&post=0&baba=' + Math.random();
 				}
-
-				// Fire quantcast pixel with default labels
-				if ( 'function' === typeof( wpcomQuantcastPixel ) )
-					wpcomQuantcastPixel();
 
 				// Render the results
 				self.render.apply( self, arguments );

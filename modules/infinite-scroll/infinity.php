@@ -225,8 +225,13 @@ class The_Neverending_Home_Page {
 	 * Add a checkbox field to Settings > Reading
 	 * for enabling infinite scroll.
 	 *
-	 * Only show if the current theme supports infinity,
-	 * and the blog has at least one footer widget.
+	 * Also adds a checkbox to enable Google Analytics tracking
+	 *
+	 * Only show if the current theme supports infinity.
+	 *
+	 * @uses current_theme_supports, add_settings_field, __, register_setting
+	 * @action admin_init
+	 * @return null
 	 */
 	function settings_api_init() {
 		if ( ! current_theme_supports( 'infinite-scroll' ) )
@@ -257,14 +262,20 @@ class The_Neverending_Home_Page {
 	}
 
 	/**
+	 * Render Google Analytics option
 	 *
+	 * @uses checked, get_option, __
+	 * @return html
 	 */
 	function infinite_setting_google_analytics_html() {
-		echo '<label><input name="infinite_scroll_google_analytics" type="checkbox" value="1" ' . checked( true, (bool) get_option( self::$option_name_google_analytics, false ), false ) . ' /> ' . __( 'Track each Infinite Scroll post load as a page view in Google Analytics' ) . '</br><small>' . __( 'Check the box above to record each load of posts via Infinite Scroll as a page view.' ) . '</small>' . '</label>';
+		echo '<label><input name="infinite_scroll_google_analytics" type="checkbox" value="1" ' . checked( true, (bool) get_option( self::$option_name_google_analytics, false ), false ) . ' /> ' . __( 'Track each Infinite Scroll post load as a page view in Google Analytics' ) . '</br><small>' . __( 'By checking the box above, each new set of posts loaded via Infinite Scroll will be recorded as a page view in Google Analytics.' ) . '</small>' . '</label>';
 	}
 
 	/**
+	 * Sanitize value as a boolean
 	 *
+	 * @param mixed $value
+	 * @return bool
 	 */
 	public function sanitize_boolean_value( $value ) {
 		return (bool) $value;
@@ -296,7 +307,7 @@ class The_Neverending_Home_Page {
 		add_filter( 'body_class', array( $this, 'body_class' ) );
 
 		// Add our scripts.
-		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), '20121030' );
+		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), '20121031' );
 
 		// Add our default styles.
 		wp_enqueue_style( 'the-neverending-homepage', plugins_url( 'infinity.css', __FILE__ ), array(), '20120612' );
@@ -656,10 +667,26 @@ class The_Neverending_Home_Page {
 					// Full stylesheet source with version info
 					$style_data['src'] = add_query_arg( 'ver', $ver, $src );
 
-					// Parse stylesheet's conditional comments if present
+					// Parse stylesheet's conditional comments if present, converting to logic executable in JS
 					if ( isset( $wp_styles->registered[ $handle ]->extra['conditional'] ) && $wp_styles->registered[ $handle ]->extra['conditional'] ) {
-						$style_data['conditional_start'] = "[if {$wp_styles->registered[ $handle ]->extra['conditional']}]>\n";
-						$style_data['conditional_end'] = "<![endif]";
+						// First, convert conditional comment operators to standard logical operators. %ver is replaced in JS with the IE version
+						$style_data['conditional'] = str_replace( array(
+							'lte',
+							'lt',
+							'gte',
+							'gt'
+						), array(
+							'%ver <=',
+							'%ver <',
+							'%ver >=',
+							'%ver >',
+						), $wp_styles->registered[ $handle ]->extra['conditional'] );
+
+						// Next, replace any !IE checks. These shouldn't be present since WP's conditional stylesheet implementation doesn't support them, but someone could be _doing_it_wrong().
+						$style_data['conditional'] = preg_replace( '#!\s*IE(\s*\d+){0}#i', '1==2', $style_data['conditional'] );
+
+						// Lastly, remove the IE strings
+						$style_data['conditional'] = str_replace( 'IE', '', $style_data['conditional'] );
 					}
 
 					// Parse requested media context for stylesheet
