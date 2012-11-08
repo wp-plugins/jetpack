@@ -358,3 +358,4 @@ Use [shortcodes](http://support.wordpress.com/shortcodes/) to embed your media. 
 
 = 1.1 =
 * Initial release
+
