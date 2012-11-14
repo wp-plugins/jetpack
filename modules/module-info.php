@@ -729,3 +729,19 @@ function jetpack_photon_more_link() {
 }
 add_action( 'jetpack_learn_more_button_photon', 'jetpack_photon_more_link' );
 // Photon: STOP
+
+
+// Likes: START
+function jetpack_likes_more_info() { ?>
+	<h4><?php esc_html_e( 'Likes' , 'jetpack' ); ?></h4>
+
+	<p><?php esc_html_e( "Do you like likes? I like likes.", 'jetpack' ); ?></p>
+<?php
+}
+add_action( 'jetpack_module_more_info_likes', 'jetpack_likes_more_info' );
+
+function jetpack_likes_more_link() {
+	echo '<a class="button-secondary more-info-link" href="#">' . __( 'Learn More', 'jetpack' ) . '</a>';
+}
+add_action( 'jetpack_learn_more_button_likes', 'jetpack_likes_more_link' );
+// Likes: STOP
