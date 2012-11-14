@@ -40,11 +40,30 @@ class Jetpack_Likes {
 	}
 
 	function post_likes( $content ) {
-		return $content;
+		global $post;
+		$jetpack = Jetpack::init();
+
+		$protocol = 'http';
+		if ( is_ssl() )
+			$protocol = 'https';
+
+		$src = sprintf( '%s://public-api.wordpress.com/rest/v1/sites/%d/posts/%d/likes/button/', $protocol, $jetpack->get_option( 'id' ), $post->ID );
+
+		$iframe = "<iframe height='20px' width='200px' src='$src'></iframe>";
+		return $content . $iframe;
 	}
 
 	function comment_likes( $content, $comment ) {
-		return $content;
+		$jetpack = Jetpack::init();
+
+		$protocol = 'http';
+		if ( is_ssl() )
+			$protocol = 'https';
+
+		$src = sprintf( '%s://public-api.wordpress.com/rest/v1/sites/%d/comments/%d/likes/button/', $protocol, $jetpack->get_option( 'id' ), $comment->comment_ID );
+
+		$iframe = "<iframe height='20px' width='200px' src='$src'></iframe>";
+		return $content . $iframe;
 	}
 }
 
