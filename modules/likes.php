@@ -47,9 +47,9 @@ class Jetpack_Likes {
 		if ( is_ssl() )
 			$protocol = 'https';
 
-		$src = sprintf( '%s://public-api.wordpress.com/rest/v1/sites/%d/posts/%d/likes/button/', $protocol, $jetpack->get_option( 'id' ), $post->ID );
+		$src = sprintf( '%s://pentotest.wordpress.com/like-widget/?blog_id=%d&post_id=%d', $protocol, $jetpack->get_option( 'id' ), $post->ID );
 
-		$iframe = "<iframe height='20px' width='200px' src='$src'></iframe>";
+		$iframe = "<iframe height='80px' width='100%' src='$src'></iframe>";
 		return $content . $iframe;
 	}
 
@@ -60,9 +60,9 @@ class Jetpack_Likes {
 		if ( is_ssl() )
 			$protocol = 'https';
 
-		$src = sprintf( '%s://public-api.wordpress.com/rest/v1/sites/%d/comments/%d/likes/button/', $protocol, $jetpack->get_option( 'id' ), $comment->comment_ID );
+		$src = sprintf( '%s://pentotest.wordpress.com/like-widget/?blog_id=%d&comment_id=%d', $protocol, $jetpack->get_option( 'id' ), $comment->comment_ID );
 
-		$iframe = "<iframe height='20px' width='200px' src='$src'></iframe>";
+		$iframe = "<iframe height='40px' width='100%' src='$src'></iframe>";
 		return $content . $iframe;
 	}
 }
