@@ -34,9 +34,9 @@ function jetpack_holiday_snow_script() {
 	if ( ! apply_filters( 'jetpack_holiday_chance_of_snow', true ) )
 		return;
 
-	do_action( 'holiday_snowing' );
+	do_action( 'jetpack_holiday_snowing' );
 
-	$snowstorm_url = apply_filters( 'holiday_snow_js_url', plugins_url( 'holiday-snow/snowstorm.js', __FILE__ ) );
+	$snowstorm_url = apply_filters( 'jetpack_holiday_snow_js_url', plugins_url( 'holiday-snow/snowstorm.js', __FILE__ ) );
 	wp_enqueue_script( 'snowstorm', $snowstorm_url, array(), '1.43.20111201' );
 }
 
@@ -45,8 +45,8 @@ function jetpack_maybe_holiday_snow() {
 		return;
 
 	if ( is_admin() ) {
-		global $holiday_snow;
-		$holiday_snow = new Jetpack_Holiday_Snow_Settings();
+		global $jetpack_holiday_snow;
+		$jetpack_holiday_snow = new Jetpack_Holiday_Snow_Settings();
 	} elseif ( get_option( jetpack_holiday_snow_option_name() ) ) {
 		add_action( 'init', 'jetpack_holiday_snow_script' );
 	}
