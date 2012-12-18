@@ -223,6 +223,7 @@ class Sharing_Service {
 
 		$shows = array_values( get_post_types( array( 'public' => true ) ) );
 		$shows[] = 'index';
+		$shows[] = 'comments';
 		if ( isset( $data['show'] ) ) {
 			if ( is_scalar( $data['show'] ) ) {
 				switch ( $data['show'] ) {

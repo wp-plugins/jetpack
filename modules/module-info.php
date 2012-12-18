@@ -729,3 +729,18 @@ function jetpack_photon_more_link() {
 }
 add_action( 'jetpack_learn_more_button_photon', 'jetpack_photon_more_link' );
 // Photon: STOP
+
+// Tiled Galleries: START
+function jetpack_tiled_gallery_more_info() { ?>
+	<h4><?php esc_html_e( 'Tiled Galleries' , 'jetpack' ); ?></h4>
+
+	<p><?php esc_html_e( '', 'jetpack' ); ?></p>
+<?php
+}
+add_action( 'jetpack_module_more_info_tiled_gallery', 'jetpack_tiled_gallery_more_info' );
+
+function jetpack_tiled_gallery_more_link() {
+	echo '<a class="button-secondary more-info-link" href="#">' . __( 'Learn More', 'jetpack' ) . '</a>';
+}
+add_action( 'jetpack_learn_more_button_tiled_gallery', 'jetpack_tiled_gallery_more_link' );
+// Tiled Galleries: STOP
