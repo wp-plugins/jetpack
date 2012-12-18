@@ -20,13 +20,15 @@ function sharing_email_send_post( $data ) {
 
 function sharing_add_meta_box() {
 	$post_types = get_post_types( array( 'public' => true ) );
-
+	$title = apply_filters( 'sharing_meta_box_title', __( 'Sharing', 'jetpack' ) );
 	foreach( $post_types as $post_type ) {
-		add_meta_box( 'sharing_meta', __( 'Sharing', 'jetpack' ), 'sharing_meta_box_content', $post_type, 'advanced', 'high' );
+		add_meta_box( 'sharing_meta', $title, 'sharing_meta_box_content', $post_type, 'advanced', 'high' );
 	}
 }
 
 function sharing_meta_box_content( $post ) {
+	do_action( 'start_sharing_meta_box_content', $post );
+
 	$disabled = get_post_meta( $post->ID, 'sharing_disabled', true ); ?>
 
 	<p>
@@ -38,7 +40,7 @@ function sharing_meta_box_content( $post ) {
 	</p>
 
 	<?php
-
+	do_action( 'end_sharing_meta_box_content', $post );
 }
 
 function sharing_meta_box_save( $post_id ) {
