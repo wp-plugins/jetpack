@@ -40,9 +40,18 @@ class Jetpack_Likes {
 				add_action( 'admin_init', array( $this, 'process_update_requests_if_sharedaddy_not_loaded' ) );
 				add_action( 'sharing_global_options', array( $this, 'admin_settings_showbuttonon_init' ), 19 );
 				add_action( 'sharing_admin_update', array( $this, 'admin_settings_showbuttonon_callback' ), 19 );
+				add_action( 'admin_init', array( $this, 'add_meta_box' ) );
+			} else {
+				add_filter( 'sharing_meta_box_title', array( $this, 'add_likes_to_sharing_meta_box_title' ) );
+				add_action( 'start_sharing_meta_box_content', array( $this, 'meta_box_content' ) );
 			}
+		} else { // wpcom
+			add_action( 'admin_init', array( $this, 'add_meta_box' ) );
+			add_action( 'end_likes_meta_box_content', array( $this, 'sharing_meta_box_content' ) );
+			add_filter( 'likes_meta_box_title', array( $this, 'add_likes_to_sharing_meta_box_title' ) );
 		}
 
+		add_action( 'save_post', array( $this, 'meta_box_save' ) );
 		add_action( 'sharing_global_options', array( $this, 'admin_settings_init' ), 20 );
 		add_action( 'sharing_admin_update',   array( $this, 'admin_settings_callback' ), 20 );
 	}
@@ -50,6 +59,101 @@ class Jetpack_Likes {
 	function module_toggle() {
 		$jetpack = Jetpack::init();
 		$jetpack->sync->register( 'noop' );
+	}
+
+	/**
+	 * Replaces the "Sharing" title for the post screen metabox with "Likes and Shares"
+	 * @param string $title The current title of the metabox, not needed/used.
+	 */
+	function add_likes_to_sharing_meta_box_title( $title ) {
+		return __( 'Likes and Shares', 'jetpack' );
+	}
+
+	/**
+	 * Adds a metabox to the post screen if the sharing one doesn't currently exist.
+	 */
+	function add_meta_box() {
+		$post_types = get_post_types( array( 'public' => true ) );
+		$title = apply_filters( 'likes_meta_box_title', __( 'Likes', 'jetpack' ) );
+		foreach( $post_types as $post_type ) {
+			add_meta_box( 'likes_meta', $title, array( $this, 'meta_box_content' ), $post_type, 'advanced', 'high' );
+		}
+	}
+
+	function meta_box_save( $post_id ) {
+		if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE )
+			return $post_id;
+
+		// Record sharing disable. Only needs to be done for WPCOM
+		if ( ! $this->in_jetpack ) {
+			if ( isset( $_POST['post_type'] ) && ( 'post' == $_POST['post_type'] || 'page' == $_POST['post_type'] ) ) {
+				if ( isset( $_POST['wpl_sharing_status_hidden'] ) && !isset( $_POST['wpl_enable_post_sharing'] ) ) {
+					update_post_meta( $post_id, 'sharing_disabled', 1 );
+				} else {
+					delete_post_meta( $post_id, 'sharing_disabled' );
+				}
+			}
+		}
+
+		if ( empty( $_POST['wpl_like_status_hidden'] ) )
+			return $post_id;
+
+		if ( 'post' == $_POST['post_type'] ) {
+			if ( !current_user_can( 'edit_post', $post_id ) ) {
+				return $post_id;
+			}
+		}
+
+		// Record a change in like status for this post - only if it contradicts the
+		// site like setting.
+		if ( ( $this->is_enabled_sitewide() && empty( $_POST['wpl_enable_post_likes'] ) ) || ( ! $this->is_enabled_sitewide() && !empty( $_POST['wpl_enable_post_likes'] ) ) ) {
+			update_post_meta( $post_id, 'switch_like_status', 1 );
+			//bump_stats_extras( 'likes', 'switched_post_like_status' ); @todo stat
+		} else {
+			delete_post_meta( $post_id, 'switch_like_status' );
+		}
+
+		return $post_id;
+	} 
+
+	/**
+	 * Shows the likes option in the post screen metabox.
+	 */
+	function meta_box_content( $post ) {
+		$post_id = ! empty( $post->ID ) ? (int) $post->ID : get_the_ID();
+		$checked         = true;
+		$disabled        = ! $this->is_enabled_sitewide();
+		$switched_status = get_post_meta( $post_id, 'switch_like_status', true );
+
+		if ( $disabled && empty( $switched_status ) || false == $disabled && !empty( $switched_status ) )
+			$checked = false;
+
+		do_action( 'start_likes_meta_box_content', $post );
+		?>
+
+		<p>
+			<label for="wpl_enable_post_likes">
+				<input type="checkbox" name="wpl_enable_post_likes" id="wpl_enable_post_likes" value="1" <?php checked( $checked ); ?>>
+				<?php esc_html_e( 'Show likes.', 'jetpack' ); ?>
+			</label>
+			<input type="hidden" name="wpl_like_status_hidden" value="1" />
+		</p> <?php
+		do_action( 'end_likes_meta_box_content', $post );
+	}
+
+	/**
+	 * WordPress.com: Metabox option for sharing (sharedaddy will handle this on the JP blog)
+	 */
+	function sharing_meta_box_content( $post ) {
+		$post_id = ! empty( $post->ID ) ? (int) $post->ID : get_the_ID();
+		$disabled = get_post_meta( $post_id, 'sharing_disabled', true ); ?>
+		<p>
+			<label for="wpl_enable_post_sharing">
+				<input type="checkbox" name="wpl_enable_post_sharing" id="wpl_enable_post_sharing" value="1" <?php checked( !$disabled ); ?>>
+				<?php _e( 'Show sharing buttons.', 'jetpack' ); ?>
+			</label>
+			<input type="hidden" name="wpl_sharing_status_hidden" value="1" />
+		</p> <?php
 	}
 
 	/**
