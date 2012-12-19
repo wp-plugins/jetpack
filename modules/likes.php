@@ -139,13 +139,13 @@ class Jetpack_Likes {
 		// site like setting.
 		if ( ( $this->is_enabled_sitewide() && empty( $_POST['wpl_enable_post_likes'] ) ) || ( ! $this->is_enabled_sitewide() && !empty( $_POST['wpl_enable_post_likes'] ) ) ) {
 			update_post_meta( $post_id, 'switch_like_status', 1 );
-			//bump_stats_extras( 'likes', 'switched_post_like_status' ); @todo stat
+			//$g_gif = file_get_contents( 'http://stats.wordpress.com/g.gif?v=wpcom-no-pv&x_likes=switched_post_like_status' ); @todo stat
 		} else {
 			delete_post_meta( $post_id, 'switch_like_status' );
 		}
 
 		return $post_id;
-	} 
+	}
 
 	/**
 	 * Shows the likes option in the post screen metabox.
@@ -260,7 +260,7 @@ class Jetpack_Likes {
 		$options = get_option( 'sharing-options' );
 		if ( !is_array( $options ) )
 			$options = array();
-		
+
 		$shows = array_values( get_post_types( array( 'public' => true ) ) );
 		$shows[] = 'index';
 		$data = $_POST;
@@ -318,14 +318,14 @@ class Jetpack_Likes {
 		switch( $new_state ) {
 			case 'off' :
 				if ( true == $db_state && ! $this->in_jetpack ) {
-					bump_stats_extras( 'likes', 'disabled_likes' );
+					$g_gif = file_get_contents( 'http://stats.wordpress.com/g.gif?v=wpcom-no-pv&x_likes=disabled_likes' );
 				}
 				update_option( 'disabled_likes', 1 );
 				break;
 			case 'on'  :
 			default:
 				if ( false == $db_state && ! $this->in_jetpack ) {
-					bump_stats_extras( 'likes', 'reenabled_likes' );
+					$g_gif = file_get_contents( 'http://stats.wordpress.com/g.gif?v=wpcom-no-pv&x_likes=reenabled_likes' );
 				}
 				delete_option( 'disabled_likes' );
 				break;
@@ -518,7 +518,7 @@ jQuery( function( $ ) {
 
 	/**
 	 * Are likes visible in this context?
-	 * 
+	 *
 	 * Some of this code was taken and modified from sharing_display() to ensure
 	 * similar logic and filters apply here, too.
 	 */
@@ -563,7 +563,7 @@ jQuery( function( $ ) {
 
 				// Single page
 				} elseif ( is_page() ) {
-					if ( ! $this->is_single_page_enabled() ) { 
+					if ( ! $this->is_single_page_enabled() ) {
 						$enabled = false;
 					}
 
@@ -577,7 +577,7 @@ jQuery( function( $ ) {
 				} elseif ( ! $this->is_index_enabled() ) {
 					$enabled = false;
 				}
-			}	
+			}
 		}
 
 		// Run through the sharing filters
@@ -617,7 +617,7 @@ jQuery( function( $ ) {
 
 		$sitewide_likes_enabled = (bool) Jetpack_Likes::is_enabled_sitewide();
 		$post_likes_switched    = (bool) get_post_meta( $post->ID, 'switch_like_status', true );
-		
+
 		$post_likes_enabled = $sitewide_likes_enabled;
 		if ( $post_likes_switched ) {
 			$post_likes_enabled = ! $post_likes_enabled;
