@@ -25,6 +25,12 @@ class Jetpack_Likes {
 			add_action( 'jetpack_activate_module_likes',   array( $this, 'module_toggle' ) );
 			add_action( 'jetpack_deactivate_module_likes', array( $this, 'module_toggle' ) );
 
+			Jetpack::enable_module_configurable( __FILE__ );
+			Jetpack::module_configuration_load( __FILE__, array( 'Jetpack_Likes', 'configuration_redirect' ) );
+
+			add_action('admin_print_scripts-settings_page_sharing', array( &$this, 'load_jp_css' ) );
+			add_filter( 'sharing_show_buttons_on_row_start', array( $this, 'configuration_target_area' ) );
+
 			$active = Jetpack::get_active_modules();
 
 			if ( ! in_array( 'sharedaddy', $active ) && ! in_array( 'publicize', $active ) ) {
@@ -59,6 +65,31 @@ class Jetpack_Likes {
 	function module_toggle() {
 		$jetpack = Jetpack::init();
 		$jetpack->sync->register( 'noop' );
+	}
+
+	/**
+	 * Redirects to the likes section of the sharing page.
+	 */
+	function configuration_redirect() {
+		wp_safe_redirect( admin_url( 'options-general.php?page=sharing#likes' ) );
+		die();
+	}
+
+	/**
+	 * Loads Jetpack's CSS on the sharing page so we can use .jetpack-targetable
+	 */
+	function load_jp_css() {
+		Jetpack::init()->admin_styles();
+	}
+
+	/**
+	 * Adds in the jetpack-targetable class so when we visit sharing#likes our like settings get highlighted by a yellow box
+	 * @param  string $html row heading for the sharedaddy "which page" setting
+	 * @return string       html with the jetpack-targetable class and likes id. tbody gets closed after the like settings
+	 */
+	function configuration_target_area( $html = '' ) {
+		$html = "<tbody id='likes' class='jetpack-targetable'>" . $html;
+		return $html;
 	}
 
 	/**
@@ -192,13 +223,14 @@ class Jetpack_Likes {
 				</div>
 			</td>
 		</tr>
+		</tbody> <?php // closes the tbody attached to sharing_show_buttons_on_row_start... ?>
 	<?php }
 
 	/**
 	 * If sharedaddy is not loaded, we don't have the "Show buttons on" yet, so we need to add that since it affects likes too.
 	 */
 	function admin_settings_showbuttonon_init() { ?>
-		<tr valign="top">
+		<?php echo apply_filters( 'sharing_show_buttons_on_row_start', '<tr valign="top">' ); ?>
 	  	<th scope="row"><label><?php _e( 'Show buttons on', 'jetpack' ); ?></label></th>
 		<td>
 			<?php
@@ -217,7 +249,7 @@ class Jetpack_Likes {
 				<?php if ( $br ) echo '<br />'; ?><label><input type="checkbox"<?php checked( in_array( $show, $global['show'] ) ); ?> name="show[]" value="<?php echo esc_attr( $show ); ?>" /> <?php echo esc_html( $label ); ?></label>
 			<?php	$br = true; endforeach; ?>
 		</td>
-	  	</tr>
+	  	<?php echo apply_filters( 'sharing_show_buttons_on_row_end', '</tr>' ); ?>
 	<?php }
 
 
