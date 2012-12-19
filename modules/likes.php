@@ -179,6 +179,19 @@ class Jetpack_Likes {
 				<div>
 			</td>
 		</tr>
+		<tr>
+			<th scope="row">
+				<label><?php esc_html_e( 'Comment Likes', 'jetpack' ); ?></label>
+			</th>
+			<td>
+				<div>
+					<label>
+						<input type="checkbox" class="code" name="jetpack_comment_likes_enabled" value="1" <?php checked( $this->is_comments_enabled(), true ); ?> />
+						<?php esc_html_e( 'Allow people to like comments', 'jetpack' ); ?>
+					</label>
+				</div>
+			</td>
+		</tr>
 	<?php }
 
 	/**
@@ -278,12 +291,25 @@ class Jetpack_Likes {
 				update_option( 'disabled_likes', 1 );
 				break;
 			case 'on'  :
-			default;
+			default:
 				if ( false == $db_state && ! $this->in_jetpack ) {
 					bump_stats_extras( 'likes', 'reenabled_likes' );
 				}
 				delete_option( 'disabled_likes' );
 				break;
+		}
+
+
+		// comment setting
+		$new_comments_state = !empty( $_POST['jetpack_comment_likes_enabled'] ) ? $_POST['jetpack_comment_likes_enabled'] : false;
+		switch( (bool) $new_comments_state ) {
+			case true:
+				update_option( 'jetpack_comment_likes_enabled', 1 );
+			break;
+			case false:
+			default:
+				update_option( 'jetpack_comment_likes_enabled', 0 );
+			break;
 		}
 	}
 
@@ -401,9 +427,8 @@ jQuery( function( $ ) {
 		if ( empty( $comment ) )
 			return $content;
 
-		// does likes disable comment likes too?
-		//if ( ! $this->is_likes_visible() )
-		//	return $content;
+		if ( ! $this->is_comments_enabled() )
+			return $content;
 
 		$protocol = 'http';
 		if ( is_ssl() )
@@ -535,6 +560,15 @@ jQuery( function( $ ) {
 	 */
 	function is_enabled_sitewide() {
 		return (bool) apply_filters( 'wpl_is_enabled_sitewide', ! get_option( 'disabled_likes' ) );
+	}
+
+	/**
+	 * Returns if comment likes are enabled. Defaults to 'on'
+	 * @todo decide what the default should be
+	 * @return boolean true if we should show comment likes, false if not
+	 */
+	function is_comments_enabled() {
+		return (bool) apply_filters( 'jetpack_comment_likes_enabled', get_option( 'jetpack_comment_likes_enabled', true ) );
 	}
 
 	/**
