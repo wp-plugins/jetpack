@@ -8,14 +8,14 @@ class Jetpack_Photon {
 	private static $__instance = null;
 
 	// Allowed extensions must match http://code.trac.wordpress.org/browser/photon/index.php#L31
-	protected $extensions = array(
+	protected static $extensions = array(
 		'gif',
 		'jpg',
 		'jpeg',
 		'png'
 	);
 
-	// Don't access this directly. Instead, use this::image_sizes() so it's actually populated with something.
+	// Don't access this directly. Instead, use self::image_sizes() so it's actually populated with something.
 	protected static $image_sizes = null;
 
 	/**
@@ -52,7 +52,7 @@ class Jetpack_Photon {
 			return;
 
 		// Images in post content
-		add_filter( 'the_content', array( $this, 'filter_the_content' ), 999999 );
+		add_filter( 'the_content', array( __CLASS__, 'filter_the_content' ), 999999 );
 
 		// Core image retrieval
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
@@ -83,15 +83,15 @@ class Jetpack_Photon {
 	 * Identify images in post content, and if images are local (uploaded to the current site), pass through Photon.
 	 *
 	 * @param string $content
-	 * @uses this::validate_image_url, apply_filters, jetpack_photon_url, esc_url
+	 * @uses self::validate_image_url, apply_filters, jetpack_photon_url, esc_url
 	 * @filter the_content
 	 * @return string
 	 */
-	public function filter_the_content( $content ) {
+	public static function filter_the_content( $content ) {
 		if ( preg_match_all( '#(<a.+?href=["|\'](.+?)["|\'].*?>\s*)?(<img.+?src=["|\'](.+?)["|\'].*?/?>){1}(\s*</a>)?#i', $content, $images ) ) {
 			global $content_width;
 
-			$image_sizes = $this->image_sizes();
+			$image_sizes = self::image_sizes();
 			$upload_dir = wp_upload_dir();
 
 			foreach ( $images[0] as $index => $tag ) {
@@ -119,7 +119,7 @@ class Jetpack_Photon {
 				}
 
 				// Check if image URL should be used with Photon
-				if ( ! $this->validate_image_url( $src ) )
+				if ( ! self::validate_image_url( $src ) )
 					continue;
 
 				// Find the width and height attributes
@@ -160,7 +160,7 @@ class Jetpack_Photon {
 						if ( is_object( $attachment ) && ! is_wp_error( $attachment ) && 'attachment' == $attachment->post_type ) {
 							$src_per_wp = wp_get_attachment_image_src( $attachment_id, isset( $size ) ? $size : 'full' );
 
-							if ( $this->validate_image_url( $src_per_wp[0] ) ) {
+							if ( self::validate_image_url( $src_per_wp[0] ) ) {
 								$src = $src_per_wp[0];
 								$fullsize_url = true;
 
@@ -188,7 +188,7 @@ class Jetpack_Photon {
 				}
 
 				// If image tag lacks width and height arguments, try to determine from strings WP appends to resized image filenames.
-				if ( false === $width && false === $height && preg_match( '#(-\d+x\d+)\.(' . implode('|', $this->extensions ) . '){1}$#i', $src, $width_height_string ) ) {
+				if ( false === $width && false === $height && preg_match( '#(-\d+x\d+)\.(' . implode('|', self::$extensions ) . '){1}$#i', $src, $width_height_string ) ) {
 					$width = (int) $width_height_string[1];
 					$height = (int) $width_height_string[2];
 				}
@@ -213,11 +213,11 @@ class Jetpack_Photon {
 				}
 
 				// Detect if image source is for a custom-cropped thumbnail and prevent further URL manipulation.
-				if ( ! $fullsize_url && preg_match_all( '#-e[a-z0-9]+(-\d+x\d+)?\.(' . implode('|', $this->extensions ) . '){1}$#i', basename( $src ), $filename ) )
+				if ( ! $fullsize_url && preg_match_all( '#-e[a-z0-9]+(-\d+x\d+)?\.(' . implode('|', self::$extensions ) . '){1}$#i', basename( $src ), $filename ) )
 					$fullsize_url = true;
 
 				// Build URL, first removing WP's resized string so we pass the original image to Photon
-				if ( ! $fullsize_url && preg_match( '#(-\d+x\d+)\.(' . implode('|', $this->extensions ) . '){1}$#i', $src, $src_parts ) )
+				if ( ! $fullsize_url && preg_match( '#(-\d+x\d+)\.(' . implode('|', self::$extensions ) . '){1}$#i', $src, $src_parts ) )
 					$src = str_replace( $src_parts[1], '', $src );
 
 				// Build array of Photon args and expose to filter before passing to Photon URL function
@@ -244,7 +244,7 @@ class Jetpack_Photon {
 					$new_tag = str_replace( $src_orig, $photon_url, $new_tag );
 
 					// If Lazy Load is in use, pass placeholder image through Photon
-					if ( isset( $placeholder_src ) && $this->validate_image_url( $placeholder_src ) ) {
+					if ( isset( $placeholder_src ) && self::validate_image_url( $placeholder_src ) ) {
 						$placeholder_src = jetpack_photon_url( $placeholder_src );
 
 						if ( $placeholder_src != $placeholder_src_orig )
@@ -257,7 +257,7 @@ class Jetpack_Photon {
 					$new_tag = preg_replace( '#(width|height)=["|\']?[\d%]+["|\']?\s?#i', '', $new_tag );
 
 					// If image is linked to an image (presumably itself, but who knows), pass link href to Photon sans arguments
-					if ( ! empty( $images[2][ $index ] ) && false !== strpos( $new_tag, $images[2][ $index ] ) && $this->validate_image_url( $images[2][ $index ] ) )
+					if ( ! empty( $images[2][ $index ] ) && false !== strpos( $new_tag, $images[2][ $index ] ) && self::validate_image_url( $images[2][ $index ] ) )
 						$new_tag = str_replace( $images[2][ $index ], jetpack_photon_url( $images[2][ $index ] ), $new_tag );
 
 					// Tag an image for dimension checking
@@ -283,7 +283,7 @@ class Jetpack_Photon {
 	 * @param string|bool $image
 	 * @param int $attachment_id
 	 * @param string|array $size
-	 * @uses is_admin, apply_filters, wp_get_attachment_url, this::validate_image_url, this::image_sizes, jetpack_photon_url
+	 * @uses is_admin, apply_filters, wp_get_attachment_url, self::validate_image_url, this::image_sizes, jetpack_photon_url
 	 * @filter image_downsize
 	 * @return string|bool
 	 */
@@ -297,12 +297,12 @@ class Jetpack_Photon {
 
 		if ( $image_url ) {
 			// Check if image URL should be used with Photon
-			if ( ! $this->validate_image_url( $image_url ) )
+			if ( ! self::validate_image_url( $image_url ) )
 				return $image;
 
 			// If an image is requested with a size known to WordPress, use that size's settings with Photon
-			if ( ( is_string( $size ) || is_int( $size ) ) && array_key_exists( $size, $this->image_sizes() ) ) {
-				$image_args = $this->image_sizes();
+			if ( ( is_string( $size ) || is_int( $size ) ) && array_key_exists( $size, self::image_sizes() ) ) {
+				$image_args = self::image_sizes();
 				$image_args = $image_args[ $size ];
 
 				// Expose arguments to a filter before passing to Photon
@@ -361,7 +361,7 @@ class Jetpack_Photon {
 	 * @uses wp_parse_args
 	 * @return bool
 	 */
-	protected function validate_image_url( $url ) {
+	protected static function validate_image_url( $url ) {
 		// Parse URL and ensure needed keys exist, since the array returned by `parse_url` only includes the URL components it finds.
 		$url_info = wp_parse_args( parse_url( $url ), array(
 			'scheme' => null,
@@ -387,7 +387,7 @@ class Jetpack_Photon {
 			return false;
 
 		// Ensure image extension is acceptable
-		if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions ) )
+		if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), self::$extensions ) )
 			return false;
 
 		// If we got this far, we should have an acceptable image URL
@@ -402,7 +402,7 @@ class Jetpack_Photon {
 	 * @uses get_option
 	 * @return array
 	 */
-	protected function image_sizes() {
+	protected static function image_sizes() {
 		if ( null == self::$image_sizes ) {
 			global $_wp_additional_image_sizes;
 

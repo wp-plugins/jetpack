@@ -97,7 +97,16 @@ class Jetpack_Tiled_Gallery {
 		if ( method_exists( $this, $this->atts['type'] . '_talavera' ) ) {
 			// Enqueue styles and scripts
 			$this->default_scripts_and_styles();
-			return call_user_func_array( array( $this, $this->atts['type'] . '_talavera' ), array( $attachments ) );
+			$gallery_html = call_user_func_array( array( $this, $this->atts['type'] . '_talavera' ), array( $attachments ) );
+
+			if ( $gallery_html && class_exists( 'Jetpack' ) && class_exists( 'Jetpack_Photon' ) ) {
+				// Tiled Galleries in Jetpack require that Photon be active.
+				// If it's not active, run it just on the gallery output.
+				if ( ! in_array( 'photon', Jetpack::get_active_modules() ) )
+					$gallery_html = Jetpack_Photon::filter_the_content( $gallery_html );
+			}
+
+			return $gallery_html;
 		}
 
 		return '';
