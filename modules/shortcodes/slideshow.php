@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Slideshow shortcode usage: [gallery type="slideshow"] or the older [slideshow]
  */
@@ -8,13 +9,23 @@ class Jetpack_Slideshow_Shortcode {
 	function __construct() {
 		global $shortcode_tags;
 
-		add_shortcode( 'slideshow', array( $this, 'shortcode_callback' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_scripts' ), 1 );
+		$needs_scripts = false;
 
+		// Only if the slideshow shortcode has not already been defined.
+		if ( ! array_key_exists( 'slideshow', $shortcode_tags ) ) {
+			add_shortcode( 'slideshow', array( $this, 'shortcode_callback' ) );
+			$needs_scripts = true;
+		}
+
+		// Only if the gallery shortcode has not been redefined.
 		if ( isset( $shortcode_tags['gallery'] ) && $shortcode_tags['gallery'] == 'gallery_shortcode' ) {
 			add_filter( 'post_gallery', array( $this, 'post_gallery' ), 1002, 2 );
 			add_filter( 'jetpack_gallery_types', array( $this, 'add_gallery_type' ) );
+			$needs_scripts = true;
 		}
+
+		if ( $needs_scripts )
+			add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_scripts' ), 1 );
 	}
 
 	/**
