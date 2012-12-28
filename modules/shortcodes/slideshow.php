@@ -20,7 +20,7 @@ class Jetpack_Slideshow_Shortcode {
 		// Only if the gallery shortcode has not been redefined.
 		if ( isset( $shortcode_tags['gallery'] ) && $shortcode_tags['gallery'] == 'gallery_shortcode' ) {
 			add_filter( 'post_gallery', array( $this, 'post_gallery' ), 1002, 2 );
-			add_filter( 'jetpack_gallery_types', array( $this, 'add_gallery_type' ) );
+			add_filter( 'jetpack_gallery_types', array( $this, 'add_gallery_type' ), 10 );
 			$needs_scripts = true;
 		}
 
