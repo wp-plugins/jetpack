@@ -1,12 +1,4 @@
 <?php
-/*
-Plugin Name: Webmaster Tools Verification
-Plugin URI: http://automattic.com
-Description: Easily verify your blog with Google Webmaster Tools, Bing Webmaster Central and Pinterest.
-Author: Yoav Farhi, Automattic
-Version: 0.1
-*/
-
 
 // Edit here to add new services
 function jetpack_verification_services() {
