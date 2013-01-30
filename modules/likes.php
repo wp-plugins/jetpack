@@ -1,8 +1,8 @@
 <?php
 /**
  * Module Name: Likes
- * Module Description: Like all the things
- * First Introduced: 2.1
+ * Module Description: Likes are a way for people to show their appreciation for content you have written. It’s also a way for you to show the world how popular your content has become.
+ * First Introduced: 2.2
  * Sort Order: 4
  */
 class Jetpack_Likes {
