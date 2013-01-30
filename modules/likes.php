@@ -6,6 +6,8 @@
  * Sort Order: 4
  */
 class Jetpack_Likes {
+	var $version = '20130130';
+
 	function &init() {
 		static $instance = NULL;
 
@@ -57,6 +59,8 @@ class Jetpack_Likes {
 			add_filter( 'likes_meta_box_title', array( $this, 'add_likes_to_sharing_meta_box_title' ) );
 		}
 
+		add_action( 'admin_bar_menu', array( $this, 'admin_bar_likes' ), 60 );
+
 		add_action( 'save_post', array( $this, 'meta_box_save' ) );
 		add_action( 'sharing_global_options', array( $this, 'admin_settings_init' ), 20 );
 		add_action( 'sharing_admin_update',   array( $this, 'admin_settings_callback' ), 20 );
@@ -104,6 +108,9 @@ class Jetpack_Likes {
 	 * Adds a metabox to the post screen if the sharing one doesn't currently exist.
 	 */
 	function add_meta_box() {
+		if ( apply_filters( 'post_flair_disable', false ) )
+			return;
+
 		$post_types = get_post_types( array( 'public' => true ) );
 		$title = apply_filters( 'likes_meta_box_title', __( 'Likes', 'jetpack' ) );
 		foreach( $post_types as $post_type ) {
@@ -209,7 +216,7 @@ class Jetpack_Likes {
 					</label>
 				<div>
 			</td>
-		</tr>
+		</tr> <?php /*
 		<tr>
 			<th scope="row">
 				<label><?php esc_html_e( 'Comment Likes', 'jetpack' ); ?></label>
@@ -222,7 +229,7 @@ class Jetpack_Likes {
 					</label>
 				</div>
 			</td>
-		</tr>
+		</tr> */ ?>
 		</tbody> <?php // closes the tbody attached to sharing_show_buttons_on_row_start... ?>
 	<?php }
 
@@ -407,27 +414,23 @@ class Jetpack_Likes {
 			 ( defined( 'JABBER_SERVER' ) && JABBER_SERVER ) )
 			return;
 
-		add_filter( 'the_content', array( &$this, 'post_likes' ), 10, 1 );
-		add_filter( 'comment_text', array( &$this, 'comment_likes' ), 10, 2 );
+		// Comment Likes widget has been disabled, pending performance improvements.
+		// add_filter( 'comment_text', array( &$this, 'comment_likes' ), 10, 2 );
+		
+		if ( $this->in_jetpack ) {
+			add_filter( 'the_content', array( &$this, 'post_likes' ), 30, 1 );
 
-		wp_enqueue_script( 'jetpack_resize', '/wp-content/js/jquery/jquery.jetpack-resize.js', array( 'jquery' ), JETPACK__VERSION, true );
-		wp_enqueue_style( 'jetpack_likes', plugins_url( 'jetpack-likes.css', __FILE__ ), array(), JETPACK__VERSION );
-		add_action( 'wp_print_footer_scripts', array( $this, 'footer_script' ), 20 );
-	}
+			wp_enqueue_script( 'jetpack_resize', plugins_url( '_inc/jquery.jetpack-resize.js', dirname(__FILE__) ), array( 'jquery' ), JETPACK__VERSION, true );
+			wp_enqueue_script( 'jquery_inview', plugins_url( '_inc/jquery.inview.js', dirname(__FILE__) ), array( 'jquery' ), JETPACK__VERSION, false );
+			wp_enqueue_style( 'jetpack_likes', plugins_url( 'likes/style.css', __FILE__ ), array(), JETPACK__VERSION );
+		} else {
+			add_filter( 'post_flair', array( &$this, 'post_likes' ), 30, 1 );
+			add_filter( 'post_flair_block_css', array( $this, 'post_flair_service_enabled_like' ) );
 
-	function footer_script() {
-?>
-<script>
-jQuery( function( $ ) {
-	var $iframes = $( '.post-likes-widget' );
-	try {
-		$iframes.Jetpack( 'resizeable' );
-	} catch ( error ) {
-		$iframes.height( 80 );
-	}
-} );
-</script>
-<?php
+			wp_enqueue_script( 'jetpack_resize', '/wp-content/js/jquery/jquery.jetpack-resize.js', array( 'jquery' ), JETPACK__VERSION, true );
+			wp_enqueue_script( 'jquery_inview', '/wp-content/js/jquery/jquery.inview.js', array( 'jquery' ), JETPACK__VERSION, false );
+			wp_enqueue_style( 'jetpack_likes', plugins_url( 'jetpack-likes.css', __FILE__ ), array(), JETPACK__VERSION );
+		}
 	}
 
 	function post_likes( $content ) {
@@ -440,18 +443,30 @@ jQuery( function( $ ) {
 		if ( is_ssl() )
 			$protocol = 'https';
 
-		if ( defined( 'IS_WPCOM' ) && IS_WPCOM )
+		if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) {
 			$blog_id = get_current_blog_id();
-		else {
+			$bloginfo = get_blog_details( (int) $blog_id );
+			$domain = $bloginfo->domain;
+		} else {
 			$jetpack = Jetpack::init();
 			$blog_id = $jetpack->get_option( 'id' );
+			$url = home_url();
+			$url_parts = parse_url( $url );
+			$domain = $url_parts['host'];
 		}
 
-		$src = sprintf( '%s://jetpack.me/like-widget/?blog_id=%d&post_id=%d', $protocol, $blog_id, $post->ID );
+		add_filter( 'wp_footer', array( $this, 'likes_master' ) );
 
-		$html  = '<div class="wpl-likebox sd-block sd-like"><h3 class="sd-title">' . esc_html__( 'Like this:' ) . '</h3>';
-		$html .= "<iframe class='post-likes-widget' height='34px' width='100%' src='$src'></iframe>";
+		$src = sprintf( '%1$s://widgets.wp.com/#blog_id=%2$d&post_id=%3$d&origin=%1$s://%4$s', $protocol, $blog_id, $post->ID, $domain );
+		$name = sprintf( 'like-post-frame-%1$d-%2$d', $blog_id, $post->ID );
+		$wrapper = sprintf( 'like-post-wrapper-%1$d-%2$d', $blog_id, $post->ID );
+
+		$html  = "<div class='sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded' id='$wrapper'><h3 class='sd-title'>" . esc_html__( 'Like this:', 'jetpack' ) . '</h3>';
+		$html .= "<div class='post-likes-widget-placeholder' style='height:55px'><span class='button'><span>" . esc_html__( 'Like', 'jetpack' ) . '</span></span> <span class="loading">' . esc_html__( 'Loading...', 'jetpack' ) . '</span></div>';
+		$html .= "<iframe class='post-likes-widget jetpack-likes-widget' name='$name' height='55px' width='100%' data='$src'></iframe>";
+		$html .= "<span></span><a></a>";
 		$html .= '</div>';
+
 		return $content . $html;
 	}
 
@@ -466,17 +481,262 @@ jQuery( function( $ ) {
 		if ( is_ssl() )
 			$protocol = 'https';
 
-		if ( defined( 'IS_WPCOM' ) && IS_WPCOM )
+		if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) {
 			$blog_id = get_current_blog_id();
-		else {
+			$bloginfo = get_blog_details( (int) $blog_id );
+			$domain = $bloginfo->domain;
+		} else {
 			$jetpack = Jetpack::init();
 			$blog_id = $jetpack->get_option( 'id' );
+			$url = home_url();
+			$url_parts = parse_url( $url );
+			$domain = $url_parts['host'];
 		}
 
-		$src = sprintf( '%s://jetpack.me/like-widget/?blog_id=%d&comment_id=%d', $protocol, $blog_id, $comment->comment_ID );
+		add_filter( 'wp_footer', array( $this, 'likes_master' ) );
 
-		$iframe = "<iframe class='comment-likes-widget' height='40px' width='100%' src='$src'></iframe>";
-		return $content . $iframe;
+		$src = sprintf( '%1$s://widgets.wp.com/#blog_id=%2$d&comment_id=%3$d&origin=%1$s://%4$s', $protocol, $blog_id, $comment->comment_ID, $domain );
+		$name = sprintf( 'like-comment-frame-%1$d-%2$d', $blog_id, $comment->comment_ID );
+		$wrapper = sprintf( 'like-comment-wrapper-%1$d-%2$d', $blog_id, $comment->comment_ID );
+
+		$html  = "<div><div class='jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded' id='$wrapper'>";
+		$html .= "<iframe class='comment-likes-widget jetpack-likes-widget' name='$name' height='16px' width='100%' data='$src'></iframe>";
+		$html .= '</div></div>';
+		return $content . $html;
+	}
+
+	function post_flair_service_enabled_like( $classes ) {
+		$classes[] = 'sd-like-enabled';
+		return $classes;
+	}
+
+	function admin_bar_likes() {
+		global $wp_admin_bar, $post;
+
+		if ( ! $this->is_admin_bar_button_visible() ) {
+			return;
+		}
+
+		$protocol = 'http';
+		if ( is_ssl() )
+			$protocol = 'https';
+
+		if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) {
+			$blog_id = get_current_blog_id();
+			$bloginfo = get_blog_details( (int) $blog_id );
+			$domain = $bloginfo->domain;
+		} else {
+			$jetpack = Jetpack::init();
+			$blog_id = $jetpack->get_option( 'id' );
+			$url = home_url();
+			$url_parts = parse_url( $url );
+			$domain = $url_parts['host'];
+		}
+
+		add_filter( 'wp_footer', array( $this, 'likes_master' ) );
+
+		$src = sprintf( '%1$s://widgets.wp.com/#blog_id=%2$d&post_id=%3$d&origin=%1$s://%4$s', $protocol, $blog_id, $post->ID, $domain );
+
+		$html = "<iframe class='admin-bar-likes-widget jetpack-likes-widget' name='admin-bar-likes-widget' src='$src'></iframe>";
+
+		$node = array(
+				'id'   => 'admin-bar-likes-widget',
+				'meta' => array(
+							'html' => $html
+				)
+		);
+
+		$wp_admin_bar->add_node( $node );
+	}
+
+	function likes_master() {
+		$protocol = 'http';
+		if ( is_ssl() )
+			$protocol = 'https';
+
+		$locale = ( '' == get_locale() || 'en' == get_locale() ) ? '' : '&lang=' . strtolower( substr( get_locale(), 0, 2 ) );
+		$src = sprintf( '%1$s://widgets.wp.com/master.html?ver=%2$s#ver=%2$s%3$s', $protocol, $this->version, $locale );
+?>
+		<iframe src='<?php echo $src; ?>' id='likes-master' name='likes-master' style='display:none;'></iframe>
+		<div id='likes-other-gravatars'><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+		<script type="text/javascript">
+		//<![CDATA[
+			var jetpackLikesWidgetQueue = [];
+			var jetpackLikesMasterReady = false;
+
+			function JetpackLikesMessageListener( event ) {
+				if ( 'object' != typeof( event.data ) || ! 'event' in event.data )
+					return;
+
+				if ( 'masterReady' == event.data.event ) {
+					jQuery( document ).ready( function() {
+						jetpackLikesMasterReady = true;
+
+						var stylesData = {
+								event: 'injectStyles'
+						};
+
+						if ( jQuery( 'iframe.admin-bar-likes-widget' ).length > 0 ) {
+							window.frames[ 'likes-master' ].postMessage( { event: 'adminBarEnabled' }, '*' );
+							stylesData.adminBarStyles = {
+								background: jQuery( '#wpadminbar .quicklinks li#wp-admin-bar-wpl-like > a' ).css( 'background' )
+							};
+						}
+
+						stylesData.textStyles = {
+							color: jQuery('.sharedaddy > div > span').css('color'),
+							fontFamily: jQuery('.sharedaddy  > div > span').css('font-family'),
+							fontSize: jQuery('.sharedaddy  > div > span').css('font-size')
+						};
+
+						stylesData.linkStyles = {
+							color: jQuery('.sharedaddy a').css('color'),
+							fontFamily: jQuery('.sharedaddy a').css('font-family'),
+							fontSize: jQuery('.sharedaddy a').css('font-size'),
+							textDecoration: jQuery('.sharedaddy a').css('text-decoration')
+						};
+
+						window.frames[ 'likes-master' ].postMessage( stylesData, '*' );
+
+						var requests = [];
+						jQuery( 'iframe.jetpack-likes-widget' ).each( function( i ) {
+							var regex = /like-(post|comment)-frame-(\d+)-(\d+)/;
+							var match = regex.exec( this.name );
+							if ( ! match || match.length != 4 )
+								return;
+
+							var info = {
+								blog_id: match[2],
+								width:   this.width
+							};
+
+							if ( 'post' == match[1] ) {
+								info.post_id = match[3];
+							} else if ( 'comment' == match[1] ) {
+								info.comment_id = match[3];
+							}
+
+							requests.push( info );
+						});
+						window.frames[ 'likes-master' ].postMessage( { event: 'initialBatch', requests: requests }, '*' );
+
+						jQuery( document ).on( 'inview', 'div.jetpack-likes-widget-unloaded', function() {
+							jetpackLikesWidgetQueue.push( this.id );
+						});
+					});
+				}
+
+				if ( 'showLikeWidget' == event.data.event ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 10 );
+					jQuery( '#' + event.data.id + ' .post-likes-widget-placeholder'  ).fadeOut( 'fast', function() {
+						jQuery( '#' + event.data.id + ' .post-likes-widget' ).fadeIn( 'fast' );
+					});
+				}
+
+				if ( 'showOtherGravatars' == event.data.event ) {
+					var $container = jQuery( '#likes-other-gravatars' );
+					var $list = $container.find( 'ul' );
+
+					$container.hide();
+					$list.html( '' );
+
+					jQuery.each( event.data.likers, function( i, liker ) {
+						$list.append( '<li class="' + liker.css_class + '"><a href="' + liker.profile_URL + '" class="wpl-liker" rel="nofollow" target="_parent"><img src="' + liker.avatar_URL + '" alt="' + liker.name + '" width="30" height="30" style="padding-right: 3px;" /></a></li>');
+					} );
+					
+					var $parent = jQuery( "[name='" + event.data.parent + "']" );
+
+					var left = 0;
+					var top = 0;
+					var elem = $parent[0];
+					do {
+      					if ( ! isNaN( elem.offsetLeft ) && ! isNaN( elem.offsetTop ) ) {
+          					left += elem.offsetLeft;
+          					top += elem.offsetTop;
+      					}
+    				} while( elem = elem.offsetParent );
+
+					$container.css( 'left', left + event.data.position.left - 11 + 'px' );
+					$container.css( 'top', top + event.data.position.top + 17 + 'px' );
+
+					var rowLength = Math.floor( event.data.width / 37 );
+
+					$container.css( 'height', ( Math.ceil( event.data.likers.length / rowLength ) * 37 ) - 7 + 'px' );
+					$container.css( 'width', rowLength * 37 - 7 + 'px' );
+
+					$container.fadeIn( 'slow' );
+				}
+			}
+			window.addEventListener( 'message', JetpackLikesMessageListener, false );
+
+			jQuery( document ).click( function( e ) {
+				var $container = jQuery( '#likes-other-gravatars' );
+
+				if ( $container.has( e.target ).length === 0 ) {
+					$container.fadeOut( 'slow' );
+				}
+			});
+
+			function JetpackLikesWidgetQueueHandler() {
+				var wrapperID;
+
+				if ( ! jetpackLikesMasterReady ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				if ( jetpackLikesWidgetQueue.length > 0 ) {
+					// We may have a widget that needs creating now
+					var found = false;
+					while( jetpackLikesWidgetQueue.length > 0 ) {
+						// Grab the first member of the queue that isn't already loading.
+						wrapperID = jetpackLikesWidgetQueue.splice( 0, 1 )[0];
+						if ( jQuery( '#' + wrapperID ).hasClass( 'jetpack-likes-widget-unloaded' ) ) {
+							found = true;
+							break;
+						}
+					}
+					if ( ! found ) {
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				} else if ( jQuery( 'div.jetpack-likes-widget-unloaded' ).length > 0 ) {
+					// Get the next unloaded widget
+					wrapperID = jQuery( 'div.jetpack-likes-widget-unloaded' ).first()[0].id;
+					if ( ! wrapperID ) {
+						// Everything is currently loaded
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				}
+
+				var $wrapper = jQuery( '#' + wrapperID );
+				var $iframe = $wrapper.find( 'iframe' );
+
+				if ( ! $iframe.attr( 'data' ) ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				$wrapper.removeClass( 'jetpack-likes-widget-unloaded' ).addClass( 'jetpack-likes-widget-loading' );
+
+				$iframe.attr( 'src', $iframe.attr( 'data' ) );
+				$iframe.removeAttr( 'data' );
+
+				$iframe.load( function() {
+					$wrapper.removeClass( 'jetpack-likes-widget-loading' ).addClass( 'jetpack-likes-widget-loaded' );
+
+					/*try {
+						$iframe.Jetpack( 'resizeable' );
+					}
+					catch ( error ) {}*/
+					window.frames[ 'likes-master' ].postMessage( { event: 'loadLikeWidget', name: $iframe.attr( 'name' ), width: $iframe.width() }, '*' );
+				});
+			}
+			JetpackLikesWidgetQueueHandler();
+		//]]>
+		</script>
+<?php
 	}
 
 	/**
@@ -548,13 +808,8 @@ jQuery( function( $ ) {
 			if ( in_array( 'get_the_excerpt', (array) $wp_current_filter ) ) {
 				$enabled = false;
 
-			// Always on for a8c internal sites
-			} /*elseif ( is_automattic_private() ) {
-				$enabled = true;
-
 			// Sharing Setting Overrides ****************************************
-
-			}*/ else {
+			} else {
 				// Single post
 				if ( is_singular( 'post' ) ) {
 					if ( ! $this->is_single_post_enabled() ) {
@@ -601,6 +856,18 @@ jQuery( function( $ ) {
 	 */
 	function is_comments_enabled() {
 		return (bool) apply_filters( 'jetpack_comment_likes_enabled', get_option( 'jetpack_comment_likes_enabled', true ) );
+	}
+
+	function is_admin_bar_button_visible() {
+		global $wp_admin_bar;
+
+		if ( ! is_object( $wp_admin_bar ) )
+			return false;
+
+		if ( ( ! is_singular( 'post' ) && ! is_attachment() && ! is_page() ) )
+			return false;
+
+		return (bool) apply_filters( 'jetpack_admin_bar_likes_enabled', true );
 	}
 
 	/**
