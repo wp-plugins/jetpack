@@ -142,7 +142,10 @@
 
 			// Find the correct iframe and resize it
 			$sources.filter( function() {
-				return event.source === this.contentWindow;
+				if ( 'undefined' !== typeof data.name )
+					return this.name === data.name;
+				else
+					return event.source === this.contentWindow;
 			} ).first().Jetpack( 'resizeable', 'resize', data );
 		} );
 	};
