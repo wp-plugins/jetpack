@@ -90,7 +90,7 @@ class Jetpack_Photon {
 	public static function parse_images_from_html( $content ) {
 		$images = array();
 
-		if ( preg_match_all( '#(?:<a.+?href=["|\'](?P<link_url>.+?)["|\'].*?>\s*)?(?P<img_tag><img.+?src=["|\'](?P<img_url>.+?)["|\'].*?>){1}(?:\s*</a>)?#is', $content, $images ) ) {
+		if ( preg_match_all( '#(?:<a[^>]+?href=["|\'](?P<link_url>.+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]+?src=["|\'](?P<img_url>.+?)["|\'].*?>){1}(?:\s*</a>)?#is', $content, $images ) ) {
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
 				if ( is_numeric( $key ) && $key > 0 )
@@ -101,6 +101,26 @@ class Jetpack_Photon {
 		}
 
 		return array();
+	}
+
+	/**
+	 * Try to determine height and width from strings WP appends to resized image filenames.
+	 *
+	 * @param string $src The image URL.
+	 * @return array An array consisting of width and height.
+	 */
+	public static function parse_dimensions_from_filename( $src ) {
+		$width_height_string = array();
+
+		if ( preg_match( '#-(\d+)x(\d+)\.(?:' . implode('|', self::$extensions ) . '){1}$#i', $src, $width_height_string ) ) {
+			$width = (int) $width_height_string[1];
+			$height = (int) $width_height_string[2];
+
+			if ( $width && $height )
+				return array( $width, $height );
+		}
+
+		return array( false, false );
 	}
 
 	/**
@@ -212,9 +232,8 @@ class Jetpack_Photon {
 					}
 
 					// If image tag lacks width and height arguments, try to determine from strings WP appends to resized image filenames.
-					if ( false === $width && false === $height && preg_match( '#(-\d+x\d+)\.(' . implode('|', self::$extensions ) . '){1}$#i', $src, $width_height_string ) ) {
-						$width = (int) $width_height_string[1];
-						$height = (int) $width_height_string[2];
+					if ( false === $width && false === $height ) {
+						list( $width, $height ) = Jetpack_Photon::parse_dimensions_from_filename( $src );
 					}
 
 					// If width is available, constrain to $content_width
@@ -507,6 +526,6 @@ class Jetpack_Photon {
 	 * @return null
 	 */
 	public function action_wp_enqueue_scripts() {
-		wp_enqueue_script( 'jetpack-photon', plugins_url( 'modules/photon/photon.js', __FILE__ ), array( 'jquery' ), 20121206, true );
+		wp_enqueue_script( 'jetpack-photon', plugins_url( 'modules/photon/photon.js', __FILE__ ), array( 'jquery' ), 20130122, true );
 	}
 }
