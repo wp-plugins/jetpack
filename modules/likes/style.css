@@ -5,6 +5,7 @@
 #wpadminbar iframe.admin-bar-likes-widget {
 	width: 61px;
 	height: 28px;
+	min-height: 28px;
 	border-width: 0px;
 	position: absolute;
 	top: 0;
@@ -18,9 +19,18 @@ div.jetpack-likes-widget-wrapper {
 	display: none;
 	position: absolute;
 	padding: 10px;
-	border-radius: 5px;
-	background-color: white;
-	border: 1px solid black;
+	background-color: #000;
+	border-width: 0;
+	opacity: 0.88;
+	filter: alpha(opacity=88);
+	box-shadow: 0 0 10px black;
+	min-width: 130px;
+}
+
+#likes-other-gravatars .likes-text {
+	color: white;
+	font-size: 14px;
+	padding-bottom: 5px;
 }
 
 #likes-other-gravatars ul,
@@ -36,9 +46,10 @@ div.jetpack-likes-widget-wrapper {
 }
 
 #likes-other-gravatars ul.wpl-avatars {
-	overflow: hidden;
+	overflow: auto;
 	display: block;
 	position: absolute;
+	max-height: 190px;
 }
 
 #likes-other-gravatars ul.wpl-avatars li {
