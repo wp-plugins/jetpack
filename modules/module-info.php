@@ -776,3 +776,15 @@ function jetpack_likes_more_link() {
 }
 add_action( 'jetpack_learn_more_button_likes', 'jetpack_likes_more_link' );
 // Likes: STOP
+
+// VideoPress: START
+function jetpack_videopress_more_info() {
+	echo 'More info';
+}
+add_action( 'jetpack_module_more_info_videopress', 'jetpack_videopress_more_info' );
+
+function jetpack_videopress_more_link() {
+	echo '<a class="button-secondary more-info-link" href="#">' . __( 'Learn More', 'jetpack' ) . '</a>';
+}
+add_action( 'jetpack_learn_more_button_videopress', 'jetpack_videopress_more_link' );
+// VideoPress: STOP

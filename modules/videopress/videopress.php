@@ -1,0 +1,522 @@
+<?php
+/**
+ * VideoPress in Jetpack
+ *
+ */
+class Jetpack_VideoPress {
+	public $module = 'videopress';
+	public $option_name = 'videopress';
+	public $version = 2;
+
+	function __construct() {
+		$this->version = time(); // <s>ghost</s> cache busters!
+		add_action( 'jetpack_modules_loaded', array( $this, 'jetpack_modules_loaded' ) );
+		add_action( 'jetpack_activate_module_videopress', array( $this, 'jetpack_module_activated' ) );
+		add_action( 'jetpack_deactivate_module_videopress', array( $this, 'jetpack_module_deactivated' ) );
+	}
+
+	/**
+	 * After all modules have been loaded.
+	 */
+	function jetpack_modules_loaded() {
+		$options = $this->get_options();
+
+		// Only the connection owner can configure this module.
+		if ( $this->is_connection_owner() ) {
+			Jetpack::enable_module_configurable( $this->module );
+			Jetpack::module_configuration_load( $this->module, array( $this, 'jetpack_configuration_load' ) );
+			Jetpack::module_configuration_screen( $this->module, array( $this, 'jetpack_configuration_screen' ) );
+		}
+
+		// Only if the current user can manage the VideoPress library and one has been connected.
+		if ( $this->can( 'read_videos' ) && $options['blog_id'] ) {
+			add_action( 'wp_enqueue_media', array( $this, 'wp_enqueue_media' ) );
+			add_action( 'print_media_templates', array( $this, 'print_media_templates' ) );
+
+			// Load these at priority -1 so they're fired before Core's are.
+			add_action( 'wp_ajax_query-attachments', array( $this, 'wp_ajax_query_attachments' ), -1 );
+			add_action( 'wp_ajax_save-attachment', array( $this, 'wp_ajax_save_attachment' ), -1 );
+			add_action( 'wp_ajax_save-attachment-compat', array( $this, 'wp_ajax_save_attachment' ), -1 );
+			add_action( 'wp_ajax_delete-post', array( $this, 'wp_ajax_delete_post' ), -1 );
+		}
+	}
+
+	/**
+	 * Get VideoPress options
+	 */
+	function get_options() {
+		$defaults = array(
+			'blogs' => array(),
+			'blog_id' => 0,
+			'access' => '',
+		);
+
+		$options = array_merge( $defaults, Jetpack::get_option( $this->option_name, array() ) );
+		return $options;
+	}
+
+	/**
+	 * Update VideoPress options
+	 */
+	function update_options( $options ) {
+		Jetpack::update_option( $this->option_name, $options );
+	}
+
+	/**
+	 * Runs when the VideoPress module is activated.
+	 */
+	function jetpack_module_activated() {
+		if ( ! $this->is_connection_owner() )
+			return;
+
+		$options = $this->get_options();
+
+		// Ask WordPress.com for a list of VideoPress blogs
+		$xml = $this->query( 'jetpack.vpGetBlogs' );
+		if ( ! $xml->isError() )
+			$options['blogs'] = $xml->getResponse();
+
+		// If there's at least one available blog, let's use it.
+		if ( is_array( $options['blogs'] ) && count( $options['blogs'] ) > 0 )
+			$options['blog_id'] = $options['blogs'][0]['blog_id'];
+
+		$this->update_options( $options );
+	}
+
+	/**
+	 * Runs when the VideoPress module is deactivated.
+	 */
+	function jetpack_module_deactivated() {
+		Jetpack::delete_option( $this->option_name );
+	}
+
+	/**
+	 * Remote Query
+	 *
+	 * Performs a remote XML-RPC query using Jetpack's IXR Client. And also
+	 * appends some useful stuff about this setup to the query.
+	 *
+	 * @return the Jetpack_IXR_Client object after querying.
+	 */
+	function query( $method, $args = null ) {
+		$options = $this->get_options();
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client( array(
+			'user_id' => JETPACK_MASTER_USER, // All requests are on behalf of the connection owner.
+		) );
+
+		$params = array(
+			'args' => $args,
+			'video_blog_id' => $options['blog_id'],
+			'caps' => array(),
+		);
+
+		// Let Jetpack know about our local caps.
+		foreach ( array( 'read_videos', 'edit_videos', 'delete_videos', 'upload_videos' ) as $cap )
+			if ( $this->can( $cap ) )
+				$params['caps'][] = $cap;
+
+		$xml->query( $method, $params );
+		return $xml;
+	}
+
+	/**
+	 * Runs before the VideoPress Configuration screen loads, useful
+	 * to update options and yield errors.
+	 */
+	function jetpack_configuration_load() {
+
+		/**
+		 * Save configuration
+		 */
+		if ( ! empty( $_POST['action'] ) && $_POST['action'] == 'videopress-save' ) {
+			check_admin_referer( 'videopress-settings' );
+			$options = $this->get_options();
+
+			if ( isset( $_POST['blog_id'] ) && in_array( $_POST['blog_id'], wp_list_pluck( $options['blogs'], 'blog_id' ) ) )
+				$options['blog_id'] = $_POST['blog_id'];
+
+			// Allow the None setting too.
+			if ( isset( $_POST['blog_id'] ) && $_POST['blog_id'] == 0 )
+				$options['blog_id'] = 0;
+
+			/**
+			 * @see $this->can()
+			 */
+			if ( isset( $_POST['videopress-access'] ) && in_array( $_POST['videopress-access'], array( '', 'read', 'edit', 'delete' ) ) )
+				$options['access'] = $_POST['videopress-access'];
+
+			$this->update_options( $options );
+			Jetpack::state( 'message', 'module_configured' );
+			wp_safe_redirect( Jetpack::module_configuration_url( $this->module ) );
+		}
+
+		/**
+		 * Refresh the list of available WordPress.com blogs
+		 */
+		if ( ! empty( $_GET['videopress'] ) && $_GET['videopress'] == 'refresh-blogs' ) {
+			check_admin_referer( 'videopress-settings' );
+			$options = $this->get_options();
+
+			$xml = $this->query( 'jetpack.vpGetBlogs' );
+			if ( ! $xml->isError() ) {
+				$options['blogs'] = $xml->getResponse();
+				$this->update_options( $options );
+			}
+
+			wp_safe_redirect( Jetpack::module_configuration_url( $this->module ) );
+		}
+	}
+
+	/**
+	 * Renders the VideoPress Configuration screen in Jetpack.
+	 */
+	function jetpack_configuration_screen() {
+		$options = $this->get_options();
+		$refresh_url = wp_nonce_url( add_query_arg( 'videopress', 'refresh-blogs' ), 'videopress-settings' );
+		?>
+		<div class="narrow">
+			<form method="post">
+				<input type="hidden" name="action" value="videopress-save" />
+				<?php wp_nonce_field( 'videopress-settings' ); ?>
+
+				<table id="menu" class="form-table">
+					<tr>
+						<th scope="row">
+							<label><?php _e( 'Connected WordPress.com Blog' , 'jetpack' ); ?></label>
+						</th>
+						<td>
+							<select name="blog_id">
+								<option value="0" <?php selected( $options['blog_id'], 0 ); ?>> <?php esc_html_e( 'None' ); ?></option>
+								<?php foreach ( $options['blogs'] as $blog ) : ?>
+								<option value="<?php echo absint( $blog['blog_id'] ); ?>" <?php selected( $options['blog_id'], $blog['blog_id'] ); ?>><?php echo esc_html( $blog['name'] ); ?> (<?php echo esc_html( $blog['domain'] ); ?>)</option>
+								<?php endforeach; ?>
+							</select>
+							<p class="description">Only videos from the selected blog will be available in your media library. <a href="<?php echo esc_url( $refresh_url ); ?>">Click here</a> to refresh this list.</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="admin_bar"><?php _e( 'Video Library Access' ); ?></label>
+						</th>
+						<td>
+							<label><input type="radio" name="videopress-access" value="" <?php checked( '', $options['access'] ); ?> />
+								<?php _e( 'Do not allow other users to access my VideoPress library' ); ?></label><br/>
+							<label><input type="radio" name="videopress-access" value="read" <?php checked( 'read', $options['access'] ); ?> />
+								<?php _e( 'Allow users to access my videos' ); ?></label><br/>
+							<label><input type="radio" name="videopress-access" value="edit" <?php checked( 'edit', $options['access'] ); ?> />
+								<?php _e( 'Allow users to access and edit my videos' ); ?></label><br/>
+							<label><input type="radio" name="videopress-access" value="delete" <?php checked( 'delete', $options['access'] ); ?> />
+								<?php _e( 'Allow users to access, edit, and delete my videos' ); ?></label><br/>
+						</td>
+					</tr>
+				</table>
+
+				<?php submit_button(); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * A can of coke
+	 *
+	 * Similar to current_user_can, but internal to VideoPress. Returns
+	 * true if the given VideoPress capability is allowed by the given user.
+	 */
+	function can( $cap, $user_id = false ) {
+		if ( ! $user_id )
+			$user_id = get_current_user_id();
+
+		// Connection owners are allowed to do all the things.
+		if ( $this->is_connection_owner( $user_id ) )
+			return true;
+
+		/**
+		 * The access setting can be set by the connection owner, to allow sets
+		 * of operations to other site users. Each access value corresponds to
+		 * an array of things they can do.
+		 */
+
+		$options = $this->get_options();
+		$map = array(
+			'read'   => array( 'read_videos' ),
+			'edit'   => array( 'read_videos', 'edit_videos' ),
+			'delete' => array( 'read_videos', 'edit_videos', 'delete_videos' ),
+		);
+
+		if ( ! array_key_exists( $options['access'], $map ) )
+			return false;
+
+		if ( ! in_array( $cap, $map[ $options['access'] ] ) )
+			return false;
+
+		// Additional and intrenal caps checks
+
+		if ( ! user_can( $user_id, 'upload_files' ) )
+			return false;
+
+		if ( 'edit_videos' == $cap && ! user_can( $user_id, 'edit_others_posts' ) )
+			return false;
+
+		if ( 'delete_videos' == $cap && ! user_can( $user_id, 'delete_others_posts' ) )
+			return false;
+
+		return true;
+	}
+
+	/**
+	 * Returns true if the provided user is the Jetpack connection owner.
+	 */
+	function is_connection_owner( $user_id = false ) {
+		if ( ! $user_id )
+			$user_id = get_current_user_id();
+
+		$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
+		return $user_token && is_object( $user_token ) && isset( $user_token->external_user_id ) && $user_id === $user_token->external_user_id;
+	}
+
+	/**
+	 * Our custom AJAX callback for the query-attachments action
+	 * used in the media modal. By-passed if not for VideoPress.
+	 */
+	function wp_ajax_query_attachments() {
+
+		// Watch for VideoPress calls
+		if ( ! isset( $_POST['query']['videopress'] ) )
+			return;
+
+		if ( ! $this->can( 'read_videos' ) )
+			return wp_send_json_error( 'permission denied' );
+
+		// Get and sanitize query arguments.
+		$query_args = $this->sanitize_wp_query_args( $_POST['query'] );
+
+		// Fire a remote WP_Query
+		$xml = $this->query( 'jetpack.vpQuery', $query_args );
+
+		if ( $xml->isError() )
+			return wp_send_json_error( 'xml rpc request error' );
+
+		$items = $xml->getResponse();
+
+		foreach ( $items as $key => $item ) {
+
+			// Check local permissions
+			if ( ! $this->can( 'edit_videos' ) )
+				unset( $item['vp_nonces']['update'] );
+
+			if ( ! $this->can( 'delete_videos' ) )
+				unset( $item['vp_nonces']['delete'] );
+
+			// Add a second pair of nonces for the .org blog.
+			$item['nonces'] = array();
+			if ( ! empty( $item['vp_nonces']['update'] ) )
+				$item['nonces']['update'] = wp_create_nonce( 'update-videopress-post_' . $item['id'] );
+
+			if ( ! empty( $item['vp_nonces']['delete'] ) )
+				$item['nonces']['delete'] = wp_create_nonce( 'delete-videopress-post_' . $item['id'] );
+
+			// do_shortcode( sprintf( '[wpvideo %s]', $item['vp_guid'] ) );
+			// the generated embed code should not rely on scripts, etc.
+			$item['vp_embed'] = 'embedded <strong>preview video</strong> goes here';
+
+			$items[ $key ] = $item;
+		}
+
+		wp_send_json_success( $items );
+	}
+
+	/**
+	 * Sanitize user-provided WP_Query arguments
+	 *
+	 * These might be sent to the VideoPress server, for a remote WP_Query
+	 * call so let's make sure they're sanitized and safe to send.
+	 */
+	function sanitize_wp_query_args( $args ) {
+		$args = shortcode_atts( array(
+			'posts_per_page' => 40,
+			'orderby' => 'date',
+			'order' => 'desc',
+			'paged' => 1,
+			's' => '',
+		), (array) $args );
+
+		$args['posts_per_page'] = absint( $args['posts_per_page'] );
+
+		$args['orderby'] = strtolower( $args['orderby'] );
+		$args['orderby'] = ( in_array( $args['orderby'], array( 'date' ) ) ) ? $args['orderby'] : 'date';
+
+		$args['order'] = strtolower( $args['order'] );
+		$args['order'] = ( in_array( $args['order'], array( 'asc', 'desc' ) ) ) ? $args['order'] : 'desc';
+
+		$args['paged'] = absint( $args['paged'] );
+		$args['s'] = sanitize_text_field( $args['s'] );
+		return $args;
+	}
+
+	/**
+	 * Custom AJAX callback for the save-attachment action. If the request was
+	 * not for a VideoPress object, core's fallback action will kick in.
+	 */
+	function wp_ajax_save_attachment() {
+		if ( ! isset( $_POST['is_videopress'] ) )
+			return;
+
+		if ( ! $this->can( 'edit_videos' ) )
+			return wp_send_json_error( 'permission denied' );
+
+		$post_id = 0;
+		if ( ! isset( $_POST['id'] ) || ! $post_id = absint( $_POST['id'] ) )
+			wp_send_json_error();
+
+		if ( ! isset( $_POST['vp_nonces']['update'] ) )
+			wp_send_json_error();
+
+		check_ajax_referer( 'update-videopress-post_' . $post_id, 'nonce' );
+
+		$changes = ( ! empty( $_POST['changes'] ) ) ? (array) $_POST['changes'] : array();
+		$changes = shortcode_atts( array(
+			'title' => null,
+			'caption' => null,
+			'description' => null,
+
+			'vp_share' => null,
+			'vp_rating' => null,
+		), $changes );
+
+		if ( ! is_null( $changes['vp_share'] ) )
+			$changes['vp_share'] = (bool) $changes['vp_share'];
+
+		if ( ! is_null( $changes['vp_rating'] ) )
+			$changes['vp_rating'] = ( array_key_exists( $changes['vp_rating'], $this->get_available_ratings() ) ) ? $changes['vp_rating'] : null;
+
+		// Remove null-values
+		foreach ( $changes as $key => $value )
+			if ( is_null( $value ) )
+				unset( $changes[ $key ] );
+
+		$xml = $this->query( 'jetpack.vpSaveAttachment', array(
+			'post_id' => $post_id,
+			'changes' => $changes,
+			'nonce' => $_POST['vp_nonces']['update'],
+		) );
+
+		if ( $xml->isError() )
+			return wp_send_json_error( 'xml rpc request error' );
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Custom AJAX callback for the delete-post action, only for VideoPress objects.
+	 */
+	function wp_ajax_delete_post() {
+		if ( ! isset( $_POST['is_videopress'] ) )
+			return;
+
+		if ( ! $this->can( 'delete_videos' ) )
+			return wp_send_json_error( 'permission denied' );
+
+		$post_id = 0;
+		if ( ! isset( $_POST['id'] ) || ! $post_id = absint( $_POST['id'] ) )
+			wp_send_json_error();
+
+		if ( ! isset( $_POST['vp_nonces']['delete'] ) )
+			wp_send_json_error();
+
+		check_ajax_referer( 'delete-videopress-post_' . $post_id );
+
+		$xml = $this->query( 'jetpack.vpDeleteAttachment', array(
+			'post_id' => $post_id,
+			'nonce' => $_POST['vp_nonces']['delete'],
+		) );
+
+		if ( $xml->isError() )
+			return wp_send_json_error( 'xml rpc request error' );
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Get some extra media scripts and styles.
+	 */
+	function wp_enqueue_media() {
+		wp_enqueue_script( 'videopress-admin', plugins_url( 'videopress-admin.js', __FILE__ ), array( 'media-views', 'media-models' ), $this->version );
+		wp_enqueue_style( 'videopress-admin', plugins_url( 'videopress-admin.css', __FILE__ ), array(), $this->version );
+	}
+
+	/**
+	 * Get an array of available ratings. Keys are options, values are labels.
+	 */
+	function get_available_ratings() {
+		return array(
+			'G' => 'G',
+			'PG-13' => 'PG-13',
+			'R-17' => 'R',
+			'X-18' => 'X',
+		);
+	}
+
+	/**
+	 * Additional VideoPress media templates.
+	 */
+	function print_media_templates() {
+		?>
+		<script type="text/html" id="tmpl-videopress-attachment">
+			<# if ( data.vp_ogg_url ) { #>
+			<label class="setting vp-setting">
+				<span><?php _e( 'Ogg File URL', 'jetpack' ); ?></span>
+				<input type="text" value="{{ data.vp_ogg_url }}" onclick="this.focus();this.select();" readonly />
+				<p class="help"><?php _e( 'Location of the Ogg video file.', 'jetpack' ); ?></p>
+			</label>
+			<# } #>
+
+			<label class="setting vp-setting">
+				<span><?php _e( 'Share', 'jetpack' ); ?></span>
+				<label>
+					<input class="vp-checkbox" type="checkbox" <# if ( '1' === data.vp_share ) { #>checked<# } #> <# if ( ! data.can.save ) { #>disabled<# } #> />
+					<?php _e( 'Display share menu and allow viewers to embed or download this video', 'jetpack' ); ?>
+				</label>
+				<input class="vp-checkbox-text" type="text" value="{{ data.vp_share }}" data-setting="vp_share" style="display:none;" />
+			</label>
+
+			<label class="setting vp-setting">
+				<span><?php _e( 'Rating', 'jetpack' ); ?></span>
+
+				<?php foreach ( $this->get_available_ratings() as $value => $label ) : ?>
+				<label>
+					<input class="vp-radio" type="radio" name="vp-radio-group" value="<?php echo esc_attr( $value ); ?>"
+						<# if ( '<?php echo esc_attr( $value ); ?>' === data.vp_rating ) { #>checked<# } #>
+						<# if ( ! data.can.save ) { #>disabled<# } #> /> <?php echo esc_html( $label ); ?>
+				</label>
+				<?php endforeach; ?>
+
+				<input class="vp-radio-text" type="text" value="{{ data.vp_rating }}" data-setting="vp_rating" style="display:none;" />
+			</label>
+
+			<label class="setting vp-setting">
+				<span><?php _e( 'Shortcode', 'jetpack' ); ?></span>
+				<input type="text" value="[wpvideo {{ data.vp_guid }}]" onclick="this.focus();this.select();" readonly />
+			</label>
+
+			<label class="setting vp-setting">
+				<span><?php _e( 'Preview', 'jetpack' ); ?></span>
+				<a href="#" class="videopress-preview" id="videopress-thumbnail-{{ data.vp_guid }}" data-videopress-guid="{{ data.vp_guid }}"><img src="{{ data.vp_thumbnail_url }}" /></a>
+			</label>
+		</script>
+
+		<script type="text/html" id="tmpl-videopress-media-modal">
+			<div class="videopress-modal">
+				<p><?php _e( 'To change the default thumbnail image, play the video and click "Capture Thumbnail" button.' ); ?></p>
+				<div class="videopress-video-container">{{{ data.video }}}</div>
+				<p class="submit">
+					<a class="videopress-modal-close button" href="#"><?php _e( 'Close' ); ?></a>
+				</p>
+			</div>
+			<div class="videopress-modal-backdrop"></div>
+		</script>
+		<?php
+	}
+}
+new Jetpack_VideoPress;
