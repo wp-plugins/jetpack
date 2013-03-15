@@ -474,8 +474,8 @@ class Jetpack_VideoPress {
 
 			<label class="setting vp-setting">
 				<span><?php _e( 'Share', 'jetpack' ); ?></span>
+				<input class="vp-checkbox" type="checkbox" <# if ( '1' === data.vp_share ) { #>checked<# } #> <# if ( ! data.can.save ) { #>disabled<# } #> />
 				<label>
-					<input class="vp-checkbox" type="checkbox" <# if ( '1' === data.vp_share ) { #>checked<# } #> <# if ( ! data.can.save ) { #>disabled<# } #> />
 					<?php _e( 'Display share menu and allow viewers to embed or download this video', 'jetpack' ); ?>
 				</label>
 				<input class="vp-checkbox-text" type="text" value="{{ data.vp_share }}" data-setting="vp_share" style="display:none;" />
@@ -485,11 +485,10 @@ class Jetpack_VideoPress {
 				<span><?php _e( 'Rating', 'jetpack' ); ?></span>
 
 				<?php foreach ( $this->get_available_ratings() as $value => $label ) : ?>
-				<label>
-					<input class="vp-radio" type="radio" name="vp-radio-group" value="<?php echo esc_attr( $value ); ?>"
-						<# if ( '<?php echo esc_attr( $value ); ?>' === data.vp_rating ) { #>checked<# } #>
-						<# if ( ! data.can.save ) { #>disabled<# } #> /> <?php echo esc_html( $label ); ?>
-				</label>
+				<input class="vp-radio" type="radio" name="vp-radio-group" id="vp-rating-<?php echo sanitize_html_class( $value ); ?>" value="<?php echo esc_attr( $value ); ?>"
+					<# if ( '<?php echo esc_attr( $value ); ?>' === data.vp_rating ) { #>checked<# } #>
+					<# if ( ! data.can.save ) { #>disabled<# } #> />
+				<label for="vp-rating-<?php echo sanitize_html_class( $value ); ?>"><?php echo esc_html( $label ); ?></label>
 				<?php endforeach; ?>
 
 				<input class="vp-radio-text" type="text" value="{{ data.vp_rating }}" data-setting="vp_rating" style="display:none;" />
@@ -500,7 +499,7 @@ class Jetpack_VideoPress {
 				<input type="text" value="[wpvideo {{ data.vp_guid }}]" onclick="this.focus();this.select();" readonly />
 			</label>
 
-			<label class="setting vp-setting">
+			<label class="setting vp-setting vp-preview">
 				<span><?php _e( 'Preview', 'jetpack' ); ?></span>
 				<a href="#" class="videopress-preview" id="videopress-thumbnail-{{ data.vp_guid }}" data-videopress-guid="{{ data.vp_guid }}"><img src="{{ data.vp_thumbnail_url }}" /></a>
 			</label>
