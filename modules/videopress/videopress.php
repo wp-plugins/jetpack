@@ -49,9 +49,21 @@ class Jetpack_VideoPress {
 			'blogs' => array(),
 			'blog_id' => 0,
 			'access' => '',
+			'freedom' => false,
+			'static' => false,
+			'hd' => false,
 		);
 
-		$options = array_merge( $defaults, Jetpack::get_option( $this->option_name, array() ) );
+		$options = Jetpack::get_option( $this->option_name, array() );
+
+		// If options have not been saved yet, check for older VideoPress plugin options.
+		if ( empty( $options ) ) {
+			$options['freedom'] = (bool) get_option( 'video_player_freedom', false );
+			$options['static'] = (bool) get_option( 'video_player_static', false );
+			$options['hd'] = (bool) get_option( 'video_player_high_quality', false );
+		}
+
+		$options = array_merge( $defaults, $options );
 		return $options;
 	}
 
@@ -146,6 +158,10 @@ class Jetpack_VideoPress {
 			if ( isset( $_POST['videopress-access'] ) && in_array( $_POST['videopress-access'], array( '', 'read', 'edit', 'delete' ) ) )
 				$options['access'] = $_POST['videopress-access'];
 
+			$options['freedom'] = isset( $_POST['videopress-freedom'] );
+			$options['static'] = isset( $_POST['videopress-static'] );
+			$options['hd'] = isset( $_POST['videopress-hd'] );
+
 			$this->update_options( $options );
 			Jetpack::state( 'message', 'module_configured' );
 			wp_safe_redirect( Jetpack::module_configuration_url( $this->module ) );
@@ -208,6 +224,36 @@ class Jetpack_VideoPress {
 								<?php _e( 'Allow users to access and edit my videos' ); ?></label><br/>
 							<label><input type="radio" name="videopress-access" value="delete" <?php checked( 'delete', $options['access'] ); ?> />
 								<?php _e( 'Allow users to access, edit, and delete my videos' ); ?></label><br/>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="videopress-freedom"><?php _e( 'Free formats', 'jetpack' ); ?></label>
+						</th>
+						<td>
+							<label><input type="checkbox" name="videopress-freedom" id="videopress-freedom" <?php checked( $options['freedom'] ); ?> />
+								<?php _e( 'Only display videos in free software formats', 'jetpack' ); ?></label>
+							<p class="description"><?php _e( 'Ogg file container with Theora video and Vorbis audio. Note that some browsers are unable to play free software video formats, including Internet Explorer and Safari.', 'jetpack' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="videopress-static"><?php _e( 'Static player', 'jetpack' ); ?></label>
+						</th>
+						<td>
+							<label><input type="checkbox" name="videopress-static" id="videopress-static" <?php checked( $options['static'] ); ?> />
+								<?php _e( 'Use the static Flash video player when playing un-shared videos', 'jetpack' ); ?></label>
+							<p class="description"><?php _e( 'Enabling this option will give stronger protection from users downloading your videos, but will prevent your videos from playing on iOS and other Flash-free devices.', 'jetpack' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="videopress-hd"><?php _e( 'Default quality', 'jetpack' ); ?></label>
+						</th>
+						<td>
+							<label><input type="checkbox" name="videopress-hd" id="videopress-hd" <?php checked( $options['hd'] ); ?> />
+								<?php _e( 'Display higher quality video by default.', 'jetpack' ); ?></label>
+							<p class="description"><?php _e( 'This setting may be overridden for individual videos.', 'jetpack' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -563,7 +609,6 @@ class VideoPress {
 	public function __construct() {
 
 		if ( is_admin() ) { // admin-only hooks and filters
-			include_once( dirname(__FILE__) . '/settings.php' );
 
 		} else { // everything but admin
 			add_action( 'wp_head', array( $this, 'html_head' ), -1 ); // load before enqueue_scripts action
