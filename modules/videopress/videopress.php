@@ -367,9 +367,7 @@ class Jetpack_VideoPress {
 			if ( ! empty( $item['vp_nonces']['delete'] ) )
 				$item['nonces']['delete'] = wp_create_nonce( 'delete-videopress-post_' . $item['id'] );
 
-			// do_shortcode( sprintf( '[wpvideo %s]', $item['vp_guid'] ) );
-			// the generated embed code should not rely on scripts, etc.
-			$item['vp_embed'] = 'embedded <strong>preview video</strong> goes here';
+			$item['vp_embed'] = do_shortcode( sprintf( '[wpvideo %s flashonly="true" w="440"]', $item['vp_guid'] ) );
 
 			$items[ $key ] = $item;
 		}
@@ -557,7 +555,7 @@ class Jetpack_VideoPress {
 
 		<script type="text/html" id="tmpl-videopress-media-modal">
 			<div class="videopress-modal">
-				<p><?php _e( 'To change the default thumbnail image, play the video and click "Capture Thumbnail" button.' ); ?></p>
+				<p><?php _e( 'Video Preview:' ); ?></p>
 				<div class="videopress-video-container">{{{ data.video }}}</div>
 				<p class="submit">
 					<a class="videopress-modal-close button" href="#"><?php _e( 'Close' ); ?></a>
