@@ -58,6 +58,7 @@ class Jetpack {
 		'after-the-deadline' => array( 'after-the-deadline/after-the-deadline.php', 'After The Deadline' ),
 		'contact-form' => array( 'grunion-contact-form/grunion-contact-form.php', 'Grunion Contact Form' ),
 		'custom-css' => array( 'safecss/safecss.php', 'WordPress.com Custom CSS' ),
+		'videopress' => array( 'video/video.php', 'VideoPress' ),
 	);
 
 	var $capability_translations = array(
