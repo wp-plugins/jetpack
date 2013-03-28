@@ -199,11 +199,11 @@ class Jetpack_VideoPress {
 				<table id="menu" class="form-table">
 					<tr>
 						<th scope="row">
-							<label><?php _e( 'Connected WordPress.com Blog' , 'jetpack' ); ?></label>
+							<label><?php _e( 'Connected WordPress.com Blog', 'jetpack' ); ?></label>
 						</th>
 						<td>
 							<select name="blog_id">
-								<option value="0" <?php selected( $options['blog_id'], 0 ); ?>> <?php esc_html_e( 'None' ); ?></option>
+								<option value="0" <?php selected( $options['blog_id'], 0 ); ?>> <?php esc_html_e( 'None', 'jetpack' ); ?></option>
 								<?php foreach ( $options['blogs'] as $blog ) : ?>
 								<option value="<?php echo absint( $blog['blog_id'] ); ?>" <?php selected( $options['blog_id'], $blog['blog_id'] ); ?>><?php echo esc_html( $blog['name'] ); ?> (<?php echo esc_html( $blog['domain'] ); ?>)</option>
 								<?php endforeach; ?>
@@ -213,17 +213,17 @@ class Jetpack_VideoPress {
 					</tr>
 					<tr>
 						<th scope="row">
-							<label for="admin_bar"><?php _e( 'Video Library Access' ); ?></label>
+							<label><?php _e( 'Video Library Access', 'jetpack' ); ?></label>
 						</th>
 						<td>
 							<label><input type="radio" name="videopress-access" value="" <?php checked( '', $options['access'] ); ?> />
-								<?php _e( 'Do not allow other users to access my VideoPress library' ); ?></label><br/>
+								<?php _e( 'Do not allow other users to access my VideoPress library', 'jetpack' ); ?></label><br/>
 							<label><input type="radio" name="videopress-access" value="read" <?php checked( 'read', $options['access'] ); ?> />
-								<?php _e( 'Allow users to access my videos' ); ?></label><br/>
+								<?php _e( 'Allow users to access my videos', 'jetpack' ); ?></label><br/>
 							<label><input type="radio" name="videopress-access" value="edit" <?php checked( 'edit', $options['access'] ); ?> />
-								<?php _e( 'Allow users to access and edit my videos' ); ?></label><br/>
+								<?php _e( 'Allow users to access and edit my videos', 'jetpack' ); ?></label><br/>
 							<label><input type="radio" name="videopress-access" value="delete" <?php checked( 'delete', $options['access'] ); ?> />
-								<?php _e( 'Allow users to access, edit, and delete my videos' ); ?></label><br/>
+								<?php _e( 'Allow users to access, edit, and delete my videos', 'jetpack' ); ?></label><br/>
 						</td>
 					</tr>
 					<tr>
