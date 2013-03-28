@@ -31,22 +31,10 @@ class Jetpack_VideoPress_Shortcode {
 			'hd' => false
 		), $attr );
 
+		$attr['forcestatic'] = false;
+
 		$attr['freedom'] = (bool) $attr['freedom'];
-
-		/**
-		 * Test if embedded blog prefers videos only displayed in Freedom-loving formats
-		 */
-		if ( $attr['freedom'] === false && (bool) get_option( 'video_player_freedom', false ) )
-			$attr['freedom'] = true;
-
-		$attr['forcestatic'] = get_option( 'video_player_static', false );
-
-		/**
-	 	* Set the video to HD if the blog option has it enabled
-	 	*/
-		if ( (bool) get_option( 'video_player_high_quality', false ) )
-			$attr['hd'] = true;
-
+		$attr['hd'] = (bool) $attr['hd'];
 		$attr['width'] = absint( $attr['w'] );
 
 		if ( $attr['width'] < self::min_width )
@@ -60,13 +48,13 @@ class Jetpack_VideoPress_Shortcode {
 		if ( ( $attr['width'] % 2 ) === 1 )
 			$attr['width']--;
 
-		$options = array(
+		$options = apply_filters( 'videopress_shortcode_options', array(
 			'freedom' => $attr['freedom'],
 			'force_flash' => (bool) $attr['flashonly'],
 			'autoplay' => (bool) $attr['autoplay'],
 			'forcestatic' => $attr['forcestatic'],
 			'hd' => (bool) $attr['hd']
-		);
+		) );
 
 		$this->enqueue_scripts();
 

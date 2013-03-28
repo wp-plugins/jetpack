@@ -41,6 +41,8 @@ class Jetpack_VideoPress {
 			add_action( 'wp_ajax_save-attachment-compat', array( $this, 'wp_ajax_save_attachment' ), -1 );
 			add_action( 'wp_ajax_delete-post', array( $this, 'wp_ajax_delete_post' ), -1 );
 		}
+
+		add_filter( 'videopress_shortcode_options', array( $this, 'videopress_shortcode_options' ) );
 	}
 
 	/**
@@ -564,6 +566,22 @@ class Jetpack_VideoPress {
 			<div class="videopress-modal-backdrop"></div>
 		</script>
 		<?php
+	}
+
+	/**
+	 * Filters the VideoPress shortcode options, makes sure that
+	 * the settings set in Jetpack's VideoPress module are applied.
+	 */
+	function videopress_shortcode_options( $options ) {
+		$videopress_options = $this->get_options();
+
+		if ( false === $options['freedom'] )
+			$options['freedom'] = $videopress_options['freedom'];
+
+		$options['forcestatic'] = $videopress_options['static'];
+		$options['hd'] = $videopress_options['hd'];
+
+		return $options;
 	}
 }
 new Jetpack_VideoPress;
