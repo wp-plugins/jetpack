@@ -78,7 +78,7 @@ class Jetpack_VideoPress_Shortcode {
 			if ( is_feed() )
 				return $player->asXML();
 			else
-				return 'boom' . $player->asHTML();
+				return $player->asHTML();
 		}
 	}
 

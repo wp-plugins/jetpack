@@ -73,19 +73,10 @@ class VideoPress_Player {
 			$cached_video = null;
 		} else {
 			$cache_key_pieces = array( 'video' );
-			if ( is_multisite() && is_subdomain_install() ) {
-				/**
-				 * Compatibility wrapper for less than WordPress 3.1
-				 *
-				 * @todo remove when targeting WordPress 3.2 or above.
-				 */
-				if ( function_exists( 'get_current_blog_id' ) )
-					$cache_key_pieces[] = get_current_blog_id();
-				elseif ( isset( $GLOBALS ) && isset( $GLOBALS['blog_id'] ) )
-					$cache_key_pieces[] = absint( $GLOBALS['blog_id'] );
-				else
-					$cache_key_pieces[] = 1;
-			}
+
+			if ( is_multisite() && is_subdomain_install() )
+				$cache_key_pieces[] = get_current_blog_id();
+
 			$cache_key_pieces[] = $guid;
 			if ( $width > 0 )
 				$cache_key_pieces[] = $maxwidth;
@@ -119,7 +110,7 @@ class VideoPress_Player {
 					unset( $expires_diff );
 				}
 
-				wp_cache_set( $cache_key, serialize($this->video), 'video', $expire );
+				wp_cache_set( $cache_key, serialize( $this->video ), 'video', $expire );
 				unset( $expire );
 			}
 		} else {

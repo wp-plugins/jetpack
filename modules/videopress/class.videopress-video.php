@@ -166,7 +166,7 @@ class VideoPress_Video {
 	 * @var string $guid VideoPress unique identifier
 	 * @var int $maxwidth maximum requested video width. final width and height are calculated on VideoPress servers based on the aspect ratio of the original video upload.
 	 */
-	public function __construct( $guid, $maxwidth=0 ) {
+	public function __construct( $guid, $maxwidth = 0 ) {
 		$this->guid = $guid;
 
 		$maxwidth = absint( $maxwidth );
@@ -268,21 +268,7 @@ class VideoPress_Video {
 	 * @return bool|string host component of the URL, or false if none found
 	 */
 	public static function hostname( $url ) {
-		if ( empty($url) || ! function_exists('parse_url') )
-			return false;
-
-		// PHP 5.3.3 or newer can throw a warning on a bad input URI. catch that occurance just in case
-		try {
-			// use the component parameter of parse_url if current version of PHP supports
-			if ( version_compare(PHP_VERSION, '5.1.2', '>=') ) {
-				return parse_url( $url, PHP_URL_HOST );
-			} else {
-				$url_parts = parse_url( $url );
-				if ( $url_parts !== false && isset( $url_parts['host'] ) )
-					return $url_parts['host'];
-			}
-		} catch (Exception $e){}
-		return false;
+		return parse_url( esc_url_raw( $url ), PHP_URL_HOST );
 	}
 
 
@@ -304,10 +290,11 @@ class VideoPress_Video {
 		if ( is_ssl() )
 			$url = 'https://v.wordpress.com/data/wordpress.json';
 
-		$response = wp_remote_get( $url . '?' . http_build_query( $request_params, null, '&' ), array(
+		$response = wp_remote_get( add_query_arg( $request_params, $url ), array(
 			'redirection' => 1,
-			'user-agent' => 'VideoPress plugin ' . $this->version . '; WordPress ' . $wp_version . ' (' . home_url('/') . ')'
+			'user-agent' => 'VideoPress plugin ' . $this->version . '; WordPress ' . $wp_version . ' (' . home_url('/') . ')',
 		) );
+
 		unset( $request_params );
 		unset( $url );
 		$response_body = wp_remote_retrieve_body( $response );
@@ -316,11 +303,11 @@ class VideoPress_Video {
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		} elseif ( $response_code === 400 ) {
-			return new WP_Error( 'bad_config', __( 'The VideoPress plugin could not communicate with the VideoPress servers. This error is most likely caused by a misconfigured plugin. Please reinstall or upgrade.', 'video' ) );
+			return new WP_Error( 'bad_config', __( 'The VideoPress plugin could not communicate with the VideoPress servers. This error is most likely caused by a misconfigured plugin. Please reinstall or upgrade.', 'jetpack' ) );
 		} elseif ( $response_code === 403 ) {
-			return new WP_Error( 'http_forbidden', '<p>' . sprintf( __( '<strong>%s</strong> is not an allowed embed site.' , 'video' ), esc_html( $domain ) ) . '</p><p>' . __( 'Publisher limits playback of video embeds.', 'video' ) . '</p>' );
+			return new WP_Error( 'http_forbidden', '<p>' . sprintf( __( '<strong>%s</strong> is not an allowed embed site.' , 'jetpack' ), esc_html( $domain ) ) . '</p><p>' . __( 'Publisher limits playback of video embeds.', 'jetpack' ) . '</p>' );
 		} elseif ( $response_code === 404 ) {
-			return new WP_Error( 'http_not_found', '<p>' . sprintf( __( 'No data found for VideoPress identifier: <strong>%s</strong>.', 'video' ), $this->guid ) . '</p>' );
+			return new WP_Error( 'http_not_found', '<p>' . sprintf( __( 'No data found for VideoPress identifier: <strong>%s</strong>.', 'jetpack' ), $this->guid ) . '</p>' );
 		} elseif ( $response_code !== 200 || empty( $response_body ) ) {
 			return;
 		} else {
