@@ -1,8 +1,21 @@
 <?php
-
+/**
+ * VideoPress Shortcode Handler
+ */
 class Jetpack_VideoPress_Shortcode {
-	public $js_loaded = false;
-	const min_width = 60;
+	public $min_width = 60;
+
+	/**
+	 * Singleton
+	 */
+	public static function init() {
+		static $instance = false;
+
+		if ( ! $instance )
+			$instance = new Jetpack_VideoPress_Shortcode;
+
+		return $instance;
+	}
 
 	function __construct() {
 		add_shortcode( 'videopress', array( $this, 'shortcode_callback' ) );
@@ -20,7 +33,7 @@ class Jetpack_VideoPress_Shortcode {
 		global $content_width;
 
 		$guid = $attr[0];
-		if ( ! self::is_valid_guid( $guid ) )
+		if ( ! $this->is_valid_guid( $guid ) )
 			return '';
 
 		$attr = shortcode_atts( array(
@@ -37,12 +50,12 @@ class Jetpack_VideoPress_Shortcode {
 		$attr['hd'] = (bool) $attr['hd'];
 		$attr['width'] = absint( $attr['w'] );
 
-		if ( $attr['width'] < self::min_width )
+		if ( $attr['width'] < $this->min_width )
 			$attr['width'] = 0;
-		elseif ( isset( $content_width ) && $content_width > self::min_width && $attr['width'] > $content_width )
+		elseif ( isset( $content_width ) && $content_width > $this->min_width && $attr['width'] > $content_width )
 			$attr['width'] = 0;
 
-		if ( $attr['width'] === 0 && isset( $content_width ) && $content_width > self::min_width )
+		if ( $attr['width'] === 0 && isset( $content_width ) && $content_width > $this->min_width )
 			$attr['width'] = $content_width;
 
 		if ( ( $attr['width'] % 2 ) === 1 )
@@ -56,7 +69,9 @@ class Jetpack_VideoPress_Shortcode {
 			'hd' => (bool) $attr['hd']
 		) );
 
-		$this->enqueue_scripts();
+		// Enqueue VideoPress scripts
+		$js_url = ( is_ssl() ) ? 'https://v0.wordpress.com/js/videopress.js' : 'http://s0.videopress.com/js/videopress.js';
+		wp_enqueue_script( 'videopress', $js_url, array( 'jquery', 'swfobject' ), '1.09' );
 
 		require_once( dirname( __FILE__ ) . '/class.videopress-video.php' );
 		require_once( dirname( __FILE__ ) . '/class.videopress-player.php' );
@@ -70,15 +85,6 @@ class Jetpack_VideoPress_Shortcode {
 		}
 	}
 
-	function enqueue_scripts() {
-		if ( $this->js_loaded )
-			return;
-
-		wp_enqueue_script( 'videopress', set_url_scheme( 'http://v0.wordpress.com/js/videopress.js' ), array( 'jquery', 'swfobject' ), '1.09' );
-
-		$this->js_loaded = true;
-	}
-
 	/**
 	 * Validate user-supplied guid values against expected inputs
 	 *
@@ -86,11 +92,11 @@ class Jetpack_VideoPress_Shortcode {
 	 * @param string $guid video identifier
 	 * @return bool true if passes validation test
 	 */
-	public static function is_valid_guid( $guid ) {
+	public function is_valid_guid( $guid ) {
 		if ( ! empty( $guid ) && strlen( $guid ) === 8 && ctype_alnum( $guid ) )
 			return true;
 		else
 			return false;
 	}
 }
-new Jetpack_VideoPress_Shortcode;
+Jetpack_VideoPress_Shortcode::init();
