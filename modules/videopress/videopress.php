@@ -561,75 +561,22 @@ class VideoPress {
 	 * @since 1.3
 	 */
 	public function __construct() {
-		// Should we show the getting started message?
-		$this->custom_post_activation_notice();
-		/**
-		 * json_decode should be initialized by compat.php. It's a PHP extension that might not be turned on, or could not be compatible with older version of PHP. We won't be able to unpack the server response without it, so let's fail early.
-		 */
-		if ( ! function_exists( 'json_decode' ) ) {
-			if ( is_admin() )
-				add_action( 'admin_notices', array( &$this, 'initialization_warning' ) );
-			return;
-		}
 
 		if ( is_admin() ) { // admin-only hooks and filters
 			include_once( dirname(__FILE__) . '/settings.php' );
 
-			add_action( 'media_buttons', array( &$this, 'media_button' ), 999 );
-			add_action( 'admin_print_scripts-post.php', array( $this, 'print_admin_scripts' ) );
-			add_action( 'admin_print_scripts-post-new.php', array( $this, 'print_admin_scripts' ) );
 		} else { // everything but admin
-			add_action( 'wp_head', array( &$this, 'html_head' ), -1 ); // load before enqueue_scripts action
+			add_action( 'wp_head', array( $this, 'html_head' ), -1 ); // load before enqueue_scripts action
 		}
 		// load everywhere
 
 		//allow either [videopress xyz] or [wpvideo xyz] for backward compatibility
-		add_shortcode( 'videopress', array( &$this, 'shortcode' ) );
-		add_shortcode( 'wpvideo', array( &$this, 'shortcode' ) );
+		add_shortcode( 'videopress', array( $this, 'shortcode' ) );
+		add_shortcode( 'wpvideo', array( $this, 'shortcode' ) );
 
 		// set default values
 		$this->js_loaded = false;
 		$this->shown = array();
-	}
-
-	/**
-	 * PHP 4 constructor compatibility
-	 *
-	 * @since 1.5
-	 * @todo remove when targeting PHP 5 (WordPress 3.2 requirement) or above.
-	 */
-	public function VideoPress() {
-		$this->__construct();
-	}
-	
-	/**
-	 * Trying to be a bit more helpful immediately after VideoPress is activated
-	 *
-	 * @since 1.5.1
-	 */
-	public function custom_post_activation_notice() {
-		$run_once = get_option('video_activation_run_once');
-		if ( basename($_SERVER['SCRIPT_FILENAME']) == 'plugins.php' && isset( $_GET['activate'] ) && true == $_GET['activate'] && !$run_once ) {
-			function video_notice() {
-				echo "
-				<div id='video-notice' class='updated fade'><p><strong>".__('VideoPress is ready.')."</strong> ".sprintf(__('Head over to <a href="%1$s">VideoPress.com</a> if you\'ve yet to grab a VideoPress Subscription.  Also, check out the <a href="%2$s">getting started video</a> for a brief intro to VideoPress.'), "http://videopress.com/?ref=plugin", "http://wordpress.tv/2011/10/07/videopress-for-self-hosted-wordpress-quick-start-guide/")."</p></div>
-				";
-				update_option('video_activation_run_once',true);
-			}
-			add_action('admin_notices', 'video_notice');
-			return;
-		}
-	}
-
-	/**
-	 * Warn admin users about plugin failure due to misconfiguration
-	 *
-	 * @since 1.5
-	 */
-	public function initialization_warning() {
-		echo '<div id="videopress-warning" class="updated fade"><p><strong>' . sprintf( __( '%s PHP library not installed.', 'video' ), 'JSON' ) . '</strong> ';
-		echo sprintf( __('VideoPress plugin will not function without <a href="%s">PHP JSON functions</a> enabled. Please update your version of WordPress for improved compatibility and/or enable native JSON support for PHP.'), 'http://php.net/manual/book.json.php' );
-		echo '</p></div>';
 	}
 
 	/**
@@ -701,7 +648,7 @@ class VideoPress {
 		rewind_posts();
 
 		if ( ! empty( $guid ) )
-			add_action( 'wp_enqueue_scripts', array( &$this, 'enqueue_scripts' ), 20 );
+			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ), 20 );
 	}
 
 	/**
@@ -731,11 +678,11 @@ class VideoPress {
 		wp_enqueue_script( 'swfobject', $swfobject, false. '2.2' );
 		wp_enqueue_script( 'jquery', $jquery, false, '1.4.4' );
 		wp_enqueue_script( 'videopress', $vpjs, array( 'jquery','swfobject' ), '1.09' );
-		
+
 		$this->js_loaded = true;
 		return true;
 	}
-	
+
 	/**
 	 * Print the VideoPress JS files now.
 	 * Used to load the JS in the footer, if it hasn't already been loaded in the header.
@@ -762,7 +709,7 @@ class VideoPress {
 		$guid = $attr[0];
 		if ( ! self::is_valid_guid( $guid ) )
 			return '';
-			
+
 		if ( array_key_exists( $guid, $this->shown ) )
 			$this->shown[$guid]++;
 		else
@@ -782,7 +729,7 @@ class VideoPress {
 		 */
 		if ( $freedom === false && (bool) get_option( 'video_player_freedom', false ) )
 			$freedom = true;
-			
+
 		$forcestatic = get_option( 'video_player_static', false );
 
 		/**
@@ -815,7 +762,7 @@ class VideoPress {
 		unset( $freedom );
 		unset( $flashonly );
 
-		add_action( 'wp_footer', array( &$this, 'print_scripts' ), -1 );
+		add_action( 'wp_footer', array( $this, 'print_scripts' ), -1 );
 
 		$player = new VideoPress_Player( $guid, $width, $options );
 		if ( $player instanceOf VideoPress_Player ) {
@@ -824,37 +771,6 @@ class VideoPress {
 			else
 				return $player->asHTML();
 		}
-	}
-
-	/**
-	 * Add a video button above the post composition screen linking to a thickbox view of WordPress.com videos
-	 *
-	 * @since 0.1.0
-	 */
-	public function media_button() {
-		echo '<a href="https://public-api.wordpress.com/videopress-plugin.php?page=video-plugin&amp;video_plugin=1&amp;iframe&amp;TB_iframe=true" id="add_video" class="thickbox" title="VideoPress"><img src="' . esc_url( plugins_url( ) . '/' . dirname( plugin_basename( __FILE__ ) ) . '/camera-video.png' ) . '" alt="VideoPress" width="16" height="16" /></a>';
-	}
-
-	public function print_admin_scripts() {
-		echo '<script>
-		var vpMessageHandler = function(e) {
-			if ( ! e.origin.match( /\.wordpress\.com$/ ) )
-				return;
-
-			if ( e.data.indexOf && e.data.indexOf( "vpInsertShortcode::" ) == 0 ) {
-				var guid = e.data.substr( 19 );
-				if ( guid && guid.length < 12 ) {
-					guid = guid.replace( /[^a-zA-Z0-9]+/, "" );
-					window.send_to_editor( "[wpvideo " + guid + "]" );
-				}
-			}
-		};
-
-		if ( ! window.addEventListener )
-			window.attachEvent( "onmessage", vpMessageHandler );
-		else
-			window.addEventListener( "message", vpMessageHandler, false );
-		</script>';
 	}
 }
 
@@ -924,7 +840,7 @@ class VideoPress_Video {
 	 *
 	 * @var int
 	 * @since 1.3
-	 */	
+	 */
 	public $calculated_height;
 
 	/**
@@ -1197,7 +1113,7 @@ class VideoPress_Video {
 				$expires = self::calculate_expiration( $expires_header );
 				if ( ! empty( $expires ) )
 					$this->expires = $expires;
-				
+
 			}
 			return json_decode( $response_body );
 		}
@@ -1359,7 +1275,7 @@ class VideoPress_Player {
 	public function asXML() {
 		if ( empty( $this->video ) || is_wp_error( $this->video ) )
 			return '';
-		
+
 		if ( isset( $this->options['freedom'] ) && $this->options['freedom'] === true )
 			$content = $this->html5_static();
 		else
@@ -1455,7 +1371,7 @@ class VideoPress_Player {
 		 * @link https://developer.mozilla.org/en/JavaScript/Reference/global_objects/date Mozilla JavaScript Reference: Date
 		 */
 		$html .= '<select name="month" style="' . $inputs_style . '">';
-		
+
 		$months = array( __('January'), __('February'), __('March'), __('April'), __('May'), __('June'), __('July'), __('August'), __('September'), __('October'), __('November'), __('December') );
 		for( $i=0; $i<12; $i++ ) {
 			$html .= '<option value="' . esc_attr( $i ) . '">' . esc_html( $months[$i] )  . '</option>';

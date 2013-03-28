@@ -91,4 +91,3 @@ function video_player_option_sanitize( $checked ) {
 	else
 		return false;
 }
-?>
