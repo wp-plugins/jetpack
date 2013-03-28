@@ -4,7 +4,7 @@
  * @since 1.3
  */
 class VideoPress_Video {
-	public $version = 1;
+	public $version = 3;
 
 	/**
 	 * Manifest version returned by remote service.

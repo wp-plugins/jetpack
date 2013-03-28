@@ -6,10 +6,22 @@
 class Jetpack_VideoPress {
 	public $module = 'videopress';
 	public $option_name = 'videopress';
-	public $version = 2;
+	public $version = 3;
+
+	/**
+	 * Singleton
+	 */
+	public static function init() {
+		static $instance = false;
+
+		if ( ! $instance )
+			$instance = new Jetpack_VideoPress;
+
+		return $instance;
+	}
 
 	function __construct() {
-		$this->version = time(); // <s>ghost</s> cache busters!
+		// $this->version = time(); // <s>ghost</s> cache busters!
 		add_action( 'jetpack_modules_loaded', array( $this, 'jetpack_modules_loaded' ) );
 		add_action( 'jetpack_activate_module_videopress', array( $this, 'jetpack_module_activated' ) );
 		add_action( 'jetpack_deactivate_module_videopress', array( $this, 'jetpack_module_deactivated' ) );
@@ -555,10 +567,10 @@ class Jetpack_VideoPress {
 
 		<script type="text/html" id="tmpl-videopress-media-modal">
 			<div class="videopress-modal">
-				<p><?php _e( 'Video Preview:' ); ?></p>
+				<p><?php _e( 'Video Preview:', 'jetpack' ); ?></p>
 				<div class="videopress-video-container">{{{ data.video }}}</div>
 				<p class="submit">
-					<a class="videopress-modal-close button" href="#"><?php _e( 'Close' ); ?></a>
+					<a class="videopress-modal-close button" href="#"><?php _e( 'Close', 'jetpack' ); ?></a>
 				</p>
 			</div>
 			<div class="videopress-modal-backdrop"></div>
@@ -582,4 +594,6 @@ class Jetpack_VideoPress {
 		return $options;
 	}
 }
-new Jetpack_VideoPress;
+
+// Initialize the module.
+Jetpack_VideoPress::init();
