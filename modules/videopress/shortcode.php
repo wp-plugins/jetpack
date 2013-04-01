@@ -1,6 +1,8 @@
 <?php
 /**
  * VideoPress Shortcode Handler
+ *
+ * This file may or may not be included from the Jetpack VideoPress module.
  */
 class Jetpack_VideoPress_Shortcode {
 	public $min_width = 60;
@@ -77,12 +79,11 @@ class Jetpack_VideoPress_Shortcode {
 		require_once( dirname( __FILE__ ) . '/class.videopress-player.php' );
 
 		$player = new VideoPress_Player( $guid, $attr['width'], $options );
-		if ( $player instanceOf VideoPress_Player ) {
-			if ( is_feed() )
-				return $player->asXML();
-			else
-				return $player->asHTML();
-		}
+
+		if ( is_feed() )
+			return $player->asXML();
+		else
+			return $player->asHTML();
 	}
 
 	/**
@@ -99,4 +100,6 @@ class Jetpack_VideoPress_Shortcode {
 			return false;
 	}
 }
+
+// Initialize the shortcode handler.
 Jetpack_VideoPress_Shortcode::init();

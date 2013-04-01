@@ -121,16 +121,6 @@ class VideoPress_Player {
 	}
 
 	/**
-	 * PHP 4 constructor compatibility
-	 *
-	 * @since 1.5
-	 * @todo remove when targeting PHP 5 (WordPress 3.2 min requirement) or above.
-	 */
-	public function VideoPress_Player( $guid, $maxwidth = 0, $options = array() ) {
-		$this->__construct( $guid, $maxwidth, $options );
-	}
-
-	/**
 	 * Wrap output in a VideoPress player container
 	 *
 	 * @since 1.3
@@ -202,7 +192,7 @@ class VideoPress_Player {
 			return '';
 
 		$html = '<div class="videopress-error" style="background-color:rgb(255,0,0);color:rgb(255,255,255);font-family:font-family:\'Helvetica Neue\',Arial,Helvetica,\'Nimbus Sans L\',sans-serif;font-size:140%;min-height:10em;padding-top:1.5em;padding-bottom:1.5em">';
-		$html .= '<h1 style="font-size:180%;font-style:bold;line-height:130%;text-decoration:underline">' . esc_html( sprintf( __( '%s Error', 'video' ), 'VideoPress' ) ) . '</h1>';
+		$html .= '<h1 style="font-size:180%;font-style:bold;line-height:130%;text-decoration:underline">' . esc_html( sprintf( __( '%s Error', 'jetpack' ), 'VideoPress' ) ) . '</h1>';
 		foreach( $error->get_error_messages() as $message ) {
 			$html .= $message;
 		}
@@ -236,7 +226,7 @@ class VideoPress_Player {
 			$text_align = 'right';
 
 		$html = '<div class="videopress-age-gate" style="margin:0 60px">';
-		$html .= '<p class="instructions" style="color:rgb(255, 255, 255);font-size:21px;padding-top:60px;padding-bottom:20px;text-align:' . $text_align . '">' . esc_html( __( 'This video is intended for mature audiences.', 'video' ) ) . '<br />' . esc_html( __( 'Please verify your birthday.', 'video' ) ) . '</p>';
+		$html .= '<p class="instructions" style="color:rgb(255, 255, 255);font-size:21px;padding-top:60px;padding-bottom:20px;text-align:' . $text_align . '">' . esc_html( __( 'This video is intended for mature audiences.', 'jetpack' ) ) . '<br />' . esc_html( __( 'Please verify your birthday.', 'jetpack' ) ) . '</p>';
 		$html .= '<fieldset id="birthday" style="border:0 none;text-align:' . $text_align . ';padding:0;">';
 		$inputs_style = 'border:1px solid #444;margin-';
 		if ( $this->video->text_direction === 'rtl' )
@@ -288,10 +278,10 @@ class VideoPress_Player {
 		unset( $end_year );
 		$html .= '</select>';
 
-		$html .= '<input type="submit" value="' . __( 'Submit', 'video' ) . '" style="cursor:pointer;border-radius: 1em;border:1px solid #333;background-color:#333;background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0, #444), color-stop(1, #111) );background:-moz-linear-gradient(center top, #444 0%, #111 100%);font-size:13px;padding:4px 10px 5px;line-height:1em;vertical-align:top;color:white;text-decoration:none;margin:0" />';
+		$html .= '<input type="submit" value="' . __( 'Submit', 'jetpack' ) . '" style="cursor:pointer;border-radius: 1em;border:1px solid #333;background-color:#333;background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0, #444), color-stop(1, #111) );background:-moz-linear-gradient(center top, #444 0%, #111 100%);font-size:13px;padding:4px 10px 5px;line-height:1em;vertical-align:top;color:white;text-decoration:none;margin:0" />';
 
 		$html .= '</fieldset>';
-		$html .= '<p style="padding-top:20px;padding-bottom:60px;text-align:' . $text_align . ';"><a rel="nofollow" href="http://videopress.com/" style="color:rgb(128,128,128);text-decoration:underline;font-size:15px">' . __( 'More information', 'video' ) . '</a></p>';
+		$html .= '<p style="padding-top:20px;padding-bottom:60px;text-align:' . $text_align . ';"><a rel="nofollow" href="http://videopress.com/" style="color:rgb(128,128,128);text-decoration:underline;font-size:15px">' . __( 'More information', 'jetpack' ) . '</a></p>';
 
 		$html .= '</div>';
 		return $html;
@@ -334,7 +324,7 @@ class VideoPress_Player {
 			$html .= esc_attr( $this->video->title );
 		$html .= '" src="' . $thumbnail . '" width="' . $this->video->calculated_width . '" height="' . $this->video->calculated_height . '" /></div>';
 		if ( isset( $this->options['freedom'] ) && $this->options['freedom'] === true )
-			$html .= '<p class="robots-nocontent">' . sprintf( __( 'You do not have sufficient <a rel="nofollow" href="%s">freedom levels</a> to view this video. Support free software and upgrade.', 'video' ), 'http://www.gnu.org/philosophy/free-sw.html' ) . '</p>';
+			$html .= '<p class="robots-nocontent">' . sprintf( __( 'You do not have sufficient <a rel="nofollow" href="%s">freedom levels</a> to view this video. Support free software and upgrade.', 'jetpack' ), 'http://www.gnu.org/philosophy/free-sw.html' ) . '</p>';
 		elseif ( isset( $this->video->title ) )
 			$html .= '<p>' . esc_html( $this->video->title ) . '</p>';
 		$html .= '</video>';
@@ -486,7 +476,7 @@ class VideoPress_Player {
 		/*
 		 * JavaScript required
 		 */
-		$noun = __( 'this video', 'video' );
+		$noun = __( 'this video', 'jetpack' );
 		if ( ! $age_gate_required ) {
 			$vid_type = '';
 			if ( ( isset( $this->options['freedom'] ) && $this->options['freedom'] === true ) && ( isset( $this->video->videos->ogv ) && isset( $this->video->videos->ogv->url ) ) )
@@ -508,7 +498,7 @@ class VideoPress_Player {
 				if ( isset( $this->video->title ) )
 					$noun .= esc_html( $this->video->title );
 				else
-					$noun .= __( 'this video', 'video' );
+					$noun .= __( 'this video', 'jetpack' );
 				$noun .= '</a>';
 			} elseif ( ! empty( $this->title ) ) {
 				$noun = esc_html( $this->title );
@@ -662,14 +652,14 @@ class VideoPress_Player {
 		foreach ( $this->get_flash_parameters() as $attribute => $value ) {
 			$flash_params .= '<param name="' . esc_attr( $attribute ) . '" value="' . esc_attr( $value ) . '" />';
 		}
-		$flash_help = sprintf( __( 'This video requires <a rel="nofollow" href="%s">Adobe Flash</a> for playback.', 'video' ), 'http://www.adobe.com/go/getflashplayer');
+		$flash_help = sprintf( __( 'This video requires <a rel="nofollow" href="%s">Adobe Flash</a> for playback.', 'jetpack' ), 'http://www.adobe.com/go/getflashplayer');
 		$flash_player_url = esc_url( $this->video->players->swf->url, array( 'http', 'https' ) );
 		$description = '';
 		if ( isset( $this->video->title ) ) {
 			$standby = $this->video->title;
 			$description = '<p><strong>' . esc_html( $this->video->title ) . '</strong></p>';
 		} else {
-			$standby = __( 'Loading video...', 'video' );
+			$standby = __( 'Loading video...', 'jetpack' );
 		}
 		$standby = ' standby="' . esc_attr( $standby ) . '"';
 		return <<<OBJECT
