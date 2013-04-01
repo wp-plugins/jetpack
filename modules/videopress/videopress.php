@@ -379,7 +379,7 @@ class Jetpack_VideoPress {
 			if ( ! empty( $item['vp_nonces']['delete'] ) )
 				$item['nonces']['delete'] = wp_create_nonce( 'delete-videopress-post_' . $item['id'] );
 
-			$item['vp_embed'] = do_shortcode( sprintf( '[wpvideo %s flashonly="true" w="440"]', $item['vp_guid'] ) );
+			$item['vp_embed'] = do_shortcode( sprintf( '[wpvideo %s autoplay="true" flashonly="true" w="440"]', $item['vp_guid'] ) );
 
 			$items[ $key ] = $item;
 		}
