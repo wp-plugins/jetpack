@@ -26,9 +26,12 @@
 
 add_action( 'jetpack_admin_menu', 'jetpack_debug_add_menu_handler' );
 
+
 function jetpack_debug_add_menu_handler() {
-	$hook = add_submenu_page( 'jetpack', 'Debug', 'Debug', 'manage_options', 'jetpack-debugger', 'jetpack_debug_menu_display_handler' );
-	add_action( 'admin_head-'.$hook, 'jetpack_debug_admin_head' );
+	if ( current_user_can( 'manage_options' ) ) {
+		$hook = add_submenu_page( 'jetpack', 'Debug', 'Debug', 'manage_options', 'jetpack-debugger', 'jetpack_debug_menu_display_handler' );
+		add_action( 'admin_head-'.$hook, 'jetpack_debug_admin_head' );
+	}
 }
 
 function jetpack_debug_menu_display_handler() {
@@ -44,19 +47,48 @@ function jetpack_debug_menu_display_handler() {
 
 	$tests = array();
 
-	$tests['http']  = wp_remote_get( 'http://jetpack.wordpress.com/jetpack.test/1/' );
+	$tests['HTTP']  = wp_remote_get( 'http://jetpack.wordpress.com/jetpack.test/1/' );
 	//uncomment to make the tests fail
-	//$tests['http']  = wp_remote_get( 'http://asdf/jetpack.test/1/' );
+	//$tests['HTTP']  = wp_remote_get( 'http://jetpack/jetpack.test/1/' );
 	
-	$tests['https'] = wp_remote_get( 'https://jetpack.wordpress.com/jetpack.test/1/' );
+	$tests['HTTPS'] = wp_remote_get( 'https://jetpack.wordpress.com/jetpack.test/1/' );
 
 	if ( preg_match( '/^https:/', $self_xml_rpc_url ) ) {
-		$tests['self']      = wp_remote_get( preg_replace( '/^https:/', 'http:', $self_xml_rpc_url ) );
-		$tests['self-sec']  = wp_remote_get( $self_xml_rpc_url, array( 'sslverify' => true ) );
+		$tests['SELF']      = wp_remote_get( preg_replace( '/^https:/', 'http:', $self_xml_rpc_url ) );
+		$tests['SELF-SEC']  = wp_remote_get( $self_xml_rpc_url, array( 'sslverify' => true ) );
 	} else {
-		$tests['self']      = wp_remote_get( $self_xml_rpc_url );
+		$tests['SELF']      = wp_remote_get( $self_xml_rpc_url );
 	}
-	 
+	
+	$debug_info = "\n\n----------------------------------------------\n\nDEBUG INFO:\n";
+	$user_id = get_current_user_id();
+	$user_tokens = Jetpack::get_option( 'user_tokens' );
+	if ( is_array( $user_tokens ) && array_key_exists( $user_id, $user_tokens ) ) {
+		$user_token = $user_tokens[$user_id];
+	} else {
+		$user_token = '[this user has no token]';
+	}
+	unset( $user_tokens );
+
+	foreach ( array(
+		'CLIENT_ID'   => 'id',
+		'BLOG_TOKEN'  => 'blog_token',
+		'MASTER_USER' => 'master_user',
+		'CERT'        => 'fallback_no_verify_ssl_certs',
+		'TIME_DIFF'   => 'time_diff',
+		'VERSION'     => 'version',
+		'OLD_VERSION' => 'old_version',
+		'PUBLIC'      => 'public',
+	) as $label => $option_name ) {
+		$debug_info .= "\n" . esc_html( $label . ": " . Jetpack::get_option( $option_name ) );
+	}
+	
+	$debug_info .= "\n" . esc_html("USER_ID: " . $user_id );
+	$debug_info .= "\n" . esc_html("USER_TOKEN: " . $user_token );
+	$debug_info .= "\n" . esc_html("PHP_VERSION: " . PHP_VERSION );
+	$debug_info .= "\n" . esc_html("WORDPRESS_VERSION: " . $GLOBALS['wp_version'] );			
+	$debug_info .= "\n\nTEST RESULTS:\n";
+	
 	?>
 
 	<div class="wrap">
@@ -64,6 +96,7 @@ function jetpack_debug_menu_display_handler() {
 		<h3>Tests</h3>
 		<div class="debug-test-container">
 		<?php foreach ( $tests as $test_name => $test_result ) : 
+			$result = '';
 			if ( is_wp_error( $test_result ) ) {
 				$test_class = 'jetpack-test-error';
 				$offer_ticket_submission = true;
@@ -83,8 +116,9 @@ function jetpack_debug_menu_display_handler() {
 					$offer_ticket_submission = true;
 					$status = __( 'Failed!', 'jetpack' );
 				}
-				$result = esc_html( print_r( $test_result, 1 ) );
-			} ?>
+			} 
+			$debug_info .= "\n\n" . $test_name . "\n" . esc_html( print_r( $test_result, 1 ) );
+			?>
 			<div class="jetpack-test-results <?php echo $test_class; ?>">
 				<p>
 					<a class="jetpack-test-heading" href="#"><?php echo $status; ?>: <?php echo $test_name; ?>
@@ -96,7 +130,7 @@ function jetpack_debug_menu_display_handler() {
 		<?php endforeach; ?>
 		</div>
 		<div id="contact-message">
-			<p>Having a problem using the Jetpack plugin on your blog? Be sure to go through this checklist before contacting us. You may be able to solve it all by yourself!</p>
+			<h4>Having a problem using the Jetpack plugin on your blog? Be sure to go through this checklist before contacting us. You may be able to solve it all by yourself!</h4>
 			<ul>
 				<li>Have you looked through the <a href="http://jetpack.me/support/" rel="nofollow">Jetpack support page</a>? Many common issues and questions are explained there. </li>
 				<li>Did you see if your question is in the <a href="http://jetpack.me/about/" rel="nofollow">Jetpack FAQ</a>? </li>
@@ -112,11 +146,7 @@ function jetpack_debug_menu_display_handler() {
 				<input type="hidden" name="cleo" id="cleo" value="excluded">
 				<input type="hidden" name="blog_url" id="blog_url" value="<?php echo esc_attr( site_url() ); ?>">
 				<input type="hidden" name="subject" id="subject" value="from: <?php echo esc_attr( site_url() ); ?> Jetpack contact form">
-				<input type="hidden" name="debug_info" id="debug_info" value="
-				
------------------------------------------
-<?php echo esc_attr( var_export( $tests, true ) ); ?>
-">
+				<input type="hidden" name="debug_info" id="debug_info" value="<?php echo esc_attr( $debug_info ); ?>">
 		
 				<div class="formbox">
 					<label for="message" class="h">Please describe the problem you are having.</label>
@@ -269,12 +299,23 @@ function jetpack_debug_admin_head() {
 		
 		.formbox.error span.errormsg {
 			display: block;
-		} 
+		}
+		
+		#contact-message ul {
+			margin: 0 0 20px 10px;
+		}
+		
+		#contact-message li {
+			margin: 0 0 10px 10px;
+			list-style: disc;
+			display: list-item;
+		}
+		
 	</style>
 	<script type="text/javascript">
 	jQuery( document ).ready( function($) {
 
-		$( '.jetpack-test-heading' ).on( 'click', function() {
+		$( '.jetpack-test-error .jetpack-test-heading' ).on( 'click', function() {
 			$( this ).parents( '.jetpack-test-results' ).find( '.jetpack-test-details' ).slideToggle();
 			return false;
 		} );
@@ -302,7 +343,7 @@ function jetpack_debug_admin_head() {
 			if ( validation_error ) {
 				return false;				
 			}
-			message.val(message.val() + $('#debug_info').val());
+			message.val(message.val() + $('#debug_info').val() + 'jQuery version: ' + jQuery.fn.jquery );
 			return true;
     	});
     	
