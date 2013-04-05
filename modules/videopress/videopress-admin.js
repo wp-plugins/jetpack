@@ -14,7 +14,37 @@
 				this.set( 'library', media.query({ videopress: true }) );
 
 			media.controller.Library.prototype.initialize.apply( this, arguments );
+		},
+
+		/**
+		 * The original function saves content for the browse router only,
+		 * so we hi-jack it a little bit.
+		 */
+		saveContentMode: function() {
+			if ( 'videopress' !== this.get('router') )
+				return;
+
+			var mode = this.frame.content.mode(),
+				view = this.frame.router.get();
+
+			if ( view && view.get( mode ) ) {
+
+				// Map the Upload a Video back to the regular Upload Files.
+				if ( 'upload_videopress' === mode )
+					mode = 'upload';
+
+				setUserSetting( 'libraryContent', mode );
+			}
 		}
+	});
+
+	/**
+	 * Temporary placeholder for the VideoPress uploader stuff.
+	 */
+	media.view.VideoPressUploader = media.View.extend({
+		tagName:   'div',
+		className: 'uploader-videopress',
+		template:  media.template('videopress-uploader')
 	});
 
 	/**
@@ -95,7 +125,7 @@
 				new media.controller.VideoPress({
 					id: 'videopress',
 					title: 'VideoPress',
-					router: 'select',
+					router: 'videopress',
 					priority: 200,
 					toolbar: 'videopress-toolbar',
 					searchable: true,
@@ -108,6 +138,9 @@
 		bindHandlers: function() {
 			MediaFrame.prototype.bindHandlers.apply( this, arguments );
 
+			this.on( 'router:create:videopress', this.createRouter, this );
+			this.on( 'router:render:videopress', this.setupRouter, this );
+			this.on( 'content:render:upload_videopress', this.uploadVideo, this );
 			this.on( 'toolbar:create:videopress-toolbar', this.createVideoPressToolbar, this );
 			this.on( 'videopress:insert', this.insert, this );
 			return this;
@@ -117,6 +150,32 @@
 		insert: function( selection ) {
 			var guid = selection.models[0].get( 'vp_guid' ).replace( /[^a-zA-Z0-9]+/, '' );
 			media.editor.insert( '[wpvideo ' + guid + ']' );
+			return this;
+		},
+
+		// Our router is slightly different.
+		setupRouter: function( view ) {
+			view.set({
+				upload_videopress: {
+					text:     'Upload a Video', // @todo l10n
+					priority: 20
+				},
+				browse: {
+					text:     'VideoPress Library', // @todo l10n
+					priority: 40
+				}
+			});
+
+			// Map the Upload Files view to the Upload a Video one (upload_videopress vs. upload)
+			if ( 'upload' === this.content.mode() )
+				this.content.mode( 'upload_videopress' );
+		},
+
+		// Triggered by the upload_videopress router item.
+		uploadVideo: function() {
+			this.content.set( new media.view.VideoPressUploader({
+				controller: this
+			}) );
 			return this;
 		},
 

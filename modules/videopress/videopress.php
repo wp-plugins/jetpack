@@ -575,6 +575,10 @@ class Jetpack_VideoPress {
 			</div>
 			<div class="videopress-modal-backdrop"></div>
 		</script>
+
+		<script type="text/html" id="tmpl-videopress-uploader">
+			<p>I am going to be an uploader someday.</p>
+		</script>
 		<?php
 	}
 
