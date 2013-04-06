@@ -135,15 +135,31 @@ function jetpack_debug_menu_display_handler() {
 			$debug_info .= "\n\nRAW TEST RESULTS:" . $debug_raw_info ."\n";
 		?>
 		</div>
-		<div id="contact-message">
+		<div class="entry-content">
+			<h3>Troubleshooting Tips</h3>
+			<h4>Having trouble with Jetpack or one of its components? Here are a few key steps to try on your own:</h4>
+			<ol>
+				<li>Disable all other plugins, then try connecting or using Jetpack. If Jetpack starts connecting or working properly, turn your plugins back on one-by-one until you start seeing the error again. Then note the plugin that caused this error and get in touch with us. Sometimes Jetpack and other plugins are incompatible; just let us know and we’ll see what we can do.</li>
+				<li>If you are having a display issue, or the plugin step above doesn’t help, try activating Twenty Eleven or Twenty Twelve (one of the default WordPress themes) as your theme. Then try again. If your action starts working, likely something in your theme is broken and you should get in touch with your theme’s author.</li>
+				<li>
+					<ol>
+					<li>Check your <a href="<?php echo site_url( 'xmlrpc.php' ); ?>">XMLRPC file</a>. When it loads in your browser, you should see “XML-RPC server accepts POST requests only.” on a line by itself.</li>
+					<li>If you see this message, but it is not on a line by itself, a theme or plugin is displaying extra characters when it shouldn’t. See points 1 and 2 above for debugging steps.</li>
+					<li>If you get an 404 Error Not Found message, contact your web host. They may have security in place that is blocking XMLRPC.</li>
+					</ol>
+				</li>
+				<li>Check the <a href="http://jetpack.me/known-issues/" target="_blank">Known Issues list</a> and make sure you aren’t using a plugin or theme listed there.</li>
+			</ol>
+		</div>
+		<a class="jetpack-show-contact-form" href="#"><?php esc_html_e( 'Contact Jetpack support' ); ?></a>
+		<div id="contact-message" <?php if ( ! $offer_ticket_submission ): ?> style="display:none"<?php endif; ?>>
 			<h4><?php _e( 'Having a problem using the Jetpack plugin on your blog? Be sure to go through this checklist before contacting us. You may be able to solve it all by yourself!' ); ?></h4>
 			<ul>
 				<li><?php echo sprintf( __('Have you looked through the %s? Many common issues and questions are explained there.', 'jetptack' ), '<a href="http://jetpack.me/support/" rel="nofollow">' . __( 'Jetpack support page', 'jetpack' ) . '</a>' ); ?></li>
 				<li><?php echo sprintf( __('Did you see if your question is in the %s?', 'jetptack' ), '<a href="http://jetpack.me/about/" rel="nofollow">' . __( 'Jetpack FAQ', 'jetpack' ) . '</a>' ); ?></li>
 				<li><?php echo sprintf( __('Have you seen if someone asked your question in the %s?', 'jetptack' ), '<a href="http://wordpress.org/support/plugin/jetpack" rel="nofollow">' . __( 'Jetpack Plugin support forum on WordPress.org', 'jetpack' ) . '</a>' ); ?></li>
-				<li><a class="jetpack-show-contact-form" href="#"><?php esc_html_e( 'Contact Jetpack support' ); ?></a></li>
 			</ul>
-			<form id="contactme" method="post" action="http://en.support.wordpress.com/contact/#return"<?php if ( ! $offer_ticket_submission ): ?> style="display:none"<?php endif; ?>>
+			<form id="contactme" method="post" action="http://en.support.wordpress.com/contact/#return">
 				<input type="hidden" name="user_id" id="user_id" value="<?php echo Jetpack::get_option( 'id' ) ?>">
 				<input type="hidden" name="jetpack" id="jetpack" value="needs-service">
 				<input type="hidden" name="keywords" id="keywords" value="">
@@ -325,7 +341,7 @@ function jetpack_debug_admin_head() {
 		} );
 
 		$( '.jetpack-show-contact-form' ).on( 'click', function() {
-			$('form#contactme').slideToggle();
+			$('#contact-message').slideToggle();
 			return false;
 		} );
 		
