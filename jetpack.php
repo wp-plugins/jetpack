@@ -364,13 +364,12 @@ class Jetpack {
 	 * Loads the currently active modules.
 	 */
 	public static function load_modules() {
-		if ( ! Jetpack::is_active() && ! Jetpack::is_development_mode() ) {
-			if ( did_action( 'jetpack_module_loaded_debug' ) ) {
-				continue;
-			}
+		
+		if ( ! did_action( 'jetpack_module_loaded_debug' ) ) {
 			require Jetpack::get_module_path( 'debug' );
-			do_action( 'jetpack_module_loaded_debug' );
+		}
 
+		if ( ! Jetpack::is_active() && ! Jetpack::is_development_mode() ) {
 			return;
 		}
 
