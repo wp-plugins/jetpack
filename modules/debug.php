@@ -94,6 +94,7 @@ function jetpack_debug_menu_display_handler() {
 
 	<div class="wrap">
 		<h2><?php esc_html_e( 'Jetpack Debugging Center', 'jetpack' ); ?></h2>
+		<h3><?php _e( "Tests your site's compatibily with Jetpack.", 'jetpack' ); ?></h3>
 		<h3>Tests</h3>
 		<div class="debug-test-container">
 		<?php foreach ( $tests as $test_name => $test_result ) : 
@@ -139,30 +140,28 @@ function jetpack_debug_menu_display_handler() {
 				<li><a class="jetpack-show-contact-form" href="#"><?php esc_html_e( 'Contact Jetpack support' ); ?></a></li>
 			</ul>
 			<form id="contactme" method="post" action="http://en.support.wordpress.com/contact/#return"<?php if ( ! $offer_ticket_submission ): ?> style="display:none"<?php endif; ?>>
-				<input type="hidden" name="user_id" id="user_id" value="7554348">
+				<input type="hidden" name="user_id" id="user_id" value="<?php echo Jetpack::get_option( 'id' ) ?>">
 				<input type="hidden" name="jetpack" id="jetpack" value="needs-service">
-				<input type="hidden" name="support_is_open" id="support_open_or_closed" value="open">
 				<input type="hidden" name="keywords" id="keywords" value="">
 				<input type="hidden" name="contact_form" id="contact_form" value="1">
-				<input type="hidden" name="cleo" id="cleo" value="excluded">
 				<input type="hidden" name="blog_url" id="blog_url" value="<?php echo esc_attr( site_url() ); ?>">
 				<input type="hidden" name="subject" id="subject" value="from: <?php echo esc_attr( site_url() ); ?> Jetpack contact form">
 				<input type="hidden" name="debug_info" id="debug_info" value="<?php echo esc_attr( $debug_info ); ?>">
 		
 				<div class="formbox">
-					<label for="message" class="h">Please describe the problem you are having.</label>
+					<label for="message" class="h"><?php _e( 'Please describe the problem you are having.' ); ?></label>
 					<textarea name="message" cols="40" rows="7" id="did"></textarea>
 				</div>
 		
 				<div id="name_div" class="formbox">
 					<label class="h" for="your_name">Name</label>
-		  			<span class="errormsg"><?php echo esc_html_e( 'Let us know your name.' ); ?></span>
+		  			<span class="errormsg"><?php echo _e( 'Let us know your name.' ); ?></span>
 					<input name="your_name" type="text" id="your_name" value="<?php echo $current_user->display_name; ?>" size="40">
 				</div>
 		
 				<div id="email_div" class="formbox">
 					<label class="h" for="your_email">E-mail</label>
-		  			<span class="errormsg"><?php echo esc_html_e( 'Use a valid email address.' ); ?></span>
+		  			<span class="errormsg"><?php echo _e( 'Use a valid email address.' ); ?></span>
 					<input name="your_email" type="text" id="your_email" value="<?php echo $current_user->user_email; ?>" size="40">
 				</div>
 		
@@ -345,7 +344,7 @@ function jetpack_debug_admin_head() {
 				return false;				
 			}
 			message.val(message.val() + $('#debug_info').val() + 'jQuery version: ' + jQuery.fn.jquery );
-			return true;
+			return false;
     	});
     	
 	} );
