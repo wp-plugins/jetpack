@@ -5,7 +5,7 @@
  * Module Description: A debugging platform for the Jetpack plugin. Find out why Jetpack isn't working for you and submit a help request direct from your Dashboard.
  * First Introduced: 2.3
  * Sort Order: 999
- * Requires Connection: Yes
+ * Requires Connection: No
  */
 
 // 1. Determine if we are on a network site or not
@@ -31,6 +31,7 @@ function jetpack_debug_add_menu_handler() {
 	if ( current_user_can( 'manage_options' ) ) {
 		$hook = add_submenu_page( 'jetpack', 'Debug', 'Debug', 'manage_options', 'jetpack-debugger', 'jetpack_debug_menu_display_handler' );
 		add_action( 'admin_head-'.$hook, 'jetpack_debug_admin_head' );
+		do_action( 'jetpack_module_loaded_debug' );
 	}
 }
 
@@ -130,12 +131,12 @@ function jetpack_debug_menu_display_handler() {
 		<?php endforeach; ?>
 		</div>
 		<div id="contact-message">
-			<h4>Having a problem using the Jetpack plugin on your blog? Be sure to go through this checklist before contacting us. You may be able to solve it all by yourself!</h4>
+			<h4><?php _e( 'Having a problem using the Jetpack plugin on your blog? Be sure to go through this checklist before contacting us. You may be able to solve it all by yourself!' ); ?></h4>
 			<ul>
-				<li>Have you looked through the <a href="http://jetpack.me/support/" rel="nofollow">Jetpack support page</a>? Many common issues and questions are explained there. </li>
-				<li>Did you see if your question is in the <a href="http://jetpack.me/about/" rel="nofollow">Jetpack FAQ</a>? </li>
-				<li>Have you seen if someone asked your question in the <a href="http://wordpress.org/support/plugin/jetpack" rel="nofollow">Jetpack Plugin support forum on WordPress.org</a>?</li>
-				<li><a class="jetpack-show-contact-form" href="#">Contact Jetpack support</a></li>
+				<li><?php echo sprintf( __('Have you looked through the %s? Many common issues and questions are explained there.', 'jetptack' ), '<a href="http://jetpack.me/support/" rel="nofollow">' . __( 'Jetpack support page', 'jetpack' ) . '</a>' ); ?></li>
+				<li><?php echo sprintf( __('Did you see if your question is in the %s?', 'jetptack' ), '<a href="http://jetpack.me/about/" rel="nofollow">' . __( 'Jetpack FAQ', 'jetpack' ) . '</a>' ); ?></li>
+				<li><?php echo sprintf( __('Have you seen if someone asked your question in the %s?', 'jetptack' ), '<a href="http://wordpress.org/support/plugin/jetpack" rel="nofollow">' . __( 'Jetpack Plugin support forum on WordPress.org', 'jetpack' ) . '</a>' ); ?></li>
+				<li><a class="jetpack-show-contact-form" href="#"><?php esc_html_e( 'Contact Jetpack support' ); ?></a></li>
 			</ul>
 			<form id="contactme" method="post" action="http://en.support.wordpress.com/contact/#return"<?php if ( ! $offer_ticket_submission ): ?> style="display:none"<?php endif; ?>>
 				<input type="hidden" name="user_id" id="user_id" value="7554348">
