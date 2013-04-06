@@ -88,8 +88,8 @@ function jetpack_debug_menu_display_handler() {
 	$debug_info .= "\n" . esc_html("USER_TOKEN: " . $user_token );
 	$debug_info .= "\n" . esc_html("PHP_VERSION: " . PHP_VERSION );
 	$debug_info .= "\n" . esc_html("WORDPRESS_VERSION: " . $GLOBALS['wp_version'] );			
-	$debug_info .= "\n\nTEST RESULTS:\n";
-	
+	$debug_info .= "\n\nTEST RESULTS:\n\n";
+	$debug_raw_info = '';
 	?>
 
 	<div class="wrap">
@@ -113,13 +113,15 @@ function jetpack_debug_menu_display_handler() {
 				} elseif ( '200' == $response_code ) {
 					$test_class = 'jetpack-test-success';
 					$status = __( 'Passed!', 'jetpack' );
+					
 				} else {
 					$test_class = 'jetpack-test-error';
 					$offer_ticket_submission = true;
 					$status = __( 'Failed!', 'jetpack' );
 				}
 			} 
-			$debug_info .= "\n\n" . $test_name . "\n" . esc_html( print_r( $test_result, 1 ) );
+			$debug_info .= $test_name . ': ' . $status . "\n";
+			$debug_raw_info .= "\n\n" . $test_name . "\n" . esc_html( print_r( $test_result, 1 ) );
 			?>
 			<div class="jetpack-test-results <?php echo $test_class; ?>">
 				<p>
@@ -129,7 +131,9 @@ function jetpack_debug_menu_display_handler() {
 				</p>
 				<pre class="jetpack-test-details"><?php echo esc_html( $result ); ?></pre>
 			</div>
-		<?php endforeach; ?>
+		<?php endforeach; 
+			$debug_info .= "\n\nRAW TEST RESULTS:" . $debug_raw_info ."\n";
+		?>
 		</div>
 		<div id="contact-message">
 			<h4><?php _e( 'Having a problem using the Jetpack plugin on your blog? Be sure to go through this checklist before contacting us. You may be able to solve it all by yourself!' ); ?></h4>
@@ -344,7 +348,7 @@ function jetpack_debug_admin_head() {
 				return false;				
 			}
 			message.val(message.val() + $('#debug_info').val() + 'jQuery version: ' + jQuery.fn.jquery );
-			return false;
+			return true;
     	});
     	
 	} );
