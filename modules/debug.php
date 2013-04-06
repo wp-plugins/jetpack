@@ -48,9 +48,9 @@ function jetpack_debug_menu_display_handler() {
 
 	$tests = array();
 
-	$tests['HTTP']  = wp_remote_get( 'http://jetpack.wordpress.com/jetpack.test/1/' );
+	//$tests['HTTP']  = wp_remote_get( 'http://jetpack.wordpress.com/jetpack.test/1/' );
 	//uncomment to make the tests fail
-	//$tests['HTTP']  = wp_remote_get( 'http://jetpack/jetpack.test/1/' );
+	$tests['HTTP']  = wp_remote_get( 'http://jetpack/jetpack.test/1/' );
 	
 	$tests['HTTPS'] = wp_remote_get( 'https://jetpack.wordpress.com/jetpack.test/1/' );
 
@@ -149,9 +149,9 @@ function jetpack_debug_menu_display_handler() {
 					</ol>
 				</li>
 				<li>Check the <a href="http://jetpack.me/known-issues/" target="_blank">Known Issues list</a> and make sure you aren’t using a plugin or theme listed there.</li>
+				<li><a class="jetpack-show-contact-form" href="#"><?php esc_html_e( 'Contact Jetpack support' ); ?></a></li>
 			</ol>
 		</div>
-		<a class="jetpack-show-contact-form" href="#"><?php esc_html_e( 'Contact Jetpack support' ); ?></a>
 		<div id="contact-message" <?php if ( ! $offer_ticket_submission ): ?> style="display:none"<?php endif; ?>>
 			<h4><?php _e( 'Having a problem using the Jetpack plugin on your blog? Be sure to go through this checklist before contacting us. You may be able to solve it all by yourself!' ); ?></h4>
 			<ul>
