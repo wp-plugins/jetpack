@@ -48,9 +48,9 @@ function jetpack_debug_menu_display_handler() {
 
 	$tests = array();
 
-	//$tests['HTTP']  = wp_remote_get( 'http://jetpack.wordpress.com/jetpack.test/1/' );
+	$tests['HTTP']  = wp_remote_get( 'http://jetpack.wordpress.com/jetpack.test/1/' );
 	//uncomment to make the tests fail
-	$tests['HTTP']  = wp_remote_get( 'http://jetpack/jetpack.test/1/' );
+	//$tests['HTTP']  = wp_remote_get( 'http://jetpack/jetpack.test/1/' );
 	
 	$tests['HTTPS'] = wp_remote_get( 'https://jetpack.wordpress.com/jetpack.test/1/' );
 
