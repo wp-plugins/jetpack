@@ -366,9 +366,12 @@ class Jetpack {
 	public static function load_modules() {
 		
 		if ( ! Jetpack::is_active() && ! Jetpack::is_development_mode() ) {
-			if ( ! did_action( 'jetpack_module_loaded_debug' ) ) {
+			if ( ! did_action( 'jetpack_module_loaded_debug' ) && ! did_action( 'jetpack_activate_module_debug' ) ) {
 				require Jetpack::get_module_path( 'debug' );
-				do_action( 'jetpack_module_loaded_debug' );
+				do_action( 'jetpack_activate_module', 'debug' );
+				$active = Jetpack::get_active_modules();
+				$active[] = 'debug';
+				Jetpack::update_option( 'active_modules', array_unique( $active ) );
 			}
 			return;
 		}
@@ -951,6 +954,11 @@ class Jetpack {
 		Jetpack::restate();
 		Jetpack::catch_errors( true );
 		foreach ( $modules as $module ) {
+			if ( did_action( "jetpack_activate_module_$module" ) ) {
+				$active[] = $module;
+				Jetpack::update_option( 'active_modules', array_unique( $active ) );
+				continue;
+			}
 			$active = Jetpack::get_active_modules();
 			if ( in_array( $module, $active ) ) {
 				$module_info = Jetpack::get_module( $module );
