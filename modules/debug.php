@@ -61,7 +61,7 @@ function jetpack_debug_menu_display_handler() {
 		$tests['SELF']      = wp_remote_get( $self_xml_rpc_url );
 	}
 	
-	$debug_info = "\n\n----------------------------------------------\n\nDEBUG INFO:\n";
+	$debug_info = "\r\n\r\n----------------------------------------------\r\n\r\nDEBUG INFO:\r\n";
 	$user_id = get_current_user_id();
 	$user_tokens = Jetpack::get_option( 'user_tokens' );
 	if ( is_array( $user_tokens ) && array_key_exists( $user_id, $user_tokens ) ) {
@@ -81,18 +81,17 @@ function jetpack_debug_menu_display_handler() {
 		'OLD_VERSION' => 'old_version',
 		'PUBLIC'      => 'public',
 	) as $label => $option_name ) {
-		$debug_info .= "\n" . esc_html( $label . ": " . Jetpack::get_option( $option_name ) );
+		$debug_info .= "\r\n" . esc_html( $label . ": " . Jetpack::get_option( $option_name ) );
 	}
 	
-	$debug_info .= "\n" . esc_html("USER_ID: " . $user_id );
-	$debug_info .= "\n" . esc_html("USER_TOKEN: " . $user_token );
-	$debug_info .= "\n" . esc_html("PHP_VERSION: " . PHP_VERSION );
-	$debug_info .= "\n" . esc_html("WORDPRESS_VERSION: " . $GLOBALS['wp_version'] );
-	$debug_info .= "\n" . esc_html("JETPACK__VERSION: " . JETPACK__VERSION );
-	$debug_info .= "\n" . esc_html("JETPACK__PLUGIN_DIR: " . JETPACK__PLUGIN_DIR );
-	$debug_info .= "\n" . esc_html("Operating System: " . php_uname() );
-		
-	$debug_info .= "\n\nTEST RESULTS:\n\n";
+	$debug_info .= "\r\n" . esc_html( "USER_ID: " . $user_id );
+	$debug_info .= "\r\n" . esc_html( "USER_TOKEN: " . $user_token );
+	$debug_info .= "\r\n" . esc_html( "PHP_VERSION: " . PHP_VERSION );
+	$debug_info .= "\r\n" . esc_html( "WORDPRESS_VERSION: " . $GLOBALS['wp_version'] );
+	$debug_info .= "\r\n" . esc_html( "JETPACK__VERSION: " . JETPACK__VERSION );
+	$debug_info .= "\r\n" . esc_html( "JETPACK__PLUGIN_DIR: " . JETPACK__PLUGIN_DIR );
+
+	$debug_info .= "\r\n\r\nTEST RESULTS:\r\n\r\n";
 	$debug_raw_info = '';
 	?>
 
@@ -124,8 +123,8 @@ function jetpack_debug_menu_display_handler() {
 					$status = __( 'Failed!', 'jetpack' );
 				}
 			} 
-			$debug_info .= $test_name . ': ' . $status . "\n";
-			$debug_raw_info .= "\n\n" . $test_name . "\n" . esc_html( print_r( $test_result, 1 ) );
+			$debug_info .= $test_name . ': ' . $status . "\r\n";
+			$debug_raw_info .= "\r\n\r\n" . $test_name . "\r\n" . esc_html( print_r( $test_result, 1 ) );
 			?>
 			<div class="jetpack-test-results <?php echo $test_class; ?>">
 				<p>
@@ -136,7 +135,7 @@ function jetpack_debug_menu_display_handler() {
 				<pre class="jetpack-test-details"><?php echo esc_html( $result ); ?></pre>
 			</div>
 		<?php endforeach; 
-			$debug_info .= "\n\nRAW TEST RESULTS:" . $debug_raw_info ."\n";
+			$debug_info .= "\r\n\r\nRAW TEST RESULTS:" . $debug_raw_info ."\r\n";
 		?>
 		</div>
 		<div class="entry-content">
