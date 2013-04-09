@@ -365,11 +365,11 @@ class Jetpack {
 	 */
 	public static function load_modules() {
 		
-		if ( ! did_action( 'jetpack_module_loaded_debug' ) ) {
-			require Jetpack::get_module_path( 'debug' );
-		}
-
 		if ( ! Jetpack::is_active() && ! Jetpack::is_development_mode() ) {
+			if ( ! did_action( 'jetpack_module_loaded_debug' ) ) {
+				require Jetpack::get_module_path( 'debug' );
+				do_action( 'jetpack_module_loaded_debug' );
+			}
 			return;
 		}
 

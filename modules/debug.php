@@ -31,7 +31,6 @@ function jetpack_debug_add_menu_handler() {
 	if ( current_user_can( 'manage_options' ) ) {
 		$hook = add_submenu_page( 'jetpack', 'Debug', 'Debug', 'manage_options', 'jetpack-debugger', 'jetpack_debug_menu_display_handler' );
 		add_action( 'admin_head-'.$hook, 'jetpack_debug_admin_head' );
-		do_action( 'jetpack_module_loaded_debug' );
 	}
 }
 
