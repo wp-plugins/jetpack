@@ -87,7 +87,11 @@ function jetpack_debug_menu_display_handler() {
 	$debug_info .= "\n" . esc_html("USER_ID: " . $user_id );
 	$debug_info .= "\n" . esc_html("USER_TOKEN: " . $user_token );
 	$debug_info .= "\n" . esc_html("PHP_VERSION: " . PHP_VERSION );
-	$debug_info .= "\n" . esc_html("WORDPRESS_VERSION: " . $GLOBALS['wp_version'] );			
+	$debug_info .= "\n" . esc_html("WORDPRESS_VERSION: " . $GLOBALS['wp_version'] );
+	$debug_info .= "\n" . esc_html("JETPACK__VERSION: " . JETPACK__VERSION );
+	$debug_info .= "\n" . esc_html("JETPACK__PLUGIN_DIR: " . JETPACK__PLUGIN_DIR );
+	$debug_info .= "\n" . esc_html("Operating System: " . php_uname() );
+		
 	$debug_info .= "\n\nTEST RESULTS:\n\n";
 	$debug_raw_info = '';
 	?>
