@@ -1,4 +1,4 @@
-div.sharedaddy ul, 
+li.share-print a.sd-button > spandiv.sharedaddy ul, 
 div.sharedaddy li {
 	margin: 0;
 	padding: 0;
@@ -58,11 +58,6 @@ div.sharedaddy li {
 
 div.sharedaddy li::before {
 	content: "";
-}
-
-div.sharedaddy div.sharing-clear {
-	margin: 0 !important;
-	padding: 0 !important;
 }
 
 div.sharedaddy div.pd-rating {
@@ -376,6 +371,11 @@ a.sd-button.share-more span {
 	
 	li.share-pinterest a.sd-button > span {
 		background-image: url('images/pinterest@2x.png');
+		background-size: 16px 16px;
+	}
+	
+	li.share-pocket a.sd-button > span {
+		background-image: url('images/pocket@2x.png');
 		background-size: 16px 16px;
 	}
 	
