@@ -59,7 +59,6 @@ function jetpack_debug_menu_display_handler() {
 		$tests['SELF']      = wp_remote_get( $self_xml_rpc_url );
 	}
 	
-	$debug_info = "\r\n\r\n----------------------------------------------\r\n\r\nDEBUG INFO:\r\n";
 	$user_id = get_current_user_id();
 	$user_tokens = Jetpack::get_option( 'user_tokens' );
 	if ( is_array( $user_tokens ) && array_key_exists( $user_id, $user_tokens ) ) {
@@ -169,7 +168,6 @@ function jetpack_debug_menu_display_handler() {
 				<input type="hidden" name="contact_form" id="contact_form" value="1">
 				<input type="hidden" name="blog_url" id="blog_url" value="<?php echo esc_attr( site_url() ); ?>">
 				<input type="hidden" name="subject" id="subject" value="from: <?php echo esc_attr( site_url() ); ?> Jetpack contact form">
-				<input type="hidden" name="debug_info" id="debug_info" value="<?php echo esc_attr( $debug_info ); ?>">
 		
 				<div class="formbox">
 					<label for="message" class="h"><?php _e( 'Please describe the problem you are having.' ); ?></label>
@@ -187,7 +185,16 @@ function jetpack_debug_menu_display_handler() {
 		  			<span class="errormsg"><?php echo _e( 'Use a valid email address.' ); ?></span>
 					<input name="your_email" type="text" id="your_email" value="<?php echo $current_user->user_email; ?>" size="40">
 				</div>
-		
+
+				<div id="toggle_debug_info" class="formbox">
+					<p><?php echo _e( 'The test results and some other useful debug information will be sent to the support team. Please fill free to <a href="#">review/modify</a> this information. ' ); ?></p>
+				</div>
+				
+				<div id="debug_info_div" class="formbox" style="display:none">
+					<label class="h" for="debug_info"><?php echo _e( 'Debug Info' ); ?></label>
+		  			<textarea name="debug_info" cols="40" rows="7" id="debug_info"><?php echo esc_attr( $debug_info ); ?></textarea>
+				</div>
+
 				<div style="clear: both;"></div>
 		
 				<div id="blog_div" class="formbox">
@@ -337,7 +344,9 @@ function jetpack_debug_admin_head() {
 	</style>
 	<script type="text/javascript">
 	jQuery( document ).ready( function($) {
-
+		
+		$('#debug_info').prepend('jQuery version: ' + jQuery.fn.jquery + "\r\n");
+		
 		$( '.jetpack-test-error .jetpack-test-heading' ).on( 'click', function() {
 			$( this ).parents( '.jetpack-test-results' ).find( '.jetpack-test-details' ).slideToggle();
 			return false;
@@ -348,6 +357,10 @@ function jetpack_debug_admin_head() {
 			return false;
 		} );
 		
+		$( '#toggle_debug_info a' ).on( 'click', function() {
+			$('#debug_info_div').slideToggle();
+			return false;
+		} );
 		
 		$('form#contactme').on("submit", function(e){
 			var form = $(this);
@@ -366,7 +379,7 @@ function jetpack_debug_admin_head() {
 			if ( validation_error ) {
 				return false;				
 			}
-			message.val(message.val() + $('#debug_info').val() + 'jQuery version: ' + jQuery.fn.jquery );
+			message.val(message.val() + "\r\n\r\n----------------------------------------------\r\n\r\nDEBUG INFO:\r\n" + $('#debug_info').val()  );
 			return true;
     	});
     	
