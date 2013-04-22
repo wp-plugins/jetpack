@@ -36,6 +36,7 @@ Features include:
 * Mobile push notifications for new comments via WordPress mobile apps.
 * The ability to allow applications to securely authenticate and access your site with your permission.
 * Creative formats for your image galleries: mosaic, circles, squares, and a slideshow view.
+* Add post sliders and other highlights to your theme with Featured Content.
 * and *many* more to come!
 
 Note: The stats portion of Jetpack uses Quantcast to enhance its data.
@@ -58,25 +59,12 @@ Jetpack requires a connection to [WordPress.com](http://wordpress.com/) to enabl
 
 Once you've installed Jetpack, your stats will be available via the "Site Stats" menu which appears in the new Jetpack menu (under your Dashboard menu within WordPress).
 
-= How do I embed media? =
+= How do I contribute to Jetpack? =
 
-Use [shortcodes](http://support.wordpress.com/shortcodes/) to embed your media.  Currently, Jetpack provides the following shortcodes.
+Easy! There are a couple of ways (more coming soon):
 
-* [[archives]](http://support.wordpress.com/archives-shortcode/)
-* [[audio]](http://support.wordpress.com/audio/)
-* [[blip.tv]](http://support.wordpress.com/videos/bliptv/)
-* [[dailymotion]](http://support.wordpress.com/videos/dailymotion/)
-* [[digg]](http://support.wordpress.com/digg/)
-* [[flickr]](http://support.wordpress.com/videos/flickr-video/)
-* [[googlemaps]](http://en.support.wordpress.com/google-maps/)
-* [[googlevideo]](http://support.wordpress.com/videos/google-video/)
-* [[polldaddy]](http://support.polldaddy.com/wordpress-shortcodes/)
-* [[scribd]](http://support.wordpress.com/scribd/)
-* [[slideshare]](http://support.wordpress.com/slideshows/slideshare/)
-* [[soundcloud]](http://support.wordpress.com/audio/soundcloud-audio-player/)
-* [[videopress]](http://support.wordpress.com/videopress/)
-* [[vimeo]](http://support.wordpress.com/videos/vimeo/)
-* [[youtube]](http://support.wordpress.com/videos/youtube/)
+* Give us a hand answering questions in our [support forum](http://wordpress.org/support/plugin/jetpack)
+* Report bugs, with reproduction steps, or post patches on our [Trac](http://plugins.trac.wordpress.org/newticket?component=jetpack)
 
 == Screenshots ==
 
@@ -111,11 +99,11 @@ Use [shortcodes](http://support.wordpress.com/shortcodes/) to embed your media. 
 * Enhancement: Widgets - Filter Jetpack's widgets so that a plugin can control which widgets get loaded
 * Bug Fix: Comments - Add in a wrapper div with id='commentform'
 * Bug Fix: Contact Form - Added date field with datepicker
-* Bug Fix: Contact Form - Allowed non-text widgets to use contact forms by running their output through the widget_text filter 
+* Bug Fix: Contact Form - Allowed non-text widgets to use contact forms by running their output through the widget_text filter
 * Bug Fix: Custom CSS - Allowing color values to be defined multiple times
 * Bug Fix: Custom CSS - Dynamically loading the correct CSS/LESS/SCSS mode for the CSS editor if the user changes the preprocessor
 * Bug Fix: Custom CSS - Using the unminified worker CSS
-* Bug Fix: Custom CSS - Added rule: reminder about using .custom-background on body selector 
+* Bug Fix: Custom CSS - Added rule: reminder about using .custom-background on body selector
 * Bug Fix: Custom CSS - Modified rule: Removed portion of overqualification rule that deems 'a.foo' overqualified if there are no other 'a' rules
 * Bug Fix: Custom CSS - Ensuring that the editor and the textarea behind it are using the same font so that the cursor appears in the correct location
 * Bug Fix: Custom CSS - Fix a bug that caused some sites to always ignore the base theme's CSS when in preview mode
