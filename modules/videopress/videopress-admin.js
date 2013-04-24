@@ -1,5 +1,7 @@
 /**
  * VideoPress Admin
+ *
+ * @todo i18n
  */
 (function($) {
 	var media = wp.media;
@@ -44,7 +46,107 @@
 	media.view.VideoPressUploader = media.View.extend({
 		tagName:   'div',
 		className: 'uploader-videopress',
-		template:  media.template('videopress-uploader')
+		template:  media.template('videopress-uploader'),
+
+		events: {
+			'submit .videopress-upload-form': 'submitForm'
+		},
+
+		initialize: function() {
+			var that = this;
+
+			if ( ! window.addEventListener )
+				window.attachEvent( "onmessage", function() { return that.messageHandler.apply( that, arguments ); } );
+			else
+				window.addEventListener( "message", function() { return that.messageHandler.apply( that, arguments ); }, false );
+
+			return media.View.prototype.initialize.apply( this, arguments );
+		},
+
+		submitForm: function() {
+			var data = false;
+
+			this.clearErrors();
+
+			if ( this.$( 'input[name="videopress_file"]').val().length < 1 ) {
+				this.error( 'Please select a video file to upload.' );
+				return false;
+			}
+
+			// Prevent multiple submissions.
+			this.$( '.videopress-upload-form .button' ).prop( 'disabled', true );
+
+			// A non-async request for an upload token.
+			media.ajax( 'videopress-get-upload-token', { async: false } ).done( function( response ) {
+				data = response;
+				data.success = true;
+			}).fail( function( response ) {
+				data = response;
+				data.success = false;
+			});
+
+			if ( ! data.success ) {
+				// Re-enable form elements.
+				this.$( '.videopress-upload-form .button' ).prop( 'disabled', false );
+
+				// Display an error message and cancel form submission.
+				this.error( data.message );
+				return false;
+			}
+
+			this.error( 'Your video is uploading... Please do not close this window.', 'updated' );
+
+			// Set the form token.
+			this.$( 'input[name="videopress_blog_id"]' ).val( data.videopress_blog_id );
+			this.$( 'input[name="videopress_token"]' ).val( data.videopress_token );
+			this.$( '.videopress-upload-form' ).attr( 'action', data.videopress_action_url );
+			return true;
+		},
+
+		error: function( message, type ) {
+			type = type || 'error';
+			var div = $( '<div />' ).html( $( '<p />' ).text( message ) ).addClass( type );
+			this.$( '.videopress-errors' ).html( div );
+			return this;
+		},
+
+		success: function( message ) {
+			return this.error( message, 'updated' );
+		},
+
+		clearErrors: function() {
+			this.$( '.videopress-errors' ).html('');
+			return this;
+		},
+
+		messageHandler: function( event ) {
+			if ( ! event.origin.match( /\.wordpress\.com$/ ) )
+				return;
+
+			if ( event.data.indexOf && event.data.indexOf( 'vpUploadResult::' ) === 0 ) {
+				var code = event.data.substr( 16 );
+				if ( code == 'success' ) {
+					this.success( 'Your video has successfully been uploaded. It will appear in your VideoPress Library shortly.' );
+
+					// Our new video has been added, so we need to reset the library.
+					// Since the Media API caches all queries, we add a random attribute
+					// to avoid the cache, then call more() to actually fetch the data.
+
+					var state = media.editor.get().states.get( 'videopress' );
+					state.set( 'library', media.query({ videopress:true, vp_random:Math.random() }) );
+					state.get( 'library' ).more();
+					state.get( 'selection' ).reset();
+
+					// Clear the file field.
+					this.$( 'input[name="videopress_file"]').val('');
+				} else {
+					this.error( code );
+				}
+
+				// Re-enable form elements.
+				this.$( '.videopress-upload-form .button' ).prop( 'disabled', false );
+			}
+		}
 	});
 
 	/**
@@ -132,6 +234,7 @@
 					sortable: false
 				})
 			]);
+
 			return this;
 		},
 

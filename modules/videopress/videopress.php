@@ -21,7 +21,7 @@ class Jetpack_VideoPress {
 	}
 
 	function __construct() {
-		// $this->version = time(); // <s>ghost</s> cache busters!
+		$this->version = time(); // <s>ghost</s> cache busters!
 		add_action( 'jetpack_modules_loaded', array( $this, 'jetpack_modules_loaded' ) );
 		add_action( 'jetpack_activate_module_videopress', array( $this, 'jetpack_module_activated' ) );
 		add_action( 'jetpack_deactivate_module_videopress', array( $this, 'jetpack_module_deactivated' ) );
@@ -54,7 +54,26 @@ class Jetpack_VideoPress {
 			add_action( 'wp_ajax_delete-post', array( $this, 'wp_ajax_delete_post' ), -1 );
 		}
 
+		if ( $this->can( 'upload_videos' ) && $options['blog_id'] ) {
+			add_action( 'wp_ajax_videopress-get-upload-token', array( $this, 'wp_ajax_videopress_get_upload_token' ) );
+		}
+
 		add_filter( 'videopress_shortcode_options', array( $this, 'videopress_shortcode_options' ) );
+	}
+
+	function wp_ajax_videopress_get_upload_token() {
+		if ( ! $this->can( 'upload_videos' ) )
+			return wp_send_json_error();
+
+		$xml = $this->query( 'jetpack.vpGetUploadToken' );
+		if ( $xml->isError() )
+			return wp_send_json_error( array( 'message' => __( 'Could not obtain a VideoPress upload token. Please try again later.', 'jetpack' ) ) );
+
+		$response = $xml->getResponse();
+		if ( empty( $response['videopress_blog_id'] ) || empty( $response['videopress_token'] ) || empty( $response[ 'videopress_action_url' ] ) )
+			return wp_send_json_error( array( 'message' => __( 'Could not obtain a VideoPress upload token. Please try again later.', 'jetpack' ) ) );
+
+		return wp_send_json_success( $response );
 	}
 
 	/**
@@ -577,7 +596,16 @@ class Jetpack_VideoPress {
 		</script>
 
 		<script type="text/html" id="tmpl-videopress-uploader">
-			<p>I am going to be an uploader someday.</p>
+			<div class="videopress-errors"></div>
+			<form class="videopress-upload-form" action="" method="post" target="videopress_upload_frame" enctype="multipart/form-data">
+				<input type="hidden" name="action" value="videopress_upload" />
+				<input type="hidden" name="videopress_blog_id" value="0" />
+				<input type="hidden" name="videopress_token" value="0" />
+				<input type="file" name="videopress_file" />
+
+				<?php submit_button( __( 'Upload Video', 'jetpack' ) ); ?>
+			</form>
+			<iframe width="0" height="0" name="videopress_upload_frame"></iframe>
 		</script>
 		<?php
 	}
