@@ -249,7 +249,8 @@ class Jetpack_VideoPress {
 								<option value="<?php echo absint( $blog['blog_id'] ); ?>" <?php selected( $options['blog_id'], $blog['blog_id'] ); ?>><?php echo esc_html( $blog['name'] ); ?> (<?php echo esc_html( $blog['domain'] ); ?>)</option>
 								<?php endforeach; ?>
 							</select>
-							<p class="description">Only videos from the selected blog will be available in your media library. <a href="<?php echo esc_url( $refresh_url ); ?>">Click here</a> to refresh this list.</p>
+							<p class="description"><?php _e( 'Only videos from the selected blog will be available in your media library.', 'jetpack' ); ?>
+								<?php printf( __( '<a href="%s">Click here</a> to refresh this list', 'jetpack' ), esc_url( $refresh_url ) ); ?>
 						</td>
 					</tr>
 					<tr>
@@ -533,7 +534,7 @@ class Jetpack_VideoPress {
 	 * Get some extra media scripts and styles.
 	 */
 	function wp_enqueue_media() {
-		wp_enqueue_script( 'videopress-admin', plugins_url( 'videopress-admin.js', __FILE__ ), array( 'media-views', 'media-models' ), $this->version );
+		wp_enqueue_script( 'videopress-admin', plugins_url( 'videopress-admin.js', __FILE__ ), array( 'jquery', 'media-views', 'media-models' ), $this->version );
 		wp_enqueue_style( 'videopress-admin', plugins_url( 'videopress-admin.css', __FILE__ ), array(), $this->version );
 
 		$caps = array();
