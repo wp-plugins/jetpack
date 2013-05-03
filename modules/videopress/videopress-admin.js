@@ -354,4 +354,26 @@
 	});
 
 	var VideoPressModal = new VideoPressModalView();
+
+	// Configuration screen behavior
+	$(document).on( 'ready', function() {
+		var $form = $( '#videopress-settings' );
+
+		// Not on a configuration screen
+		if ( ! $form.length )
+			return;
+
+		var $access = $form.find( 'input[name="videopress-access"]' ),
+		    $upload = $form.find( 'input[name="videopress-upload"]' );
+
+		$access.on( 'change', function() {
+			var access = $access.filter( ':checked' ).val();
+			$upload.attr( 'disabled', ! access );
+
+			if ( ! access )
+				$upload.attr( 'checked', false );
+		});
+
+		$access.trigger( 'change' );
+	});
 })(jQuery);

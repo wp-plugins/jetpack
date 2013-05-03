@@ -44,7 +44,7 @@ class Jetpack_VideoPress {
 
 		// Only if the current user can manage the VideoPress library and one has been connected.
 		if ( $this->can( 'read_videos' ) && $options['blog_id'] ) {
-			add_action( 'wp_enqueue_media', array( $this, 'wp_enqueue_media' ) );
+			add_action( 'wp_enqueue_media', array( $this, 'enqueue_admin_scripts' ) );
 			add_action( 'print_media_templates', array( $this, 'print_media_templates' ) );
 
 			// Load these at priority -1 so they're fired before Core's are.
@@ -173,6 +173,7 @@ class Jetpack_VideoPress {
 	 * to update options and yield errors.
 	 */
 	function jetpack_configuration_load() {
+		$this->enqueue_admin_scripts();
 
 		/**
 		 * Save configuration
@@ -233,7 +234,7 @@ class Jetpack_VideoPress {
 		$refresh_url = wp_nonce_url( add_query_arg( 'videopress', 'refresh-blogs' ), 'videopress-settings' );
 		?>
 		<div class="narrow">
-			<form method="post">
+			<form method="post" id="videopress-settings">
 				<input type="hidden" name="action" value="videopress-save" />
 				<?php wp_nonce_field( 'videopress-settings' ); ?>
 
@@ -531,9 +532,12 @@ class Jetpack_VideoPress {
 	}
 
 	/**
-	 * Get some extra media scripts and styles.
+	 * Register VideoPress admin scripts.
 	 */
-	function wp_enqueue_media() {
+	function enqueue_admin_scripts() {
+		if ( did_action( 'videopress_enqueue_admin_scripts' ) )
+			return;
+
 		wp_enqueue_script( 'videopress-admin', plugins_url( 'videopress-admin.js', __FILE__ ), array( 'jquery', 'media-views', 'media-models' ), $this->version );
 		wp_enqueue_style( 'videopress-admin', plugins_url( 'videopress-admin.css', __FILE__ ), array(), $this->version );
 
@@ -555,6 +559,8 @@ class Jetpack_VideoPress {
 			'caps' => $caps,
 			'l10n' => $l10n,
 		) );
+
+		do_action( 'videopress_enqueue_admin_scripts' );
 	}
 
 	/**
