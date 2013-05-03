@@ -5,6 +5,10 @@
  */
 (function($) {
 	var media = wp.media;
+	var VideoPress = VideoPress || {};
+
+	VideoPress.caps = VideoPressAdminSettings.caps;
+	VideoPress.l10n = VideoPressAdminSettings.l10n;
 
 	/**
 	 * Create a new controller that simply adds a videopress key
@@ -41,7 +45,7 @@
 	});
 
 	/**
-	 * Temporary placeholder for the VideoPress uploader stuff.
+	 * VideoPress Uploader
 	 */
 	media.view.VideoPressUploader = media.View.extend({
 		tagName:   'div',
@@ -69,7 +73,7 @@
 			this.clearErrors();
 
 			if ( this.$( 'input[name="videopress_file"]').val().length < 1 ) {
-				this.error( 'Please select a video file to upload.' );
+				this.error( VideoPress.l10n.selectVideoFile );
 				return false;
 			}
 
@@ -94,7 +98,7 @@
 				return false;
 			}
 
-			this.error( 'Your video is uploading... Please do not close this window.', 'updated' );
+			this.error( VideoPress.l10n.videoUploading, 'updated' );
 
 			// Set the form token.
 			this.$( 'input[name="videopress_blog_id"]' ).val( data.videopress_blog_id );
@@ -126,7 +130,7 @@
 			if ( event.data.indexOf && event.data.indexOf( 'vpUploadResult::' ) === 0 ) {
 				var code = event.data.substr( 16 );
 				if ( code == 'success' ) {
-					this.success( 'Your video has successfully been uploaded. It will appear in your VideoPress Library shortly.' );
+					this.success( VideoPress.l10n.videoUploaded );
 
 					// Our new video has been added, so we need to reset the library.
 					// Since the Media API caches all queries, we add a random attribute
@@ -258,20 +262,21 @@
 
 		// Our router is slightly different.
 		setupRouter: function( view ) {
-			view.set({
-				upload_videopress: {
-					text:     'Upload a Video', // @todo l10n
-					priority: 20
-				},
-				browse: {
-					text:     'VideoPress Library', // @todo l10n
-					priority: 40
-				}
-			});
+			var viewSettings = {};
+
+			if ( VideoPress.caps.read_videos )
+				viewSettings.browse = { text: VideoPress.l10n.VideoPressLibraryRouter, priority: 40 };
+
+			if ( VideoPress.caps.upload_videos )
+				viewSettings.upload_videopress = { text: VideoPress.l10n.uploadVideoRouter, priority: 20 };
+
+			view.set( viewSettings );
 
 			// Map the Upload Files view to the Upload a Video one (upload_videopress vs. upload)
-			if ( 'upload' === this.content.mode() )
+			if ( 'upload' === this.content.mode() && VideoPress.caps.upload_videos )
 				this.content.mode( 'upload_videopress' );
+			else
+				this.content.mode( 'browse' );
 		},
 
 		// Triggered by the upload_videopress router item.
@@ -290,7 +295,7 @@
 				items: {
 					insert: {
 						style:    'primary',
-						text:     'Insert Video',
+						text:     VideoPress.l10n.insertVideoButton,
 						priority: 80,
 						requires: {
 							library: true,

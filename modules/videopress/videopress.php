@@ -84,6 +84,7 @@ class Jetpack_VideoPress {
 			'blogs' => array(),
 			'blog_id' => 0,
 			'access' => '',
+			'allow-upload' => false,
 			'freedom' => false,
 			'static' => false,
 			'hd' => false,
@@ -197,6 +198,11 @@ class Jetpack_VideoPress {
 			$options['static'] = isset( $_POST['videopress-static'] );
 			$options['hd'] = isset( $_POST['videopress-hd'] );
 
+			// Allow upload only if some level of access has been granted, and uploads were allowed.
+			$options['allow-upload'] = false;
+			if ( ! empty( $options['access'] ) && isset( $_POST['videopress-upload'] ) )
+				$options['allow-upload'] = true;
+
 			$this->update_options( $options );
 			Jetpack::state( 'message', 'module_configured' );
 			wp_safe_redirect( Jetpack::module_configuration_url( $this->module ) );
@@ -258,7 +264,10 @@ class Jetpack_VideoPress {
 							<label><input type="radio" name="videopress-access" value="edit" <?php checked( 'edit', $options['access'] ); ?> />
 								<?php _e( 'Allow users to access and edit my videos', 'jetpack' ); ?></label><br/>
 							<label><input type="radio" name="videopress-access" value="delete" <?php checked( 'delete', $options['access'] ); ?> />
-								<?php _e( 'Allow users to access, edit, and delete my videos', 'jetpack' ); ?></label><br/>
+								<?php _e( 'Allow users to access, edit, and delete my videos', 'jetpack' ); ?></label><br/><br />
+
+							<label><input type="checkbox" name="videopress-upload" value="1" <?php checked( $options['allow-upload'] ); ?> />
+								<?php _e( 'Allow users to upload videos', 'jetpack' ); ?></label><br />
 						</td>
 					</tr>
 					<tr>
@@ -329,7 +338,7 @@ class Jetpack_VideoPress {
 		if ( ! array_key_exists( $options['access'], $map ) )
 			return false;
 
-		if ( ! in_array( $cap, $map[ $options['access'] ] ) )
+		if ( ! in_array( $cap, $map[ $options['access'] ] ) && 'upload_videos' != $cap )
 			return false;
 
 		// Additional and intrenal caps checks
@@ -341,6 +350,9 @@ class Jetpack_VideoPress {
 			return false;
 
 		if ( 'delete_videos' == $cap && ! user_can( $user_id, 'delete_others_posts' ) )
+			return false;
+
+		if ( 'upload_videos' == $cap && ! $options['allow-upload'] )
 			return false;
 
 		return true;
@@ -523,6 +535,25 @@ class Jetpack_VideoPress {
 	function wp_enqueue_media() {
 		wp_enqueue_script( 'videopress-admin', plugins_url( 'videopress-admin.js', __FILE__ ), array( 'media-views', 'media-models' ), $this->version );
 		wp_enqueue_style( 'videopress-admin', plugins_url( 'videopress-admin.css', __FILE__ ), array(), $this->version );
+
+		$caps = array();
+		foreach( array( 'read_videos', 'edit_videos', 'delete_videos', 'upload_videos' ) as $cap )
+			$caps[ $cap ] = $this->can( $cap );
+
+		$l10n = array(
+			'selectVideoFile' => __( 'Please select a video file to upload.', 'jetpack' ),
+			'videoUploading' => __( 'Your video is uploading... Please do not close this window.', 'jetpack' ),
+			'videoUploaded' => __( 'Your video has successfully been uploaded. It will appear in your VideoPress Library shortly.', 'jetpack' ),
+			'VideoPressLibraryRouter' => __( 'VideoPress Library', 'jetpack' ),
+			'uploadVideoRouter' => __( 'Upload a Video', 'jetpack' ),
+			'insertVideoButton' => __( 'Insert Video', 'jetpack' ),
+
+		);
+
+		wp_localize_script( 'videopress-admin', 'VideoPressAdminSettings', array(
+			'caps' => $caps,
+			'l10n' => $l10n,
+		) );
 	}
 
 	/**
