@@ -43,8 +43,8 @@ function jetpack_debug_menu_display_handler() {
 	$offer_ticket_submission = false;
 
 	$self_xml_rpc_url = site_url( 'xmlrpc.php' );
-
-	$tests = array();
+	$debug_info       = '';
+	$tests 			  = array();
 
 	$tests['HTTP']  = wp_remote_get( 'http://jetpack.wordpress.com/jetpack.test/1/' );
 	//uncomment to make the tests fail
@@ -67,7 +67,7 @@ function jetpack_debug_menu_display_handler() {
 		$user_token = '[this user has no token]';
 	}
 	unset( $user_tokens );
-
+	
 	foreach ( array(
 		'CLIENT_ID'   => 'id',
 		'BLOG_TOKEN'  => 'blog_token',
