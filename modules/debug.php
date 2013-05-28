@@ -33,6 +33,17 @@ function jetpack_debug_add_menu_handler() {
 	}
 }
 
+function is_jetpack_support_open() {
+	try { 
+		$response = wp_remote_retrieve_body( wp_remote_request( "http://jetpack.me/is-support-open" ) );
+		$json = json_decode( $response );
+		return ( ( bool )$json->is_support_open );
+	}
+	catch ( Exception $e ) {
+		return true;
+	}
+}
+
 function jetpack_debug_menu_display_handler() {
 	if ( ! current_user_can( 'manage_options' ) )
 		wp_die( esc_html__('You do not have sufficient permissions to access this page.', 'jetpack' ) );
@@ -40,16 +51,13 @@ function jetpack_debug_menu_display_handler() {
 	global $current_user;
 	get_currentuserinfo();
 
-	$offer_ticket_submission = false;
+	$is_jetpack_support_open = is_jetpack_support_open();
 
 	$self_xml_rpc_url = site_url( 'xmlrpc.php' );
-	$debug_info       = '';
-	$tests 			  = array();
 
-	$tests['HTTP']  = wp_remote_get( 'http://jetpack.wordpress.com/jetpack.test/1/' );
-	//uncomment to make the tests fail
-	//$tests['HTTP']  = wp_remote_get( 'http://jetpack/jetpack.test/1/' );
-	
+	$tests = array();
+
+	$tests['HTTP']  = wp_remote_get( 'http://jetpack.wordpress.com/jetpack.test/1/' );	
 	$tests['HTTPS'] = wp_remote_get( 'https://jetpack.wordpress.com/jetpack.test/1/' );
 
 	if ( preg_match( '/^https:/', $self_xml_rpc_url ) ) {
@@ -67,7 +75,8 @@ function jetpack_debug_menu_display_handler() {
 		$user_token = '[this user has no token]';
 	}
 	unset( $user_tokens );
-	
+
+	$debug_info = "\r\n";
 	foreach ( array(
 		'CLIENT_ID'   => 'id',
 		'BLOG_TOKEN'  => 'blog_token',
@@ -78,7 +87,7 @@ function jetpack_debug_menu_display_handler() {
 		'OLD_VERSION' => 'old_version',
 		'PUBLIC'      => 'public',
 	) as $label => $option_name ) {
-		$debug_info .= "\r\n" . esc_html( $label . ": " . Jetpack::get_option( $option_name ) );
+		$debug_info .= esc_html( $label . ": " . Jetpack::get_option( $option_name ) );
 	}
 	
 	$debug_info .= "\r\n" . esc_html( "USER_ID: " . $user_id );
@@ -127,7 +136,7 @@ function jetpack_debug_menu_display_handler() {
 			?>
 			<div class="jetpack-test-results <?php echo $test_class; ?>">
 				<p>
-					<a class="jetpack-test-heading" href="#"><?php echo $status; ?>: <?php echo $test_name; ?>
+					<a class="jetpack-test-heading" href="#"><?php echo $test_name; ?>: <?php echo $status; ?>
 					<span class="noticon noticon-collapse"></span>
 					</a>
 				</p>
@@ -156,21 +165,21 @@ function jetpack_debug_menu_display_handler() {
 				<li><a class="jetpack-show-contact-form" href="#"><?php esc_html_e( 'Contact Jetpack support', 'jetpack' ); ?></a></li>
 			</ol>
 		</div>
-		<div id="contact-message" <?php if ( ! $offer_ticket_submission ): ?> style="display:none"<?php endif; ?>>
+		<div id="contact-message" style="display:none">
+		<?php if ( $is_jetpack_support_open ): ?>
 			<h4><?php _e( 'Having a problem using the Jetpack plugin on your blog? Be sure to go through this checklist before contacting us. You may be able to solve it all by yourself!', 'jetpack' ); ?></h4>
 			<ul>
 				<li><?php echo sprintf( __('Have you looked through the %s? Many common issues and questions are explained there.', 'jetptack' ), '<a href="http://jetpack.me/support/" rel="nofollow">' . __( 'Jetpack support page', 'jetpack' ) . '</a>' ); ?></li>
 				<li><?php echo sprintf( __('Did you see if your question is in the %s?', 'jetptack' ), '<a href="http://jetpack.me/about/" rel="nofollow">' . __( 'Jetpack FAQ', 'jetpack' ) . '</a>' ); ?></li>
 				<li><?php echo sprintf( __('Have you seen if someone asked your question in the %s?', 'jetptack' ), '<a href="http://wordpress.org/support/plugin/jetpack" rel="nofollow">' . __( 'Jetpack Plugin support forum on WordPress.org', 'jetpack' ) . '</a>' ); ?></li>
 			</ul>
-			<form id="contactme" method="post" action="http://en.support.wordpress.com/contact/#return">
-				<input type="hidden" name="user_id" id="user_id" value="<?php echo Jetpack::get_option( 'id' ) ?>">
-				<input type="hidden" name="jetpack" id="jetpack" value="needs-service">
-				<input type="hidden" name="keywords" id="keywords" value="">
+			<form id="contactme" method="post" action="http://jetpack.me/contact-support/">
+				<input type="hidden" name="action" value="submit">
+				<input type="hidden" name="jetpack" value="needs-service">
+				
 				<input type="hidden" name="contact_form" id="contact_form" value="1">
 				<input type="hidden" name="blog_url" id="blog_url" value="<?php echo esc_attr( site_url() ); ?>">
 				<input type="hidden" name="subject" id="subject" value="from: <?php echo esc_attr( site_url() ); ?> Jetpack contact form">
-		
 				<div class="formbox">
 					<label for="message" class="h"><?php _e( 'Please describe the problem you are having.', 'jetpack' ); ?></label>
 					<textarea name="message" cols="40" rows="7" id="did"></textarea>
@@ -206,6 +215,7 @@ function jetpack_debug_menu_display_handler() {
 				</div>
 				<div style="clear: both;"></div>
 			</form>
+		<?php endif; ?>
 		</div>
 	</div>
 <?php
@@ -229,6 +239,9 @@ function jetpack_debug_admin_head() {
 			text-decoration: none;
 			color: inherit;
 		}
+		.jetpack-test-success .noticon-collapse {
+			display: none;
+		}
 		.jetpack-test-details {
 			margin: 4px 6px;
 			padding: 10px;
@@ -242,6 +255,10 @@ function jetpack_debug_admin_head() {
 		.jetpack-test-success {
 			background: #EFF8DF;
 			border: solid 1px #B2D37D;
+			cursor: default;
+		}
+		.jetpack-test-success a{
+			cursor: default;
 		}
 		.jetpack-test-error {
 			background: #FFEBE8;
