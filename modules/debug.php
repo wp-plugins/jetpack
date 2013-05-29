@@ -107,7 +107,7 @@ function jetpack_debug_menu_display_handler() {
 		<h2><?php esc_html_e( 'Jetpack Debugging Center', 'jetpack' ); ?></h2>
 		<h3><?php _e( "Tests your site's compatibily with Jetpack.", 'jetpack' ); ?></h3>
 		<h3>Tests</h3>
-		<div class="debug-test-container">
+		<div class="jetpack-debug-test-container">
 		<?php foreach ( $tests as $test_name => $test_result ) : 
 			$result = '';
 			if ( is_wp_error( $test_result ) ) {
@@ -147,32 +147,24 @@ function jetpack_debug_menu_display_handler() {
 		?>
 		</div>
 		<div class="entry-content">
-			<h3><?php _e( 'Troubleshooting Tips', 'jetpack' ); ?></h3>
-			<h4><?php _e( 'Having trouble with Jetpack or one of its components? Here are a few key steps to try on your own:', 'jetpack' ); ?></h4>
+			<h3><?php _e( 'Trouble with Jetpack?', 'jetpack' ); ?></h3>
+			<h4><?php _e( 'It may be caused by one of these issues, which you can diagnose yourself:', 'jetpack' ); ?></h4>
 			<ol>
-				<li><?php _e( 'Disable all other plugins, then try connecting or using Jetpack. If Jetpack starts connecting or working properly, turn your plugins back on one-by-one until you start seeing the error again. Then note the plugin that caused this error and get in touch with us. Sometimes Jetpack and other plugins are incompatible; just let us know and we’ll see what we can do.', 'jetpack' ); ?></li>
-				<li><?php _e( 'If you are having a display issue, or the plugin step above doesn’t help, try activating Twenty Eleven or Twenty Twelve (one of the default WordPress themes) as your theme. Then try again. If your action starts working, likely something in your theme is broken and you should get in touch with your theme’s author.', 'jetpack' ); ?></li>
-				<li>
-					<ol>
-					<li><?php echo sprintf( __('Check your <a href="%s">XMLRPC file</a>. When it loads in your browser, you should see “XML-RPC server accepts POST requests only.” on a line by itself.', 'jetptack' ),  site_url( 'xmlrpc.php' ) ); ?>
-					</li>
-					<li><?php _e( 'If you see this message, but it is not on a line by itself, a theme or plugin is displaying extra characters when it shouldn’t. See points 1 and 2 above for debugging steps.', 'jetpack' ); ?></li>
-					<li><?php _e( 'If you get an 404 Error Not Found message, contact your web host. They may have security in place that is blocking XMLRPC.', 'jetpack' ); ?></li>
-					</ol>
+				<li><b><em><?php _e( 'A known issue.', 'jetpack' ); ?></em></b> <?php echo sprintf( __( 'Some themes and plugins have <a href="%s" target="_blank">known conflicts</a> with Jetpack – check the <a href="%s" target="_blank">list</a>. (You can also browse the <a href="%s">Jetpack support pages</a> or <a href="%s">Jetpack support forum</a> to see if others have experienced and solved the problem.)', 'jetpack' ), 'http://jetpack.me/known-issues/', 'http://jetpack.me/known-issues/', 'http://jetpack.me/support/', 'http://wordpress.org/support/plugin/jetpack'); ?></li>
+				<li><b><em><?php _e( 'An incompatible plugin.', 'jetpack' ); ?></em></b> <?php _e( "Find out by disabling all plugins except Jetpack. If the problem persists, it's not a plugin issue. If the problem is solved, turn your plugins on one by one until the problem pops up again – there's the culprit! Let us know, and we'll try to help.", 'jetpack' ); ?></li>
+				<li><b><em><?php _e( 'A theme conflict.', 'jetpack' ); ?></em></b> <?php _e( "If your problem isn't known or caused by a plugin, try activating Twenty Twelve (the default WordPress theme). If this solves the problem, something in your theme is probably broken – let the theme's author know.", 'jetpack' ); ?></li>
+				<li><b><em><?php _e( 'A problem with your XMLRPC file.', 'jetpack' ); ?></em></b> <?php echo sprintf( __( 'Load your <a href="%s">XMLRPC file</a>. It should say “XML-RPC server accepts POST requests only.” on a line by itself.', 'jetpack' ),  site_url( 'xmlrpc.php' ) ); ?>
+					<ul>
+						<li>- <?php _e( "If it's not by itself, a theme or plugin is displaying extra characters. Try steps 2 and 3.", 'jetpack' ); ?></li>
+						<li>- <?php _e( "If you get a 404 message, contact your web host. Their security may block XMLRPC.", 'jetpack' ); ?></li>
+					</ul>
 				</li>
-				<li><?php _e( 'Check the <a href="http://jetpack.me/known-issues/" target="_blank">Known Issues list</a> and make sure you aren’t using a plugin or theme listed there.', 'jetpack' ); ?>
-				</li>
-				<li><a class="jetpack-show-contact-form" href="#"><?php esc_html_e( 'Contact Jetpack support', 'jetpack' ); ?></a></li>
 			</ol>
+			<p><?php _e( 'If none of these help you find a solution,', 'jetpack' ); ?> <a class="jetpack-show-contact-form" href="#"><?php _e( 'click here to contact Jetpack support', 'jetpack' ); ?></a>. <?php _e( "Tell us as much as you can about the issue and what steps you've tried to resolve it, and one of our Happiness Engineers will be in touch to help.", 'jetpack' ); ?></li>
+			</p>
 		</div>
 		<div id="contact-message" style="display:none">
 		<?php if ( $is_jetpack_support_open ): ?>
-			<h4><?php _e( 'Having a problem using the Jetpack plugin on your blog? Be sure to go through this checklist before contacting us. You may be able to solve it all by yourself!', 'jetpack' ); ?></h4>
-			<ul>
-				<li><?php echo sprintf( __('Have you looked through the %s? Many common issues and questions are explained there.', 'jetptack' ), '<a href="http://jetpack.me/support/" rel="nofollow">' . __( 'Jetpack support page', 'jetpack' ) . '</a>' ); ?></li>
-				<li><?php echo sprintf( __('Did you see if your question is in the %s?', 'jetptack' ), '<a href="http://jetpack.me/about/" rel="nofollow">' . __( 'Jetpack FAQ', 'jetpack' ) . '</a>' ); ?></li>
-				<li><?php echo sprintf( __('Have you seen if someone asked your question in the %s?', 'jetptack' ), '<a href="http://wordpress.org/support/plugin/jetpack" rel="nofollow">' . __( 'Jetpack Plugin support forum on WordPress.org', 'jetpack' ) . '</a>' ); ?></li>
-			</ul>
 			<form id="contactme" method="post" action="http://jetpack.me/contact-support/">
 				<input type="hidden" name="action" value="submit">
 				<input type="hidden" name="jetpack" value="needs-service">
@@ -225,7 +217,7 @@ function jetpack_debug_admin_head() {
 	?>
 	<style type="text/css">
 		
-		.debug-test-container {
+		.jetpack-debug-test-container {
 			margin: 10px;	
 		}
 		
