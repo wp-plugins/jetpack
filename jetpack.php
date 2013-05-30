@@ -269,6 +269,9 @@ class Jetpack {
 
 		if ( ! wp_script_is( 'jetpack-gallery-settings', 'registered' ) )
 			wp_register_script( 'jetpack-gallery-settings', plugins_url( '_inc/gallery-settings.js', __FILE__ ), array( 'media-views' ), '20121225' );
+
+		if ( ! wp_style_is( 'genericons', 'registered' ) )
+			wp_register_style( 'genericons', plugins_url( '_inc/genericons.css', __FILE__ ), false, JETPACK__VERSION );
 	}
 
 	/**
@@ -459,26 +462,36 @@ class Jetpack {
 
 		$active_plugins = get_option( 'active_plugins', array() );
 
+		if ( is_multisite() ) {
+			// Due to legacy code, active_sitewide_plugins stores them in the keys,
+			// whereas active_plugins stores them in the values.
+			$network_plugins = array_keys( get_site_option( 'active_sitewide_plugins', array() ) );
+			if ( $network_plugins ) {
+				$active_plugins = array_merge( $active_plugins, $network_plugins );
+			}
+		}
+
 		$conflicting_plugins = array(
-			'facebook/facebook.php',                                                // Official Facebook plugin
-			'wordpress-seo/wp-seo.php',                                             // WordPress SEO by Yoast
-			'add-link-to-facebook/add-link-to-facebook.php',                        // Add Link to Facebook
-			'facebook-awd/AWD_facebook.php',                                        // Facebook AWD All in one
-			'header-footer/plugin.php',                                             // Header and Footer
-			'nextgen-facebook/nextgen-facebook.php',                                // NextGEN Facebook OG
-			'seo-facebook-comments/seofacebook.php',                                // SEO Facebook Comments
-			'seo-ultimate/seo-ultimate.php',                                        // SEO Ultimate
-			'sexybookmarks/sexy-bookmarks.php',                                     // Shareaholic
-			'shareaholic/sexy-bookmarks.php',                                       // Shareaholic
-			'social-discussions/social-discussions.php',                            // Social Discussions
-			'social-networks-auto-poster-facebook-twitter-g/NextScripts_SNAP.php',	// NextScripts SNAP
-			'wordbooker/wordbooker.php',                                            // Wordbooker
-			'socialize/socialize.php',                                              // Socialize
-			'simple-facebook-connect/sfc.php',                                      // Simple Facebook Connect
-			'social-sharing-toolkit/social_sharing_toolkit.php',                    // Social Sharing Toolkit
-			'wp-facebook-open-graph-protocol/wp-facebook-ogp.php',                  // WP Facebook Open Graph protocol
-			'opengraph/opengraph.php',                                              // Open Graph
-			'sharepress/sharepress.php',                                            // SharePress
+			'facebook/facebook.php',                                                			// Official Facebook plugin
+			'wordpress-seo/wp-seo.php',                                             			// WordPress SEO by Yoast
+			'add-link-to-facebook/add-link-to-facebook.php',                        			// Add Link to Facebook
+			'facebook-awd/AWD_facebook.php',                                        			// Facebook AWD All in one
+			'header-footer/plugin.php',                                             			// Header and Footer
+			'nextgen-facebook/nextgen-facebook.php',                                			// NextGEN Facebook OG
+			'seo-facebook-comments/seofacebook.php',                                			// SEO Facebook Comments
+			'seo-ultimate/seo-ultimate.php',                                        			// SEO Ultimate
+			'sexybookmarks/sexy-bookmarks.php',                                     			// Shareaholic
+			'shareaholic/sexy-bookmarks.php',                                       			// Shareaholic
+			'social-discussions/social-discussions.php',                            			// Social Discussions
+			'social-networks-auto-poster-facebook-twitter-g/NextScripts_SNAP.php',				// NextScripts SNAP
+			'wordbooker/wordbooker.php',                                            			// Wordbooker
+			'socialize/socialize.php',                                              			// Socialize
+			'simple-facebook-connect/sfc.php',                                      			// Simple Facebook Connect
+			'social-sharing-toolkit/social_sharing_toolkit.php',                    			// Social Sharing Toolkit
+			'wp-facebook-open-graph-protocol/wp-facebook-ogp.php',                  			// WP Facebook Open Graph protocol
+			'opengraph/opengraph.php',                                              			// Open Graph
+			'sharepress/sharepress.php',                                            			// SharePress
+			'wp-facebook-like-send-open-graph-meta/wp-facebook-like-send-open-graph-meta.php',	// WP Facebook Like Send & Open Graph Meta
 		);
 
 		foreach ( $conflicting_plugins as $plugin ) {
@@ -892,6 +905,18 @@ class Jetpack {
 			$active = array_diff( $active, array( 'vaultpress' ) );
 		}
 		return array_unique( $active );
+	}
+
+	/**
+	 * Check whether or not a Jetpack module is active.
+	 *
+	 * @param string $module The slug of a Jetpack module.
+	 * @return bool
+	 *
+	 * @static
+	 */
+	public static function is_module_active( $module ) {
+		return in_array( $module, self::get_active_modules() );
 	}
 
 	public static function is_module( $module ) {
@@ -3355,6 +3380,45 @@ p {
 	 */
 	public static function get_content_width() {
 		return apply_filters( 'jetpack_content_width', $GLOBALS['content_width'] );
+	}
+
+	/**
+	 * Centralize the function here until it gets added to core.
+	 *
+	 * @param int|string|object $id_or_email A user ID,  email address, or comment object
+	 * @param int $size Size of the avatar image
+	 * @param string $default URL to a default image to use if no avatar is available
+	 * @param bool $force_display Whether to force it to return an avatar even if show_avatars is disabled
+	 * 
+	 * @return array First element is the URL, second is the class.
+	 */
+	public static function get_avatar_url( $id_or_email, $size = 96, $default = '', $force_display = false ) {
+		// Don't bother adding the __return_true filter if it's already there.
+		$has_filter = has_filter( 'pre_option_show_avatars', '__return_true' );
+
+		if ( $force_display && ! $has_filter )
+			add_filter( 'pre_option_show_avatars', '__return_true' );
+
+		$avatar = get_avatar( $id_or_email, $size, $default );
+
+		if ( $force_display && ! $has_filter )
+			remove_filter( 'pre_option_show_avatars', '__return_true' );
+
+		// If no data, fail out.
+		if ( is_wp_error( $avatar ) || ! $avatar )
+			return array( null, null );
+
+		// Pull out the URL.  If it's not there, fail out.
+		if ( ! preg_match( '/src=["\']([^"\']+)["\']/', $avatar, $url_matches ) )
+			return array( null, null );
+		$url = wp_specialchars_decode( $url_matches[1], ENT_QUOTES );
+
+		// Pull out the class, but it's not a big deal if it's missing.
+		$class = '';
+		if ( preg_match( '/class=["\']([^"\']+)["\']/', $avatar, $class_matches ) )
+			$class = wp_specialchars_decode( $class_matches[1], ENT_QUOTES );
+
+		return array( $url, $class );
 	}
 }
 
