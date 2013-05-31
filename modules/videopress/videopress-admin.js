@@ -220,6 +220,19 @@
 	});
 
 	/**
+	 * Don't display the uploader dropzone for the VideoPress router.
+	 */
+	var UploaderWindow = media.view.UploaderWindow;
+	media.view.UploaderWindow = UploaderWindow.extend({
+		show: function() {
+			if ( 'videopress' != this.controller.state().id )
+				UploaderWindow.prototype.show.apply( this, arguments );
+
+			return this;
+		}
+	});
+
+	/**
 	 * Extend the post MediaFrame with our own
 	 */
 	var MediaFrame = media.view.MediaFrame.Post;
@@ -246,23 +259,19 @@
 			MediaFrame.prototype.bindHandlers.apply( this, arguments );
 
 			this.on( 'router:create:videopress', this.createRouter, this );
-			this.on( 'router:render:videopress', this.setupRouter, this );
+			this.on( 'router:activate:videopress', this.activateVideoPress, this );
+			this.on( 'router:deactivate:videopress', this.deactivateVideoPress, this );
+
 			this.on( 'content:render:upload_videopress', this.uploadVideo, this );
 			this.on( 'toolbar:create:videopress-toolbar', this.createVideoPressToolbar, this );
 			this.on( 'videopress:insert', this.insert, this );
 			return this;
 		},
 
-		// Runs on videopress:insert event fired by our custom toolbar
-		insert: function( selection ) {
-			var guid = selection.models[0].get( 'vp_guid' ).replace( /[^a-zA-Z0-9]+/, '' );
-			media.editor.insert( '[wpvideo ' + guid + ']' );
-			return this;
-		},
-
-		// Our router is slightly different.
-		setupRouter: function( view ) {
-			var viewSettings = {};
+		// When the VideoPress router is activated.
+		activateVideoPress: function() {
+			var view = _.first( this.views.get( '.media-frame-router' ) ),
+			    viewSettings = {};
 
 			if ( VideoPress.caps.read_videos )
 				viewSettings.browse = { text: VideoPress.l10n.VideoPressLibraryRouter, priority: 40 };
@@ -272,11 +281,34 @@
 
 			view.set( viewSettings );
 
+			// Intercept and clear all incoming uploads
+			wp.Uploader.queue.on( 'add', this.disableUpload, this );
+
 			// Map the Upload Files view to the Upload a Video one (upload_videopress vs. upload)
 			if ( 'upload' === this.content.mode() && VideoPress.caps.upload_videos )
 				this.content.mode( 'upload_videopress' );
 			else
 				this.content.mode( 'browse' );
+		},
+
+		// When navigated away from the VideoPress router.
+		deactivateVideoPress: function( view ) {
+			wp.Uploader.queue.off( 'add', this.disableUpload );
+		},
+
+		// Disable dragdrop uploads in the VideoPress router.
+		disableUpload: function( attachment ) {
+			var uploader = this.uploader.uploader.uploader;
+			uploader.stop();
+			uploader.splice();
+			attachment.destroy();
+		},
+
+		// Runs on videopress:insert event fired by our custom toolbar
+		insert: function( selection ) {
+			var guid = selection.models[0].get( 'vp_guid' ).replace( /[^a-zA-Z0-9]+/, '' );
+			media.editor.insert( '[wpvideo ' + guid + ']' );
+			return this;
 		},
 
 		// Triggered by the upload_videopress router item.
