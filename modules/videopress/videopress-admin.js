@@ -225,7 +225,7 @@
 	var UploaderWindow = media.view.UploaderWindow;
 	media.view.UploaderWindow = UploaderWindow.extend({
 		show: function() {
-			if ( 'videopress' != this.controller.state().id )
+			if ( 'videopress' != this.controller.state().get('id') )
 				UploaderWindow.prototype.show.apply( this, arguments );
 
 			return this;
