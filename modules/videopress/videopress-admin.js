@@ -233,6 +233,17 @@
 	});
 
 	/**
+	 * Don't display the uploader in the attachments browser.
+	 */
+	var AttachmentsBrowser = media.view.AttachmentsBrowser;
+	media.view.AttachmentsBrowser = AttachmentsBrowser.extend({
+		createUploader: function() {
+			if ( 'videopress' != this.controller.state().get('id') )
+				return AttachmentsBrowser.prototype.createUploader.apply( this, arguments );
+		}
+	});
+
+	/**
 	 * Extend the post MediaFrame with our own
 	 */
 	var MediaFrame = media.view.MediaFrame.Post;
