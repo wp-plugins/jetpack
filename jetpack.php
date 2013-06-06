@@ -5,7 +5,7 @@
  * Plugin URI: http://wordpress.org/extend/plugins/jetpack/
  * Description: Bring the power of the WordPress.com cloud to your self-hosted WordPress. Jetpack enables you to connect your blog to a WordPress.com account to use the powerful features normally only available to WordPress.com users.
  * Author: Automattic
- * Version: 2.2.5
+ * Version: 2.2.6b1
  * Author URI: http://jetpack.me
  * License: GPL2+
  * Text Domain: jetpack
@@ -17,7 +17,7 @@ define( 'JETPACK__API_VERSION', 1 );
 define( 'JETPACK__MINIMUM_WP_VERSION', '3.3' );
 defined( 'JETPACK_CLIENT__AUTH_LOCATION' ) or define( 'JETPACK_CLIENT__AUTH_LOCATION', 'header' );
 defined( 'JETPACK_CLIENT__HTTPS' ) or define( 'JETPACK_CLIENT__HTTPS', 'AUTO' );
-define( 'JETPACK__VERSION', '2.2.5' );
+define( 'JETPACK__VERSION', '2.2.6b1' );
 define( 'JETPACK__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 defined( 'JETPACK__GLOTPRESS_LOCALES_PATH' ) or define( 'JETPACK__GLOTPRESS_LOCALES_PATH', JETPACK__PLUGIN_DIR . 'locales.php' );
 
@@ -111,8 +111,12 @@ class Jetpack {
 	public static function init() {
 		static $instance = false;
 
-		if ( !$instance ) {
-			load_plugin_textdomain( 'jetpack', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+		if ( ! $instance ) {
+			if ( did_action( 'plugins_loaded' ) )
+				self::plugin_textdomain();
+			else
+				add_action( 'plugins_loaded', array( __CLASS__, 'plugin_textdomain' ) );
+
 			$instance = new Jetpack;
 
 			$instance->plugin_upgrade();
@@ -254,6 +258,13 @@ class Jetpack {
 	}
 
 	/**
+	 * Load language files
+	 */
+	public static function plugin_textdomain() {
+		load_plugin_textdomain( 'jetpack', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+	}
+
+	/**
 	 * Register assets for use in various modules and the Jetpack admin page.
 	 *
 	 * @uses wp_script_is, wp_register_script, plugins_url
@@ -262,10 +273,10 @@ class Jetpack {
 	 */
 	public function register_assets() {
 		if ( ! wp_script_is( 'spin', 'registered' ) )
-			wp_register_script( 'spin', plugins_url( '_inc/spin.js', __FILE__ ), false, '1.2.4' );
+			wp_register_script( 'spin', plugins_url( '_inc/spin.js', __FILE__ ), false, '1.3' );
 
 		if ( ! wp_script_is( 'jquery.spin', 'registered' ) )
-			wp_register_script( 'jquery.spin', plugins_url( '_inc/jquery.spin.js', __FILE__ ) , array( 'jquery', 'spin' ) );
+			wp_register_script( 'jquery.spin', plugins_url( '_inc/jquery.spin.js', __FILE__ ) , array( 'jquery', 'spin' ), '1.3' );
 
 		if ( ! wp_script_is( 'jetpack-gallery-settings', 'registered' ) )
 			wp_register_script( 'jetpack-gallery-settings', plugins_url( '_inc/gallery-settings.js', __FILE__ ), array( 'media-views' ), '20121225' );
@@ -373,10 +384,13 @@ class Jetpack {
 	 * Loads the currently active modules.
 	 */
 	public static function load_modules() {
+		
+		/*
 		if ( ! Jetpack::is_active() && ! Jetpack::is_development_mode() ) {
 			return;
 		}
-
+		*/
+		
 		$version = Jetpack::get_option( 'version' );
 		if ( !$version ) {
 			$version = $old_version = JETPACK__VERSION . ':' . time();
@@ -409,13 +423,11 @@ class Jetpack {
 
 		foreach ( $modules as $module ) {
 			// If not connected and we're in dev mode, disable modules requiring a connection
-			if ( ! Jetpack::is_active() && Jetpack::is_development_mode() ) {
+			if ( ! Jetpack::is_active() ) {
 				if ( empty( $modules_data[ $module ] ) ) {
 					$modules_data[ $module ] = Jetpack::get_module( $module );
 				}
-
-				if ( $modules_data[ $module ]['requires_connection'] ) {
-					Jetpack::deactivate_module( $module );
+				if ( $modules_data[ $module ]['requires_connection'] || ( $modules_data[ $module ]['requires_dev_mode'] && ! Jetpack::is_development_mode() ) ) {
 					continue;
 				}
 			}
@@ -423,6 +435,7 @@ class Jetpack {
 			if ( did_action( 'jetpack_module_loaded_' . $module ) ) {
 				continue;
 			}
+
 			require Jetpack::get_module_path( $module );
 			do_action( 'jetpack_module_loaded_' . $module );
 		}
@@ -491,7 +504,8 @@ class Jetpack {
 			'wp-facebook-open-graph-protocol/wp-facebook-ogp.php',                  			// WP Facebook Open Graph protocol
 			'opengraph/opengraph.php',                                              			// Open Graph
 			'sharepress/sharepress.php',                                            			// SharePress
-			'wp-facebook-like-send-open-graph-meta/wp-facebook-like-send-open-graph-meta.php',	// WP Facebook Like Send & Open Graph Meta
+			'wp-facebook-like-send-open-graph-meta/wp-facebook-like-send-open-graph-meta.php',		// WP Facebook Like Send & Open Graph Meta
+			'network-publisher/networkpub.php',								// Network Publisher
 		);
 
 		foreach ( $conflicting_plugins as $plugin ) {
@@ -534,6 +548,7 @@ class Jetpack {
 			'time_diff',                    // (int)    Offset between Jetpack server's clocks and this server's clocks. Jetpack Server Time = time() + (int) Jetpack::get_option( 'time_diff' )
 			'public',                       // (int|bool) If we think this site is public or not (1, 0), false if we haven't yet tried to figure it out.
 			'videopress',                   // (array)  VideoPress options array.
+			'is_network_site',              // (int|bool) If we think this site is a network or a single blog (1, 0), false if we haven't yet tried to figue it out
 		);
 	}
 
@@ -820,6 +835,7 @@ class Jetpack {
 			// These modules are default off: they change things blog-side
 			case 'comments' :
 			case 'carousel' :
+			case 'debug' :
 			case 'minileven':
 			case 'infinite-scroll' :
 			case 'photon' :
@@ -872,6 +888,7 @@ class Jetpack {
 			'deactivate'          => 'Deactivate',
 			'free'                => 'Free',
 			'requires_connection' => 'Requires Connection',
+			'requires_dev_mode' => 'Requires Development Mode',
 		);
 
 		$file = Jetpack::get_module_path( Jetpack::get_module_slug( $module ) );
@@ -889,6 +906,7 @@ class Jetpack {
 		$mod['deactivate'] = empty( $mod['deactivate'] );
 		$mod['free'] = empty( $mod['free'] );
 		$mod['requires_connection'] = ( ! empty( $mod['requires_connection'] ) && 'No' == $mod['requires_connection'] ) ? false : true;
+		$mod['requires_dev_mode'] = ( ! empty( $mod['requires_dev_mode'] ) && 'No' == $mod['requires_dev_mode'] ) ? false : true;
 		return $mod;
 	}
 
@@ -992,6 +1010,11 @@ class Jetpack {
 		Jetpack::restate();
 		Jetpack::catch_errors( true );
 		foreach ( $modules as $module ) {
+			if ( did_action( "jetpack_module_loaded_$module" ) ) {
+				$active[] = $module;
+				Jetpack::update_option( 'active_modules', array_unique( $active ) );
+				continue;
+			}
 			$active = Jetpack::get_active_modules();
 			if ( in_array( $module, $active ) ) {
 				$module_info = Jetpack::get_module( $module );
@@ -1041,9 +1064,6 @@ class Jetpack {
 	public static function activate_module( $module ) {
 		$jetpack = Jetpack::init();
 
-		if ( ! Jetpack::is_active() && ! Jetpack::is_development_mode() )
-			return false;
-
 		if ( ! strlen( $module ) )
 			return false;
 
@@ -1057,13 +1077,15 @@ class Jetpack {
 				return true;
 		}
 
-		// If we're not connected but in development mode, make sure the module doesn't require a connection
-		if ( ! Jetpack::is_active() && Jetpack::is_development_mode() ) {
-			$module_data = Jetpack::get_module( $module );
-
-			if ( $module_data['requires_connection'] ) {
+		$module_data = Jetpack::get_module( $module );
+		
+		if ( ! Jetpack::is_active() ) {	
+			if ( ! Jetpack::is_development_mode() && $module_data['requires_dev_mode'] )
 				return false;
-			}
+
+			// If we're not connected but in development mode, make sure the module doesn't require a connection
+			if ( Jetpack::is_development_mode() && $module_data['requires_connection'] )
+					return false;
 		}
 
 		// Check and see if the old plugin is active
@@ -1341,9 +1363,9 @@ p {
 
 			// Add retina images hotfix to admin
 			global $wp_db_version;
-			if ( $wp_db_version > 19470  ) {
+			if ( ( $wp_db_version > 19470 ) && ( $wp_db_version < 22441 ) ) {
 				// WP 3.4.x
-				// TODO will need to add && $wp_db_version < xxxxx when 3.5 comes out.
+				// DB Version 22441 = WP 3.5
 				add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_retina_scripts' ) );
 				// /wp-admin/customize.php omits the action above.
 				add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_retina_scripts' ) );
@@ -2683,7 +2705,7 @@ p {
 				</div>
 
 				<div class="jetpack-module-actions">
-				<?php if ( $jetpack_connected || ( Jetpack::is_development_mode() && ! $module_data['requires_connection'] ) ) : ?>
+				<?php if ( $jetpack_connected || ( Jetpack::is_development_mode() && ! $module_data['requires_connection'] ) || ! $module_data['requires_dev_mode'] ) : ?>
 					<?php if ( !$activated && current_user_can( 'manage_options' ) && apply_filters( 'jetpack_can_activate_' . $module, true ) ) : ?>
 						<a href="<?php echo esc_url( $toggle_url ); ?>" class="<?php echo ( 'inactive' == $css ? ' button-primary' : ' button-secondary' ); ?>"><?php echo $toggle; ?></a>&nbsp;
 					<?php endif; ?>
