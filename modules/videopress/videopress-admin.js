@@ -15,6 +15,16 @@
 	 * to the library query
 	 */
 	media.controller.VideoPress = media.controller.Library.extend({
+		defaults: _.defaults({
+			id:         'videopress',
+			router:     'videopress',
+			toolbar:    'videopress-toolbar',
+			title:      'VideoPress',
+			priority:   200,
+			searchable: true,
+			sortable:   false
+		}, media.controller.Library.prototype.defaults ),
+
 		initialize: function() {
 			if ( ! this.get('library') )
 				this.set( 'library', media.query({ videopress: true }) );
@@ -136,7 +146,7 @@
 					// Since the Media API caches all queries, we add a random attribute
 					// to avoid the cache, then call more() to actually fetch the data.
 
-					var state = media.editor.get().states.get( 'videopress' );
+					var state = this.controller.states.get('videopress');
 					state.set( 'library', media.query({ videopress:true, vp_random:Math.random() }) );
 					state.get( 'library' ).more();
 					state.get( 'selection' ).reset();
@@ -244,43 +254,12 @@
 	});
 
 	/**
-	 * Extend the post MediaFrame with our own
+	 * Add VideoPress-specific methods for all frames.
 	 */
-	var MediaFrame = media.view.MediaFrame.Post;
-	media.view.MediaFrame.Post = MediaFrame.extend({
-		initialize: function() {
-			MediaFrame.prototype.initialize.apply( this, arguments );
-
-			this.states.add([
-				new media.controller.VideoPress({
-					id: 'videopress',
-					title: 'VideoPress',
-					router: 'videopress',
-					priority: 200,
-					toolbar: 'videopress-toolbar',
-					searchable: true,
-					sortable: false
-				})
-			]);
-
-			return this;
-		},
-
-		bindHandlers: function() {
-			MediaFrame.prototype.bindHandlers.apply( this, arguments );
-
-			this.on( 'router:create:videopress', this.createRouter, this );
-			this.on( 'router:activate:videopress', this.activateVideoPress, this );
-			this.on( 'router:deactivate:videopress', this.deactivateVideoPress, this );
-
-			this.on( 'content:render:upload_videopress', this.uploadVideo, this );
-			this.on( 'toolbar:create:videopress-toolbar', this.createVideoPressToolbar, this );
-			this.on( 'videopress:insert', this.insert, this );
-			return this;
-		},
+	_.extend( media.view.MediaFrame.prototype, { VideoPress: { // this.VideoPress.method()
 
 		// When the VideoPress router is activated.
-		activateVideoPress: function() {
+		activate: function() {
 			var view = _.first( this.views.get( '.media-frame-router' ) ),
 			    viewSettings = {};
 
@@ -293,7 +272,7 @@
 			view.set( viewSettings );
 
 			// Intercept and clear all incoming uploads
-			wp.Uploader.queue.on( 'add', this.disableUpload, this );
+			wp.Uploader.queue.on( 'add', this.VideoPress.disableUpload, this );
 
 			// Map the Upload Files view to the Upload a Video one (upload_videopress vs. upload)
 			if ( 'upload' === this.content.mode() && VideoPress.caps.upload_videos )
@@ -303,8 +282,8 @@
 		},
 
 		// When navigated away from the VideoPress router.
-		deactivateVideoPress: function( view ) {
-			wp.Uploader.queue.off( 'add', this.disableUpload );
+		deactivate: function( view ) {
+			wp.Uploader.queue.off( 'add', this.VideoPress.disableUpload );
 		},
 
 		// Disable dragdrop uploads in the VideoPress router.
@@ -331,7 +310,11 @@
 		},
 
 		// Create a custom toolbar
-		createVideoPressToolbar: function( toolbar ) {
+		createToolbar: function( toolbar ) {
+			// Alow an option to hide the toolbar.
+			if ( this.options.VideoPress && this.options.VideoPress.hideToolbar )
+				return this;
+
 			var controller = this;
 			this.toolbar.set( new media.view.Toolbar({
 				controller: this,
@@ -355,6 +338,37 @@
 					}
 				}
 			}) );
+		}
+	}});
+
+	var MediaFrame = {};
+
+	/**
+	 * Extend the selection media frame
+	 */
+	MediaFrame.Select = media.view.MediaFrame.Select;
+	media.view.MediaFrame.Select = MediaFrame.Select.extend({
+		bindHandlers: function() {
+			MediaFrame.Select.prototype.bindHandlers.apply( this, arguments );
+
+			this.on( 'router:create:videopress', this.createRouter, this );
+			this.on( 'router:activate:videopress', this.VideoPress.activate, this );
+			this.on( 'router:deactivate:videopress', this.VideoPress.deactivate, this );
+
+			this.on( 'content:render:upload_videopress', this.VideoPress.uploadVideo, this );
+			this.on( 'toolbar:create:videopress-toolbar', this.VideoPress.createToolbar, this );
+			this.on( 'videopress:insert', this.VideoPress.insert, this );
+		}
+	});
+
+	/**
+	 * Extend the post editor media frame with our own
+	 */
+	MediaFrame.Post = media.view.MediaFrame.Post;
+	media.view.MediaFrame.Post = MediaFrame.Post.extend({
+		createStates: function() {
+			MediaFrame.Post.prototype.createStates.apply( this, arguments );
+			this.states.add([ new media.controller.VideoPress() ]);
 		}
 	});
 
@@ -418,5 +432,17 @@
 		});
 
 		$access.trigger( 'change' );
+	});
+
+	// Media -> VideoPress menu
+	$(document).on( 'click', '#videopress-browse', function() {
+
+		var frame = wp.media({
+			state: 'videopress',
+			states: [ new media.controller.VideoPress() ],
+			VideoPress: { hideToolbar: true }
+		}).open();
+
+		return false;
 	});
 })(jQuery);

@@ -52,6 +52,8 @@ class Jetpack_VideoPress {
 			add_action( 'wp_ajax_save-attachment', array( $this, 'wp_ajax_save_attachment' ), -1 );
 			add_action( 'wp_ajax_save-attachment-compat', array( $this, 'wp_ajax_save_attachment' ), -1 );
 			add_action( 'wp_ajax_delete-post', array( $this, 'wp_ajax_delete_post' ), -1 );
+
+			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 		}
 
 		if ( $this->can( 'upload_videos' ) && $options['blog_id'] ) {
@@ -307,6 +309,24 @@ class Jetpack_VideoPress {
 				<?php submit_button(); ?>
 			</form>
 		</div>
+		<?php
+	}
+
+	function admin_menu() {
+		add_media_page( __( 'VideoPress Library', 'jetpack' ), __( 'VideoPress', 'jetpack' ), 'upload_files', 'videopress-library', array( $this, 'admin_menu_library' ) );
+	}
+
+	function admin_menu_library() {
+		wp_enqueue_media();
+		$this->enqueue_admin_scripts();
+		?>
+		<div class="wrap" style="max-width: 600px;">
+			<?php screen_icon(); ?>
+	        <h2><?php _e( 'VideoPress Library', 'jetpack' ); ?></h2>
+	        <p><?php _e( 'Use the button below to browse your VideoPress Library. Note that you can also browse your VideoPress Library while editing a post or page by using the <strong>Add Media</strong> button in the post editor.', 'jetpack' ); ?></p>
+	        <p class="hide-if-no-js"><a href="#" id="videopress-browse" class="button"><?php _e( 'Browse Your VideoPress Library', 'jetpack' ); ?></a></p>
+	        <p class="hide-if-js description"><?php _e( 'Please enable JavaScript support in your browser to use VideoPress.', 'jetpack' ); ?></p>
+	    </div>
 		<?php
 	}
 
