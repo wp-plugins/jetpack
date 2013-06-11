@@ -88,7 +88,6 @@ class Jetpack_VideoPress {
 			'access' => '',
 			'allow-upload' => false,
 			'freedom' => false,
-			'static' => false,
 			'hd' => false,
 		);
 
@@ -97,7 +96,6 @@ class Jetpack_VideoPress {
 		// If options have not been saved yet, check for older VideoPress plugin options.
 		if ( empty( $options ) ) {
 			$options['freedom'] = (bool) get_option( 'video_player_freedom', false );
-			$options['static'] = (bool) get_option( 'video_player_static', false );
 			$options['hd'] = (bool) get_option( 'video_player_high_quality', false );
 		}
 
@@ -198,7 +196,6 @@ class Jetpack_VideoPress {
 				$options['access'] = $_POST['videopress-access'];
 
 			$options['freedom'] = isset( $_POST['videopress-freedom'] );
-			$options['static'] = isset( $_POST['videopress-static'] );
 			$options['hd'] = isset( $_POST['videopress-hd'] );
 
 			// Allow upload only if some level of access has been granted, and uploads were allowed.
@@ -282,16 +279,6 @@ class Jetpack_VideoPress {
 							<label><input type="checkbox" name="videopress-freedom" id="videopress-freedom" <?php checked( $options['freedom'] ); ?> />
 								<?php _e( 'Only display videos in free software formats', 'jetpack' ); ?></label>
 							<p class="description"><?php _e( 'Ogg file container with Theora video and Vorbis audio. Note that some browsers are unable to play free software video formats, including Internet Explorer and Safari.', 'jetpack' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="videopress-static"><?php _e( 'Static player', 'jetpack' ); ?></label>
-						</th>
-						<td>
-							<label><input type="checkbox" name="videopress-static" id="videopress-static" <?php checked( $options['static'] ); ?> />
-								<?php _e( 'Use the static Flash video player when playing un-shared videos', 'jetpack' ); ?></label>
-							<p class="description"><?php _e( 'Enabling this option will give stronger protection from users downloading your videos, but will prevent your videos from playing on iOS and other Flash-free devices.', 'jetpack' ); ?></p>
 						</td>
 					</tr>
 					<tr>
@@ -684,7 +671,6 @@ class Jetpack_VideoPress {
 		if ( false === $options['freedom'] )
 			$options['freedom'] = $videopress_options['freedom'];
 
-		$options['forcestatic'] = $videopress_options['static'];
 		$options['hd'] = $videopress_options['hd'];
 
 		return $options;
