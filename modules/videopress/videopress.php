@@ -414,6 +414,7 @@ class Jetpack_VideoPress {
 			return wp_send_json_error( 'xml rpc request error' );
 
 		$items = $xml->getResponse();
+		$shortcode_handler = Jetpack_VideoPress_Shortcode::init();
 
 		foreach ( $items as $key => $item ) {
 
@@ -432,7 +433,12 @@ class Jetpack_VideoPress {
 			if ( ! empty( $item['vp_nonces']['delete'] ) )
 				$item['nonces']['delete'] = wp_create_nonce( 'delete-videopress-post_' . $item['id'] );
 
-			$item['vp_embed'] = do_shortcode( sprintf( '[wpvideo %s autoplay="true" flashonly="true" w="440"]', $item['vp_guid'] ) );
+			$item['vp_embed'] = $shortcode_handler->shortcode_callback( array(
+				$item['vp_guid'],
+				'autoplay' => true,
+				'flashonly' => true,
+				'w' => 440,
+			) );
 
 			$items[ $key ] = $item;
 		}
