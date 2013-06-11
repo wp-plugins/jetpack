@@ -80,3 +80,11 @@
 .vp-preview span {
 	margin-top: 18px;
 }
+
+.uploader-videopress {
+	margin: 16px;
+}
+
+.uploader-videopress .videopress-errors div {
+	margin: 16px 0;
+}

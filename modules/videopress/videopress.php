@@ -67,11 +67,11 @@ class Jetpack_VideoPress {
 		if ( ! $this->can( 'upload_videos' ) )
 			return wp_send_json_error();
 
-		$xml = $this->query( 'jetpack.vpGetUploadToken' );
-		if ( $xml->isError() )
+		$result = $this->query( 'jetpack.vpGetUploadToken' );
+		if ( is_wp_error( $result ) )
 			return wp_send_json_error( array( 'message' => __( 'Could not obtain a VideoPress upload token. Please try again later.', 'jetpack' ) ) );
 
-		$response = $xml->getResponse();
+		$response = $result;
 		if ( empty( $response['videopress_blog_id'] ) || empty( $response['videopress_token'] ) || empty( $response[ 'videopress_action_url' ] ) )
 			return wp_send_json_error( array( 'message' => __( 'Could not obtain a VideoPress upload token. Please try again later.', 'jetpack' ) ) );
 
@@ -89,6 +89,9 @@ class Jetpack_VideoPress {
 			'allow-upload' => false,
 			'freedom' => false,
 			'hd' => false,
+			'meta' => array(
+				'max_upload_size' => 0,
+			),
 		);
 
 		$options = Jetpack::get_option( $this->option_name, array() );
@@ -120,9 +123,9 @@ class Jetpack_VideoPress {
 		$options = $this->get_options();
 
 		// Ask WordPress.com for a list of VideoPress blogs
-		$xml = $this->query( 'jetpack.vpGetBlogs' );
-		if ( ! $xml->isError() )
-			$options['blogs'] = $xml->getResponse();
+		$result = $this->query( 'jetpack.vpGetBlogs' );
+		if ( ! is_wp_error() )
+			$options['blogs'] = $result;
 
 		// If there's at least one available blog, let's use it.
 		if ( is_array( $options['blogs'] ) && count( $options['blogs'] ) > 0 )
@@ -165,7 +168,25 @@ class Jetpack_VideoPress {
 				$params['caps'][] = $cap;
 
 		$xml->query( $method, $params );
-		return $xml;
+
+		if ( $xml->isError() )
+			return new WP_Error( 'xml_rpc_error', 'An XML-RPC error has occurred.' );
+
+		$response = $xml->getResponse();
+
+		// If there's any metadata with the response, save it for future use.
+		if ( is_array( $response ) && isset( $response['meta'] ) ) {
+			$options = $this->get_options();
+			if ( $response['meta'] !== $options['meta'] ) {
+				$options['meta'] = array_merge( $options['meta'], $response['meta'] );
+				$this->update_options( $options );
+			}
+		}
+
+		if ( is_array( $response ) && isset( $response['result'] ) )
+			return $response['result'];
+
+		return $response;
 	}
 
 	/**
@@ -215,9 +236,9 @@ class Jetpack_VideoPress {
 			check_admin_referer( 'videopress-settings' );
 			$options = $this->get_options();
 
-			$xml = $this->query( 'jetpack.vpGetBlogs' );
-			if ( ! $xml->isError() ) {
-				$options['blogs'] = $xml->getResponse();
+			$result = $this->query( 'jetpack.vpGetBlogs' );
+			if ( ! is_wp_error( $result ) ) {
+				$options['blogs'] = $result;
 				$this->update_options( $options );
 			}
 
@@ -395,12 +416,12 @@ class Jetpack_VideoPress {
 		$query_args = $this->sanitize_wp_query_args( $_POST['query'] );
 
 		// Fire a remote WP_Query
-		$xml = $this->query( 'jetpack.vpQuery', $query_args );
+		$result = $this->query( 'jetpack.vpQuery', $query_args );
 
-		if ( $xml->isError() )
+		if ( is_wp_error( $result ) )
 			return wp_send_json_error( 'xml rpc request error' );
 
-		$items = $xml->getResponse();
+		$items = $result;
 		$shortcode_handler = Jetpack_VideoPress_Shortcode::init();
 
 		foreach ( $items as $key => $item ) {
@@ -502,13 +523,13 @@ class Jetpack_VideoPress {
 			if ( is_null( $value ) )
 				unset( $changes[ $key ] );
 
-		$xml = $this->query( 'jetpack.vpSaveAttachment', array(
+		$result = $this->query( 'jetpack.vpSaveAttachment', array(
 			'post_id' => $post_id,
 			'changes' => $changes,
 			'nonce' => $_POST['vp_nonces']['update'],
 		) );
 
-		if ( $xml->isError() )
+		if ( is_wp_error( $result ) )
 			return wp_send_json_error( 'xml rpc request error' );
 
 		wp_send_json_success();
@@ -533,12 +554,12 @@ class Jetpack_VideoPress {
 
 		check_ajax_referer( 'delete-videopress-post_' . $post_id );
 
-		$xml = $this->query( 'jetpack.vpDeleteAttachment', array(
+		$result = $this->query( 'jetpack.vpDeleteAttachment', array(
 			'post_id' => $post_id,
 			'nonce' => $_POST['vp_nonces']['delete'],
 		) );
 
-		if ( $xml->isError() )
+		if ( is_wp_error( $result ) )
 			return wp_send_json_error( 'xml rpc request error' );
 
 		wp_send_json_success();
@@ -592,6 +613,7 @@ class Jetpack_VideoPress {
 	 * Additional VideoPress media templates.
 	 */
 	function print_media_templates() {
+		$options = $this->get_options();
 		?>
 		<script type="text/html" id="tmpl-videopress-attachment">
 			<# if ( data.vp_ogg_url ) { #>
@@ -652,8 +674,28 @@ class Jetpack_VideoPress {
 				<input type="hidden" name="action" value="videopress_upload" />
 				<input type="hidden" name="videopress_blog_id" value="0" />
 				<input type="hidden" name="videopress_token" value="0" />
-				<input type="file" name="videopress_file" />
+				<?php $formats = 'ogv, mp4, m4v, mov, wmv, avi, mpg, 3gp, 3g2'; ?>
+				<?php
+					$max_upload_size = 0;
+					if ( ! empty( $options['meta']['max_upload_size'] ) )
+						$max_upload_size = absint( $options['meta']['max_upload_size'] );
 
+					$upload_size_unit = $max_upload_size;
+					$byte_sizes = array( 'KB', 'MB', 'GB' );
+
+					for ( $u = -1; $upload_size_unit > 1024 && $u < count( $byte_sizes ) - 1; $u++ )
+						$upload_size_unit /= 1024;
+
+					if ( $u < 0 ) {
+						$upload_size_unit = 0;
+						$u = 0;
+					} else {
+						$upload_size_unit = (int) $upload_size_unit;
+					}
+				?>
+				<p><?php printf( __( 'Use the form below to upload a video to your VideoPress Library. The following video formats are supported: %s. Maximum upload file size is %d%s.', 'jetpack' ), esc_html( $formats ), esc_html( $upload_size_unit ), esc_html( $byte_sizes[ $u ] ) ); ?></p>
+
+				<input type="file" name="videopress_file" />
 				<?php submit_button( __( 'Upload Video', 'jetpack' ) ); ?>
 			</form>
 			<iframe width="0" height="0" name="videopress_upload_frame"></iframe>
