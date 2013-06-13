@@ -582,6 +582,7 @@ class Jetpack_VideoPress {
 		$l10n = array(
 			'selectVideoFile' => __( 'Please select a video file to upload.', 'jetpack' ),
 			'videoUploading' => __( 'Your video is uploading... Please do not close this window.', 'jetpack' ),
+			'unknownError' => __( 'An unknown error has occurred. Please try again later.', 'jetpack' ),
 			'videoUploaded' => __( 'Your video has successfully been uploaded. It will appear in your VideoPress Library shortly.', 'jetpack' ),
 			'VideoPressLibraryRouter' => __( 'VideoPress Library', 'jetpack' ),
 			'uploadVideoRouter' => __( 'Upload a Video', 'jetpack' ),

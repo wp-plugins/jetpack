@@ -138,27 +138,37 @@
 				return;
 
 			if ( event.data.indexOf && event.data.indexOf( 'vpUploadResult::' ) === 0 ) {
-				var code = event.data.substr( 16 );
-				if ( code == 'success' ) {
-					this.success( VideoPress.l10n.videoUploaded );
+				var result = JSON.parse( event.data.substr( 16 ) );
+
+				if ( ! result || ! result.code ) {
+					this.error( VideoPress.l10n.unknownError );
+					this.$( '.videopress-upload-form .button' ).prop( 'disabled', false );
+					return;
+				}
+
+				if ( 'success' == result.code && result.data ) {
+					var that = this, controller = this.controller,
+					    state = controller.states.get( 'videopress' );
 
 					// Our new video has been added, so we need to reset the library.
 					// Since the Media API caches all queries, we add a random attribute
 					// to avoid the cache, then call more() to actually fetch the data.
 
-					var state = this.controller.states.get('videopress');
 					state.set( 'library', media.query({ videopress:true, vp_random:Math.random() }) );
-					state.get( 'library' ).more();
-					state.get( 'selection' ).reset();
+					state.get( 'library' ).more().done(function(){
+						var model = state.get( 'library' ).get( result.data.attachment_id );
 
-					// Clear the file field.
-					this.$( 'input[name="videopress_file"]').val('');
+						// Clear errors and select the uploaded item.
+						that.clearErrors();
+						state.get( 'selection' ).reset([ model ]);
+						controller.content.mode( 'browse' );
+					});
 				} else {
 					this.error( code );
-				}
 
-				// Re-enable form elements.
-				this.$( '.videopress-upload-form .button' ).prop( 'disabled', false );
+					// Re-enable form elements.
+					this.$( '.videopress-upload-form .button' ).prop( 'disabled', false );
+				}
 			}
 		}
 	});
