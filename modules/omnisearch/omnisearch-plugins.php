@@ -23,7 +23,8 @@ class Jetpack_Omnisearch_Plugins extends WP_Plugin_Install_List_Table {
 		$html .= '<div id="' . __CLASS__ . '_results">' . esc_html__('Loading &hellip;', 'jetpack') . '</div>';
 		$html .= '<script>jQuery("#' . __CLASS__ . '_results").load(ajaxurl,{action:"omnisearch_plugins",search_term:search_term,num_results:num_results});</script>';
 
-		$results[ __CLASS__ ] = $html;
+		$label = __( 'Plugins', 'jetpack' );
+		$results[ $label ] = $html;
 		return $results;
 	}
 
@@ -35,7 +36,7 @@ class Jetpack_Omnisearch_Plugins extends WP_Plugin_Install_List_Table {
 
 		ob_start();
 		$this->prepare_items();
-		$num_results = intval( $num_results ) ? intval( $num_results ) : Jetpack_Omnisearch::$num_results;
+		$num_results = intval( $num_results ) ? intval( $num_results ) : apply_filters( 'omnisearch_num_results', 5 );
 		$this->items = array_slice( $this->items, 0, $num_results );
 		remove_action( 'install_plugins_table_header', 'install_search_form' );
 		$this->display();
@@ -57,3 +58,4 @@ class Jetpack_Omnisearch_Plugins extends WP_Plugin_Install_List_Table {
 
 	function pagination() {}
 }
+

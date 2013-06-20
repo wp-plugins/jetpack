@@ -24,12 +24,13 @@ class Jetpack_Omnisearch_Comments extends WP_Comments_List_Table {
 		$this->display();
 		$html .= ob_get_clean();
 
-		$results[ __CLASS__ ] = $html;
+		$label = __( 'Comments', 'jetpack' );
+		$results[ $label ] = $html;
 		return $results;
 	}
 
 	function get_per_page( $comment_status ) {
-		return Jetpack_Omnisearch::$num_results;
+		return apply_filters( 'omnisearch_num_results', 5 );
 	}
 
 	function get_sortable_columns() {
@@ -44,3 +45,4 @@ class Jetpack_Omnisearch_Comments extends WP_Comments_List_Table {
 
 	function extra_tablenav( $which ) {}
 }
+

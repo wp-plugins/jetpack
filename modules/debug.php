@@ -29,7 +29,7 @@ add_action( 'jetpack_admin_menu', 'jetpack_debug_add_menu_handler' );
 
 function jetpack_debug_add_menu_handler() {
 	if ( current_user_can( 'manage_options' ) ) {
-		$hook = add_submenu_page( 'jetpack', 'Debug', 'Debug', 'manage_options', 'jetpack-debugger', 'jetpack_debug_menu_display_handler' );
+		$hook = add_submenu_page( 'jetpack', esc_html__( 'Debug', 'jetpack' ), esc_html__( 'Debug', 'jetpack' ), 'manage_options', 'jetpack-debugger', 'jetpack_debug_menu_display_handler' );
 		add_action( 'admin_head-'.$hook, 'jetpack_debug_admin_head' );
 	}
 }
@@ -107,7 +107,7 @@ function jetpack_debug_menu_display_handler() {
 	<div class="wrap">
 		<h2><?php esc_html_e( 'Jetpack Debugging Center', 'jetpack' ); ?></h2>
 		<h3><?php _e( "Tests your site's compatibily with Jetpack.", 'jetpack' ); ?></h3>
-		<h3>Tests</h3>
+		<h3><?php _e( 'Tests:', 'jetpack' ); ?></h3>
 		<div class="jetpack-debug-test-container">
 		<?php foreach ( $tests as $test_name => $test_result ) : 
 			$result = '';
@@ -151,17 +151,17 @@ function jetpack_debug_menu_display_handler() {
 			<h3><?php esc_html_e( 'Trouble with Jetpack?', 'jetpack' ); ?></h3>
 			<h4><?php esc_html_e( 'It may be caused by one of these issues, which you can diagnose yourself:', 'jetpack' ); ?></h4>
 			<ol>
-				<li><b><em><?php esc_html_e( 'A known issue.', 'jetpack' ); ?></em></b>  <?php echo sprintf( esc_html_x( 'Some themes and plugins have %s with Jetpack – check the %s. (You can also browse the %s or %s to see if others have experienced and solved the problem.)', '%s\'s = "known conflicts", "list", "Jetpack support pages", "Jetpack support forum"', 'jetpack' ), '<a href="http://jetpack.me/known-issues/" target="_blank">' . esc_html__( 'known conflicts', 'jetpack' ) . '</a>', '<a href="http://jetpack.me/known-issues/" target="_blank">' . esc_html__( 'list', 'jetpack' ) . '</a>', '<a href="http://jetpack.me/support/">' . esc_html__( 'Jetpack support pages', 'jetpack' ) . '</a>', '<a href="http://wordpress.org/support/plugin/jetpack">' . esc_html__( 'Jetpack support forum', 'jetpack' ) . '</a>' ); ?></li>
+				<li><b><em><?php esc_html_e( 'A known issue.', 'jetpack' ); ?></em></b>  <?php echo sprintf( __( 'Some themes and plugins have <a href="%1$s" target="_blank">known conflicts</a> with Jetpack – check the <a href="%2$s" target="_blank">list</a>. (You can also browse the <a href="%3$s">Jetpack support pages</a> or <a href="%4$s">Jetpack support forum</a> to see if others have experienced and solved the problem.)', 'jetpack' ), 'http://jetpack.me/known-issues/', 'http://jetpack.me/known-issues/', 'http://jetpack.me/support/', 'http://wordpress.org/support/plugin/jetpack' ); ?></li>
 				<li><b><em><?php esc_html_e( 'An incompatible plugin.', 'jetpack' ); ?></em></b>  <?php esc_html_e( "Find out by disabling all plugins except Jetpack. If the problem persists, it's not a plugin issue. If the problem is solved, turn your plugins on one by one until the problem pops up again – there's the culprit! Let us know, and we'll try to help.", 'jetpack' ); ?></li>
 				<li><b><em><?php esc_html_e( 'A theme conflict.', 'jetpack' ); ?></em></b>  <?php esc_html_e( "If your problem isn't known or caused by a plugin, try activating Twenty Twelve (the default WordPress theme). If this solves the problem, something in your theme is probably broken – let the theme's author know.", 'jetpack' ); ?></li>
-				<li><b><em><?php esc_html_e( 'A problem with your XMLRPC file.', 'jetpack' ); ?></em></b>  <?php echo sprintf( esc_html_x( 'Load your %s. It should say “XML-RPC server accepts POST requests only.” on a line by itself.', '%s = XMLRPC file', 'jetpack' ), '<a href="' . site_url( 'xmlrpc.php' ) . '">' . esc_html__( 'XMLRPC file', 'jetpack' ) . '</a>'  ); ?>
+				<li><b><em><?php esc_html_e( 'A problem with your XMLRPC file.', 'jetpack' ); ?></em></b>  <?php echo sprintf( __( 'Load your <a href="%s">XMLRPC file</a>. It should say “XML-RPC server accepts POST requests only.” on a line by itself.', 'jetpack' ), site_url( 'xmlrpc.php' ) ); ?>
 					<ul>
 						<li>- <?php esc_html_e( "If it's not by itself, a theme or plugin is displaying extra characters. Try steps 2 and 3.", 'jetpack' ); ?></li>
 						<li>- <?php esc_html_e( "If you get a 404 message, contact your web host. Their security may block XMLRPC.", 'jetpack' ); ?></li>
 					</ul>
 				</li>
 			</ol>
-			<p><?php esc_html_e( 'If none of these help you find a solution,', 'jetpack' ); ?> <a class="jetpack-show-contact-form" href="#"><?php esc_html_e( 'click here to contact Jetpack support', 'jetpack' ); ?></a>. <?php esc_html_e( "Tell us as much as you can about the issue and what steps you've tried to resolve it, and one of our Happiness Engineers will be in touch to help.", 'jetpack' ); ?></li>
+			<p class="jetpack-show-contact-form"><?php _e( 'If none of these help you find a solution, <a href="#">click here to contact Jetpack support</a>. Tell us as much as you can about the issue and what steps you\'ve tried to resolve it, and one of our Happiness Engineers will be in touch to help.', 'jetpack' ); ?> 
 			</p>
 		</div>
 		<div id="contact-message" style="display:none">
@@ -191,7 +191,7 @@ function jetpack_debug_menu_display_handler() {
 				</div>
 
 				<div id="toggle_debug_info" class="formbox">
-					<p><?php echo sprintf( esc_html_x( 'The test results and some other useful debug information will be sent to the support team. Please feel free to %s this information. ', '%s = review/modify', 'jetpack' ), '<a href="#">' . esc_html__( 'review/modify' , 'jetpack') . '</a>' ); ?></p>
+					<p><?php _e( 'The test results and some other useful debug information will be sent to the support team. Please feel free to <a href="#">review/modify</a> this information.', 'jetpack' ); ?></p>
 				</div>
 				
 				<div id="debug_info_div" class="formbox" style="display:none">
@@ -364,7 +364,7 @@ function jetpack_debug_admin_head() {
 			return false;
 		} );
 
-		$( '.jetpack-show-contact-form' ).on( 'click', function() {
+		$( '.jetpack-show-contact-form a' ).on( 'click', function() {
 			$('#contact-message').slideToggle();
 			return false;
 		} );
