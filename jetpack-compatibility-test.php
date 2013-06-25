@@ -37,9 +37,7 @@ class Jetpack_Compatibility_Test {
 		add_action( 'admin_head', array( $this, 'admin_head' ) );
 		$self_xml_rpc_url = site_url( 'xmlrpc.php' );
 
-		$this->tests['integer_tests'] = $this->integer_tests();
-		$this->tests['wp_generate_password'] = $this->wp_generate_password();
-		$this->tests['wp_rand'] = $this->wp_rand();
+		$this->tests['site_info'] = $this->site_info();
 		$this->tests['http']  = wp_remote_get(  'http://jetpack.wordpress.com/jetpack.test/1/' );
 		$this->tests['https'] = wp_remote_get( 'https://jetpack.wordpress.com/jetpack.test/1/' );
 		if ( preg_match( '/^https:/', $self_xml_rpc_url ) ) {
@@ -48,89 +46,6 @@ class Jetpack_Compatibility_Test {
 		} else {
 			$this->tests['self']      = wp_remote_get( $self_xml_rpc_url );
 		}
-	}
-
-	function wp_generate_password() {
-		$lengths = array( 1, 5, 10, 16, 32, 32 );
-		foreach ( $lengths as $length ) {
-			$password = wp_generate_password( $length, false );
-			$r[] = sprintf( '%2d -> %2d:%s', $length, strlen( $password ), $password );
-		}
-		$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-		$r['random_password'] = apply_filters( 'random_password', $chars );
-		$r['steps'] = array();
-		for ( $i = 0; $i < 32; $i++ ) {
-			$format = $i < 10 ? '%3d' : '%2d';
-			$rand = wp_rand( 0, 61 );
-			$r['steps'][] = sprintf( "$format -> %s", $rand, substr($chars, $rand, 1) );
-		}
-		if ( class_exists( 'ReflectionFunction' ) && is_callable( 'ReflectionFunction', 'export' ) ) {
-			$r['ReflectionFunction'] = "\n" . ReflectionFunction::export( 'wp_generate_password', true );
-		} else {
-			$r['ReflectionFunction'] = null;
-		}
-		return $r;
-	}
-
-	function wp_rand() {
-		$r = array(
-			var_export( $GLOBALS['rnd_value'], 1 ),
-		);
-		$rands = array();
-		for ( $i = 1; $i <= 20; $i++ ) {
-			$format = $i < 10 ? '%3d' : '%2d';
-			$rand = wp_rand( 0, 61 );
-			$rands[] = $rand;
-			$r[] = sprintf( "$format:%s", $rand, strrev( $GLOBALS['rnd_value'] ) );
-		}
-		$r['MIN'] = min( $rands );
-		$r['MAX'] = max( $rands );
-		if ( class_exists( 'ReflectionFunction' ) && is_callable( 'ReflectionFunction', 'export' ) ) {
-			$r['ReflectionFunction'] = "\n" . ReflectionFunction::export( 'wp_rand', true );
-		} else {
-			$r['ReflectionFunction'] = null;
-		}
-		return $r;
-	}
-
-	function prepend_type( $value ) {
-		$type = gettype( $value );
-		return "($type) $value";
-	}
-
-	function integer_tests() {
-		$r = array();
-
-		$value = "d0000000";
-		$r['$value = "d0000000";'] = $this->prepend_type( $value );
-
-		$value = hexdec( $value );
-		$r['$value = hexdec( $value );'] = $this->prepend_type( $value );
-
-		$value = abs( $value );
-		$r['$value = abs( $value );'] = $this->prepend_type( $value );
-
-		$min = 0;
-		$r['$min = 0;'] = $this->prepend_type( $min );
-
-		$max = 61;
-		$r['$max = 61;'] = $this->prepend_type( $max );
-
-		$r['4294967295 + 1'] = $this->prepend_type( 4294967295 + 1 );
-		$r['$value / (4294967295 + 1)'] = $this->prepend_type( $value / (4294967295 + 1) );
-		$r['$max - $min + 1'] = $this->prepend_type( $max - $min + 1 );
-		$r['($max - $min + 1) * ($value / (4294967295 + 1))'] = $this->prepend_type( ($max - $min + 1) * ($value / (4294967295 + 1)) );
-
-		$out = $min + (($max - $min + 1) * ($value / (4294967295 + 1)));
-		$r['$out = $min + (($max - $min + 1) * ($value / (4294967295 + 1)));'] = $this->prepend_type( $out );
-
-		$out = intval( $out );
-		$r['$out = intval( $out );'] = $this->prepend_type( $out );
-
-		$out = abs( $out );
-		$r['$out = abs( $out );'] = $this->prepend_type( $out );
-
-		return $r;
 	}
 
 	function admin_head() {
@@ -161,20 +76,44 @@ jQuery( function( $ ) {
 </script>
 <?php
 	}
+	
+	function site_info() {
+	
+		$site_info = "\r\n";
+		$site_info .= "\r\n" . esc_html( "SITE_URL: " . site_url() );
+		$site_info .= "\r\n" . esc_html( "HOME_URL: " . home_url() );
+		
+		return $site_info;
+	
+	}
 
 	function admin_page() {
 ?>
-	<h2>Jetpack Compatibility Test <a id="jetpack-compatibility-test-select-all" class="button" href="#">Select All</a></h2>
+	<h2>Jetpack Compatibility Test</h2>
 
+	<div class="jetpack-compatibility-test-intro">
+		<h3><?php esc_html_e( 'Trouble with Jetpack?', 'jetpack' ); ?></h3>
+		<h4><?php esc_html_e( 'It may be caused by one of these issues, which you can diagnose yourself:', 'jetpack' ); ?></h4>
+		<ol>
+			<li><b><em><?php esc_html_e( 'A known issue.', 'jetpack' ); ?></em></b>  <?php echo sprintf( __( 'Some themes and plugins have <a href="%1$s" target="_blank">known conflicts</a> with Jetpack – check the <a href="%2$s" target="_blank">list</a>. (You can also browse the <a href="%3$s">Jetpack support pages</a> or <a href="%4$s">Jetpack support forum</a> to see if others have experienced and solved the problem.)', 'jetpack' ), 'http://jetpack.me/known-issues/', 'http://jetpack.me/known-issues/', 'http://jetpack.me/support/', 'http://wordpress.org/support/plugin/jetpack' ); ?></li>
+			<li><b><em><?php esc_html_e( 'An incompatible plugin.', 'jetpack' ); ?></em></b>  <?php esc_html_e( "Find out by disabling all plugins except Jetpack. If the problem persists, it's not a plugin issue. If the problem is solved, turn your plugins on one by one until the problem pops up again – there's the culprit! Let us know, and we'll try to help.", 'jetpack' ); ?></li>
+			<li><b><em><?php esc_html_e( 'A theme conflict.', 'jetpack' ); ?></em></b>  <?php esc_html_e( "If your problem isn't known or caused by a plugin, try activating Twenty Twelve (the default WordPress theme). If this solves the problem, something in your theme is probably broken – let the theme's author know.", 'jetpack' ); ?></li>
+			<li><b><em><?php esc_html_e( 'A problem with your XMLRPC file.', 'jetpack' ); ?></em></b>  <?php echo sprintf( __( 'Load your <a href="%s">XMLRPC file</a>. It should say “XML-RPC server accepts POST requests only.” on a line by itself.', 'jetpack' ), site_url( 'xmlrpc.php' ) ); ?>
+				<ul>
+					<li>- <?php esc_html_e( "If it's not by itself, a theme or plugin is displaying extra characters. Try steps 2 and 3.", 'jetpack' ); ?></li>
+					<li>- <?php esc_html_e( "If you get a 404 message, contact your web host. Their security may block XMLRPC.", 'jetpack' ); ?></li>
+				</ul>
+			</li>
+		</ol>
+		<p class="jetpack-show-contact-form"><?php _e( 'If none of these help you find a solution, <a target="_blank" href="http://jetpack.me/contact-support/">click here to contact Jetpack support</a>. Tell us as much as you can about the issue and what steps you\'ve tried to resolve it, and include the results of the test below.', 'jetpack' ); ?> 
+		</p>
+		<p><a id="jetpack-compatibility-test-select-all" class="button" href="#">Select All</a></p>
+	</div>
+	
 	<div id="jetpack-compatibility-test-wrapper">
-<h3>TEST: Integer Tests</h3>
-<?php $this->output( $this->tests['integer_tests'] ); ?>
-
-<h3>TEST: <code>wp_generate_password()</code></h3>
-<?php $this->output( $this->tests['wp_generate_password'] ); ?>
-
-<h3>TEST: <code>wp_rand()</code></h3>
-<?php $this->output( $this->tests['wp_rand'] ); ?>
+	
+<h3>Site info</h3>
+<?php $this->output( $this->tests['site_info'] ); ?>
 
 <h3>TEST: HTTP Connection</h3>
 <?php $this->output( $this->tests['http'] ); ?>
