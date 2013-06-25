@@ -4,7 +4,7 @@
  * Plugin Name: Jetpack Compatibility Test
  * Description: Tests your site's compatibily with Jetpack.
  * Plugin URI: http://jetpack.me/
- * Version: 1.4
+ * Version: 1.5
  * Author: Automattic
  * Author URI: http://automattic.com/
  * License: GPL2+
