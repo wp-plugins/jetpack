@@ -1,24 +1,10 @@
 <?php
 
-function menu_alter() {
-    echo '
-	<style>
-	#menu-posts-feedback .wp-menu-image img { display: none; }
-	#adminmenu .menu-icon-feedback:hover div.wp-menu-image, #adminmenu .menu-icon-feedback.wp-has-current-submenu div.wp-menu-image, #adminmenu .menu-icon-feedback.current div.wp-menu-image { background: url("' .GRUNION_PLUGIN_URL . 'images/grunion-menu-hover.png") no-repeat 7px 7px !important; }
-	#adminmenu .menu-icon-feedback div.wp-menu-image, #adminmenu .menu-icon-feedback div.wp-menu-image, #adminmenu .menu-icon-feedback div.wp-menu-image { background: url("' . GRUNION_PLUGIN_URL . 'images/grunion-menu.png") no-repeat 7px 7px !important; }
-	body.admin-color-mp6 #adminmenu .menu-icon-feedback div.wp-menu-image, body.admin-color-mp6 #adminmenu .menu-icon-feedback div.wp-menu-image, body.admin-color-mp6 #adminmenu .menu-icon-feedback div.wp-menu-image { background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMjBweCIgaGVpZ2h0PSIyMHB4IiB2aWV3Qm94PSItNDc5LjUgMzAwLjUgMjAgMjAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgLTQ3OS41IDMwMC41IDIwIDIwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48c3R5bGU+LnN0eWxlMHtmaWxsOgkjOTk5OTk5O308L3N0eWxlPjxwYXRoIGQ9Ik0tNDcxLjUgMzA3LjVoNnYzaC02VjMwNy41eiBNLTQ3MS41IDMxMS41aDZ2M2gtNlYzMTEuNXogTS00NzQuNSAzMDcuNWgydjFoLTJWMzA3LjV6IE0tNDc0LjUgMzExLjVoMnYxaC0yIFYzMTEuNXogTS00NjMuNSAzMDEuNWgtMTNjLTAuNDg5IDAtMSAwLjUxMi0xIDF2MTRjMCAwLjUgMC41IDEgMSAxaDEzYzAuNDg5IDAgMS0wLjUxMiAxLTF2LTE0IEMtNDYyLjUgMzAyLjAxMi00NjMuMDExIDMwMS41LTQ2My41IDMwMS41eiBNLTQ2NC41IDMxNS41aC0xMXYtOWgxMVYzMTUuNXoiIGNsYXNzPSJzdHlsZTAiLz48L3N2Zz4=) no-repeat 7px 7px !important; background-size: 20px 20px !important;}
-	body.admin-color-mp6 #adminmenu .menu-icon-feedback:hover div.wp-menu-image { background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMjBweCIgaGVpZ2h0PSIyMHB4IiB2aWV3Qm94PSItNDc5LjUgMzAwLjUgMjAgMjAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgLTQ3OS41IDMwMC41IDIwIDIwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48c3R5bGU+LnN0eWxlMHtmaWxsOgkjMkVBMkNDO308L3N0eWxlPjxwYXRoIGQ9Ik0tNDcxLjUgMzA3LjVoNnYzaC02VjMwNy41eiBNLTQ3MS41IDMxMS41aDZ2M2gtNlYzMTEuNXogTS00NzQuNSAzMDcuNWgydjFoLTJWMzA3LjV6IE0tNDc0LjUgMzExLjVoMnYxaC0yIFYzMTEuNXogTS00NjMuNSAzMDEuNWgtMTNjLTAuNDg5IDAtMSAwLjUxMi0xIDF2MTRjMCAwLjUgMC41IDEgMSAxaDEzYzAuNDg5IDAgMS0wLjUxMiAxLTF2LTE0IEMtNDYyLjUgMzAyLjAxMi00NjMuMDExIDMwMS41LTQ2My41IDMwMS41eiBNLTQ2NC41IDMxNS41aC0xMXYtOWgxMVYzMTUuNXoiIGNsYXNzPSJzdHlsZTAiLz48L3N2Zz4=) no-repeat 7px 7px !important; }
-	body.admin-color-mp6 #adminmenu .menu-icon-feedback.wp-has-current-submenu div.wp-menu-image, body.admin-color-mp6 #adminmenu .menu-icon-feedback.current div.wp-menu-image { background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMjBweCIgaGVpZ2h0PSIyMHB4IiB2aWV3Qm94PSItNDc5LjUgMzAwLjUgMjAgMjAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgLTQ3OS41IDMwMC41IDIwIDIwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48c3R5bGU+LnN0eWxlMHtmaWxsOgkjRkZGRkZGO308L3N0eWxlPjxwYXRoIGQ9Ik0tNDcxLjUgMzA3LjVoNnYzaC02VjMwNy41eiBNLTQ3MS41IDMxMS41aDZ2M2gtNlYzMTEuNXogTS00NzQuNSAzMDcuNWgydjFoLTJWMzA3LjV6IE0tNDc0LjUgMzExLjVoMnYxaC0yIFYzMTEuNXogTS00NjMuNSAzMDEuNWgtMTNjLTAuNDg5IDAtMSAwLjUxMi0xIDF2MTRjMCAwLjUgMC41IDEgMSAxaDEzYzAuNDg5IDAgMS0wLjUxMiAxLTF2LTE0IEMtNDYyLjUgMzAyLjAxMi00NjMuMDExIDMwMS41LTQ2My41IDMwMS41eiBNLTQ2NC41IDMxNS41aC0xMXYtOWgxMVYzMTUuNXoiIGNsYXNzPSJzdHlsZTAiLz48L3N2Zz4=) no-repeat 7px 7px !important; }
-	.jetpack-contact-form-icon { background: url("' . GRUNION_PLUGIN_URL . 'images/grunion-form.png") no-repeat; width: 16px; height: 16px; display: inline-block; vertical-align: middle; }
-	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5) {
-	    #adminmenu .menu-icon-feedback:hover div.wp-menu-image, #adminmenu .menu-icon-feedback.wp-has-current-submenu div.wp-menu-image, #adminmenu .menu-icon-feedback.current div.wp-menu-image { background: url("' .GRUNION_PLUGIN_URL . 'images/grunion-menu-hover-2x.png") no-repeat 7px 7px !important; background-size: 15px 16px !important; }
-		#adminmenu .menu-icon-feedback div.wp-menu-image, #adminmenu .menu-icon-feedback div.wp-menu-image, #adminmenu .menu-icon-feedback div.wp-menu-image { background: url("' . GRUNION_PLUGIN_URL . 'images/grunion-menu-2x.png") no-repeat 7px 7px !important; background-size: 15px 16px !important; }
-	    .grunion-menu-button { background-image: url("' . GRUNION_PLUGIN_URL . 'images/grunion-form-2x.png"); background-size: 13px 12px !important; vertical-align: bottom; }
-	}
-	</style>';
+function grunion_menu_alter() {
+	wp_enqueue_style( 'grunion-menu-alter', plugins_url( 'css/menu-alter.css', __FILE__ ) );
 }
 
-add_action('admin_head', 'menu_alter');
+add_action( 'admin_enqueue_scripts', 'grunion_menu_alter' );
 
 /**
  * Add a contact form button to the post composition screen
@@ -50,7 +36,7 @@ function display_form_view() {
 add_action( 'admin_print_styles', 'grunion_admin_css' );
 function grunion_admin_css() {
 	global $current_screen;
-	if ( 'edit-feedback' != $current_screen->id )
+	if ( ! in_array( $current_screen->id, array( 'edit-feedback', 'jetpack_page_omnisearch', 'dashboard_page_omnisearch' ) ) )
 		return;
 
 	wp_enqueue_script( 'wp-lists' );
@@ -416,7 +402,12 @@ jQuery(document).ready( function($) {
 			break;
 
 		case 'feedback_date':
-			echo get_the_date( __( 'Y-m-d @ g:i:s A', 'jetpack' ) );
+			
+			$date_time_format = _x( '%1$s \a\t %2$s', '{$date_format} \a\t {$time_format}', 'jetpack' );
+			$date_time_format = sprintf( $date_time_format, get_option( 'date_format' ), get_option( 'time_format' ) );
+			$time = date_i18n( $date_time_format, current_time( 'timestamp' ) );
+		
+			echo $time;
 			break;
 	}
 }
@@ -638,4 +629,13 @@ function grunion_ajax_spam() {
 
 	echo $status_html;
 	exit;
+}
+
+add_action( 'omnisearch_add_providers', 'grunion_omnisearch_add_providers' );
+function grunion_omnisearch_add_providers() {
+	// Feedback uses capability_type 'page'
+	if ( current_user_can( 'edit_pages' ) ) {
+		require_once( GRUNION_PLUGIN_DIR . '/grunion-omnisearch.php' );
+		new Jetpack_Omnisearch_Grunion;
+	}
 }

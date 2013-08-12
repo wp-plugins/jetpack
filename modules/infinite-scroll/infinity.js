@@ -84,7 +84,6 @@ Scroller.prototype.check = function() {
 	var bottom = this.window.scrollTop() + this.window.height(),
 		threshold = this.element.offset().top + this.element.outerHeight(false) - this.window.height();
 
-	// Trigger IS sooner to reduce the likelihood that viewers see the loading spinner. See #5403-wpcom.
 	threshold = Math.round( threshold * 0.75 );
 
 	return bottom > threshold;
@@ -457,7 +456,7 @@ Scroller.prototype.updateURL = function( page ) {
  */
 $( document ).ready( function() {
 	// Check for our variables
-	if ( ! infiniteScroll )
+	if ( 'object' != typeof infiniteScroll ) 
 		return;
 
 	// Set ajaxurl (for brevity)
