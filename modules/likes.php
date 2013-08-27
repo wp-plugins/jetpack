@@ -4,9 +4,10 @@
  * Module Description: Likes are a way for people to show their appreciation for content you have written. It’s also a way for you to show the world how popular your content has become.
  * First Introduced: 2.2
  * Sort Order: 4
+ * Requires Connection: Yes
  */
 class Jetpack_Likes {
-	var $version = '20130523';
+	var $version = '20130620a';
 
 	public static function init() {
 		static $instance = NULL;
@@ -29,7 +30,7 @@ class Jetpack_Likes {
 			add_action( 'jetpack_deactivate_module_likes', array( $this, 'module_toggle' ) );
 
 			Jetpack::enable_module_configurable( __FILE__ );
-			Jetpack::module_configuration_load( __FILE__, array( 'Jetpack_Likes', 'configuration_redirect' ) );
+			Jetpack::module_configuration_load( __FILE__, array( $this, 'configuration_redirect' ) );
 
 			add_action('admin_print_scripts-settings_page_sharing', array( &$this, 'load_jp_css' ) );
 			add_filter( 'sharing_show_buttons_on_row_start', array( $this, 'configuration_target_area' ) );
@@ -206,8 +207,8 @@ class Jetpack_Likes {
 
 	function admin_discussion_likes_settings_init() {
 		// Add a temporary section, until we can move the setting out of there and with the rest of the email notification settings
-		add_settings_section( 'likes-notifications', __( 'Likes Notifications' , 'jetpack'), array( $this, 'admin_discussion_likes_settings_section' ), 'discussion' );
-		add_settings_field( 'social-notifications', __( 'Email me whenever' , 'jetpack'), array( $this, 'admin_discussion_likes_settings_field' ), 'discussion', 'likes-notifications' );
+		add_settings_section( 'likes-notifications', __( 'Likes Notifications', 'jetpack' ), array( $this, 'admin_discussion_likes_settings_section' ), 'discussion' );
+		add_settings_field( 'social-notifications', __( 'Email me whenever', 'jetpack' ), array( $this, 'admin_discussion_likes_settings_field' ), 'discussion', 'likes-notifications' );
 		// Register the setting
 		register_setting( 'discussion', 'social_notifications_like', array( $this, 'admin_discussion_likes_settings_validate' ) );
 	}
@@ -246,7 +247,7 @@ class Jetpack_Likes {
 	function admin_discussion_likes_settings_field() {
 		$like = $this->admin_likes_get_option( 'social_notifications_like' );
 ?>
-		<label><input type="checkbox" id="social_notifications_like" name="social_notifications_like" value="1" <?php checked( $like ); ?> /> <?php esc_html_e( 'Someone likes one of my posts' , 'jetpack'); ?></label>
+		<label><input type="checkbox" id="social_notifications_like" name="social_notifications_like" value="1" <?php checked( $like ); ?> /> <?php esc_html_e( 'Someone likes one of my posts', 'jetpack' ); ?></label>
 <?php
 	}
 
@@ -519,6 +520,11 @@ class Jetpack_Likes {
 			.fixed .column-likes .post-com-count { background-image: none; }
 			.fixed .column-likes .comment-count { background-color: #888; }
 			.fixed .column-likes .comment-count:hover { background-color: #D54E21; }
+			.admin-color-mp6 .fixed .column-likes .post-com-count::after { border: none !important; }
+			.admin-color-mp6 .fixed .column-likes .comment-count { background-color: #bbb; }
+			.admin-color-mp6 .fixed .column-likes .comment-count:hover { background-color: #2ea2cc; }
+			.admin-color-mp6 .fixed .column-likes .vers img { display: none; }
+			.admin-color-mp6 .fixed .column-likes .vers:before {font:20px/1 dashicons;content: '\f155';-webkit-font-smoothing:antialiased;}
 		</style> <?php
 	}
 
@@ -527,10 +533,14 @@ class Jetpack_Likes {
 	*/
 	function enqueue_admin_scripts() {
 		if ( empty( $_GET['post_type'] ) || 'post' == $_GET['post_type'] || 'page' == $_GET['post_type'] ) {
-			if ( $this->in_jetpack )
+			if ( $this->in_jetpack ) {
 				wp_enqueue_script( 'likes-post-count', plugins_url( 'modules/likes/post-count.js', dirname( __FILE__ ) ), array( 'jquery' ), JETPACK__VERSION );
-			else
+				wp_enqueue_script( 'likes-post-count-jetpack', plugins_url( 'modules/likes/post-count-jetpack.js', dirname( __FILE__ ) ), array( 'likes-post-count' ), JETPACK__VERSION );
+			} else {
+				wp_enqueue_script( 'jquery.wpcom-proxy-request', "/wp-content/js/jquery/jquery.wpcom-proxy-request.js", array('jquery'), NULL, true );
 				wp_enqueue_script( 'likes-post-count', plugins_url( 'likes/post-count.js', dirname( __FILE__ ) ), array( 'jquery' ), JETPACK__VERSION );
+				wp_enqueue_script( 'likes-post-count-wpcom', plugins_url( 'likes/post-count-wpcom.js', dirname( __FILE__ ) ), array( 'likes-post-count', 'jquery.wpcom-proxy-request' ), JETPACK__VERSION );
+			}
 		}
 	}
 
@@ -568,7 +578,7 @@ class Jetpack_Likes {
 		$date = $columns['date'];
 		unset( $columns['date'] );
 
-		$columns['likes'] = '<span class="vers"><img title="' . esc_attr__( 'Likes' , 'jetpack') . '" alt="' . esc_attr__( 'Likes' , 'jetpack') . '" src="//s0.wordpress.com/i/like-grey-icon.png" /></span>';
+		$columns['likes'] = '<span class="vers"><img title="' . esc_attr__( 'Likes', 'jetpack' ) . '" alt="' . esc_attr__( 'Likes', 'jetpack' ) . '" src="//s0.wordpress.com/i/like-grey-icon.png" /></span>';
 		$columns['date'] = $date;
 
 		return $columns;
@@ -579,10 +589,6 @@ class Jetpack_Likes {
 
 		if ( ! $this->is_likes_visible() )
 			return $content;
-
-		$protocol = 'http';
-		if ( is_ssl() )
-			$protocol = 'https';
 
 		if ( defined( 'IS_WPCOM' ) && IS_WPCOM ) {
 			$blog_id = get_current_blog_id();
@@ -604,7 +610,7 @@ class Jetpack_Likes {
 		*/
 		$uniqid = uniqid();
 
-		$src = sprintf( '%1$s://widgets.wp.com/likes/#blog_id=%2$d&amp;post_id=%3$d&amp;origin=%1$s://%4$s&amp;obj_id=%2$d-%3$d-%5$s', $protocol, $blog_id, $post->ID, $domain, $uniqid );
+		$src = sprintf( '//widgets.wp.com/likes/#blog_id=%1$d&amp;post_id=%2$d&amp;origin=%3$s&amp;obj_id=%1$d-%2$d-%4$s', $blog_id, $post->ID, $domain, $uniqid );
 		$name = sprintf( 'like-post-frame-%1$d-%2$d-%3$s', $blog_id, $post->ID, $uniqid );
 		$wrapper = sprintf( 'like-post-wrapper-%1$d-%2$d-%3$s', $blog_id, $post->ID, $uniqid );
 

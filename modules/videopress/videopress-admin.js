@@ -164,7 +164,7 @@
 						controller.content.mode( 'browse' );
 					});
 				} else {
-					this.error( code );
+					this.error( result.code );
 
 					// Re-enable form elements.
 					this.$( '.videopress-upload-form .button' ).prop( 'disabled', false );

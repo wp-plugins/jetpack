@@ -82,7 +82,9 @@ class Jetpack_Subscriptions {
 			return false;
 		}
 
-		return 'publish' === $post->post_status && strlen( (string) $post->post_password ) < 1;
+		if ( 'publish' === $post->post_status && strlen( (string) $post->post_password ) < 1 ) {
+			return apply_filters( 'jetpack_is_post_mailable', true );
+		}
 	}
 
 	/**
@@ -280,7 +282,7 @@ class Jetpack_Subscriptions {
 	 *	unknown         : strange error.  Jetpack servers at WordPress.com returned something malformed.
 	 *	unknown_status  : strange error.  Jetpack servers at WordPress.com returned something I didn't understand.
 	 */
-	function subscribe( $email, $post_ids = 0, $async = true ) {
+	function subscribe( $email, $post_ids = 0, $async = true, $submitter_ip_address = '' ) {
 		if ( !is_email( $email ) ) {
 			return new Jetpack_Error( 'invalid_email' );
 		}
@@ -299,9 +301,9 @@ class Jetpack_Subscriptions {
 			}
 
 			if ( $async ) {
-				Jetpack::xmlrpc_async_call( 'jetpack.subscribeToSite', $email, $post_id );
+				Jetpack::xmlrpc_async_call( 'jetpack.subscribeToSite', $email, $post_id, $submitter_ip_address );
 			} else {
-				$xml->addCall( 'jetpack.subscribeToSite', $email, $post_id );
+				$xml->addCall( 'jetpack.subscribeToSite', $email, $post_id, $submitter_ip_address );
 			}
 		}
 
@@ -383,7 +385,7 @@ class Jetpack_Subscriptions {
 			$redirect_fragment = 'subscribe-blog';
 		}
 
-		$subscribe = Jetpack_Subscriptions::subscribe( $_REQUEST['email'], 0, false );
+		$subscribe = Jetpack_Subscriptions::subscribe( $_REQUEST['email'], 0, false, $_SERVER['REMOTE_ADDR'] );
 
 		if ( is_wp_error( $subscribe ) ) {
 			$error = $subscribe->get_error_code();
@@ -527,10 +529,7 @@ class Jetpack_Subscriptions_Widget extends WP_Widget {
 	function widget( $args, $instance ) {
 		global $current_user;
 
-		$source = 'widget';
-
-		extract( $args );
-
+		$source                 = 'widget';
 		$instance            	= wp_parse_args( (array) $instance, $this->defaults() );
 		$title               	= isset( $instance['title'] )               ? stripslashes( $instance['title'] )               : '';
 		$subscribe_text      	= isset( $instance['subscribe_text'] )      ? stripslashes( $instance['subscribe_text'] )      : '';
@@ -593,9 +592,9 @@ class Jetpack_Subscriptions_Widget extends WP_Widget {
 				<input type="hidden" name="source" value="<?php echo esc_url( $referer ); ?>" />
 				<input type="hidden" name="sub-type" value="<?php echo esc_attr( $source ); ?>" />
 				<input type="hidden" name="redirect_fragment" value="<?php echo esc_attr( $widget_id ); ?>" />
-				<?php
+				<?php 
 					if ( is_user_logged_in() ) {
-						wp_nonce_field( 'blogsub_subscribe_'. get_current_blog_id(), '_wpnonce', false );
+						wp_nonce_field( 'blogsub_subscribe_'. get_current_blog_id(), '_wpnonce', false ); 
 					}
 				?>
 				<input type="submit" value="<?php echo esc_attr( $subscribe_button ); ?>" name="jetpack_subscriptions_widget" />
@@ -707,7 +706,7 @@ class Jetpack_Subscriptions_Widget extends WP_Widget {
 <p>
 	<label for="<?php echo $this->get_field_id( 'show_subscribers_total' ); ?>">
 		<input type="checkbox" id="<?php echo $this->get_field_id( 'show_subscribers_total' ); ?>" name="<?php echo $this->get_field_name( 'show_subscribers_total' ); ?>" value="1"<?php echo $show_subscribers_total; ?> />
-		<?php echo esc_html( sprintf( _n( 'Show total number of subscribers? (%s subscriber)', 'Show total number of subscribers? (%s subscribers)', $subscribers_total, 'jetpack' ), number_format_i18n( $subscribers_total ) ) ); ?>
+		<?php echo esc_html( sprintf( _n( 'Show total number of subscribers? (%s subscriber)', 'Show total number of subscribers? (%s subscribers)', $subscribers_total, 'jetpack' ), $subscribers_total ) ); ?>
 	</label>
 </p>
 <?php
