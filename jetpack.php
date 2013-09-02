@@ -5,7 +5,7 @@
  * Plugin URI: http://wordpress.org/extend/plugins/jetpack/
  * Description: Bring the power of the WordPress.com cloud to your self-hosted WordPress. Jetpack enables you to connect your blog to a WordPress.com account to use the powerful features normally only available to WordPress.com users.
  * Author: Automattic
- * Version: 2.3.5
+ * Version: 2.4
  * Author URI: http://jetpack.me
  * License: GPL2+
  * Text Domain: jetpack
@@ -17,7 +17,7 @@ define( 'JETPACK__API_VERSION', 1 );
 define( 'JETPACK__MINIMUM_WP_VERSION', '3.5' );
 defined( 'JETPACK_CLIENT__AUTH_LOCATION' ) or define( 'JETPACK_CLIENT__AUTH_LOCATION', 'header' );
 defined( 'JETPACK_CLIENT__HTTPS' ) or define( 'JETPACK_CLIENT__HTTPS', 'AUTO' );
-define( 'JETPACK__VERSION', '2.3.5' );
+define( 'JETPACK__VERSION', '2.4' );
 define( 'JETPACK__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 defined( 'JETPACK__GLOTPRESS_LOCALES_PATH' ) or define( 'JETPACK__GLOTPRESS_LOCALES_PATH', JETPACK__PLUGIN_DIR . 'locales.php' );
 
@@ -63,6 +63,17 @@ add_filter( 'jetpack_open_graph_tags', 'change_twitter_site_param' );
 function change_twitter_site_param( $og_tags ) {
 	$og_tags['twitter:site'] = '@jetpack';
 	return $og_tags;
+}
+
+/**
+ * Add an easy way to photon-ize a URL that is safe to call even if Jetpack isn't active.
+ *
+ * See: http://jetpack.me/2013/07/11/photon-and-themes/
+ */
+if ( Jetpack::init()->is_module_active( 'photon' ) ) {
+	add_filter( 'jetpack_photon_url', 'jetpack_photon_url', 10, 3 );
+} else {
+	remove_filter( 'jetpack_photon_url', 'jetpack_photon_url', 10, 3 );
 }
 
 /*

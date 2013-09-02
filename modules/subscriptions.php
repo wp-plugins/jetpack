@@ -5,6 +5,7 @@
  * Sort Order: 3
  * First Introduced: 1.2
  * Requires Connection: Yes
+ * Auto Activate: Yes
  */
 
 add_action( 'jetpack_modules_loaded', 'jetpack_subscriptions_load' );
@@ -282,7 +283,7 @@ class Jetpack_Subscriptions {
 	 *	unknown         : strange error.  Jetpack servers at WordPress.com returned something malformed.
 	 *	unknown_status  : strange error.  Jetpack servers at WordPress.com returned something I didn't understand.
 	 */
-	function subscribe( $email, $post_ids = 0, $async = true ) {
+	function subscribe( $email, $post_ids = 0, $async = true, $extra_data = array() ) {
 		if ( !is_email( $email ) ) {
 			return new Jetpack_Error( 'invalid_email' );
 		}
@@ -301,9 +302,9 @@ class Jetpack_Subscriptions {
 			}
 
 			if ( $async ) {
-				Jetpack::xmlrpc_async_call( 'jetpack.subscribeToSite', $email, $post_id );
+				Jetpack::xmlrpc_async_call( 'jetpack.subscribeToSite', $email, $post_id, serialize( $extra_data ) );
 			} else {
-				$xml->addCall( 'jetpack.subscribeToSite', $email, $post_id );
+				$xml->addCall( 'jetpack.subscribeToSite', $email, $post_id, serialize( $extra_data) );
 			}
 		}
 
@@ -385,7 +386,17 @@ class Jetpack_Subscriptions {
 			$redirect_fragment = 'subscribe-blog';
 		}
 
-		$subscribe = Jetpack_Subscriptions::subscribe( $_REQUEST['email'], 0, false );
+		$subscribe = Jetpack_Subscriptions::subscribe( 
+												$_REQUEST['email'], 
+												0, 
+												false, 
+												array( 
+													'source'         => 'widget', 
+													'widget-in-use'  => is_active_widget( false, false, 'blog_subscription', true ) ? 'yes' : 'no', 
+													'comment_status' => '', 
+													'server_data'    => $_SERVER,
+												)
+		);
 
 		if ( is_wp_error( $subscribe ) ) {
 			$error = $subscribe->get_error_code();
@@ -486,7 +497,17 @@ class Jetpack_Subscriptions {
 		if ( isset( $_REQUEST['subscribe_blog'] ) )
 			$post_ids[] = 0;
 
-		Jetpack_Subscriptions::subscribe( $comment->comment_author_email, $post_ids );
+		Jetpack_Subscriptions::subscribe( 
+									$comment->comment_author_email, 
+									$post_ids,
+									true,
+									array( 
+										'source'         => 'comment-form', 
+										'widget-in-use'  => is_active_widget( false, false, 'blog_subscription', true ) ? 'yes' : 'no', 
+										'comment_status' => $approved, 
+										'server_data'    => $_SERVER,
+									)
+		);
 	 }
 
 	/**
@@ -529,10 +550,7 @@ class Jetpack_Subscriptions_Widget extends WP_Widget {
 	function widget( $args, $instance ) {
 		global $current_user;
 
-		$source = 'widget';
-
-		extract( $args );
-
+		$source                 = 'widget';
 		$instance            	= wp_parse_args( (array) $instance, $this->defaults() );
 		$title               	= isset( $instance['title'] )               ? stripslashes( $instance['title'] )               : '';
 		$subscribe_text      	= isset( $instance['subscribe_text'] )      ? stripslashes( $instance['subscribe_text'] )      : '';
@@ -595,9 +613,9 @@ class Jetpack_Subscriptions_Widget extends WP_Widget {
 				<input type="hidden" name="source" value="<?php echo esc_url( $referer ); ?>" />
 				<input type="hidden" name="sub-type" value="<?php echo esc_attr( $source ); ?>" />
 				<input type="hidden" name="redirect_fragment" value="<?php echo esc_attr( $widget_id ); ?>" />
-				<?php
+				<?php 
 					if ( is_user_logged_in() ) {
-						wp_nonce_field( 'blogsub_subscribe_'. get_current_blog_id(), '_wpnonce', false );
+						wp_nonce_field( 'blogsub_subscribe_'. get_current_blog_id(), '_wpnonce', false ); 
 					}
 				?>
 				<input type="submit" value="<?php echo esc_attr( $subscribe_button ); ?>" name="jetpack_subscriptions_widget" />
