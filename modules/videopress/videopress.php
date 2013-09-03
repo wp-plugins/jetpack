@@ -260,6 +260,11 @@ class Jetpack_VideoPress {
 
 				<table id="menu" class="form-table">
 					<tr>
+						<th scope="row" colspan="2">
+							<p><?php _e( 'Please note that the VideoPress module requires a WordPress.com account with an active <a href="http://store.wordpress.com/premium-upgrades/videopress/" target="_blank">VideoPress subscription</a>.</p>', 'jetpack' ); ?></p>
+						</th>
+					</tr>
+					<tr>
 						<th scope="row">
 							<label><?php _e( 'Connected WordPress.com Blog', 'jetpack' ); ?></label>
 						</th>
@@ -271,7 +276,8 @@ class Jetpack_VideoPress {
 								<?php endforeach; ?>
 							</select>
 							<p class="description"><?php _e( 'Only videos from the selected blog will be available in your media library.', 'jetpack' ); ?>
-								<?php printf( __( '<a href="%s">Click here</a> to refresh this list', 'jetpack' ), esc_url( $refresh_url ) ); ?>
+								<?php printf( __( '<a href="%s">Click here</a> to refresh this list.', 'jetpack' ), esc_url( $refresh_url ) ); ?>
+							</p>
 						</td>
 					</tr>
 					<tr>

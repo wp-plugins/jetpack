@@ -842,7 +842,10 @@ add_action( 'jetpack_learn_more_button_wpcc', 'jetpack_wpcc_more_link' );
 
 // VideoPress: START
 function jetpack_videopress_more_info() {
-	echo 'More info';
+	?>
+	<h4><?php esc_html_e( 'VideoPress', 'jetpack' ); ?></h4>
+	<p><?php _e( 'With the VideoPress module you can easily upload videos to your WordPress site and embed them in your posts and pages. This module requires a WordPress.com account with an active <a href="http://store.wordpress.com/premium-upgrades/videopress/" target="_blank">VideoPress subscription</a>.', 'jetpack' ); ?></p>
+	<?php
 }
 add_action( 'jetpack_module_more_info_videopress', 'jetpack_videopress_more_info' );
 
