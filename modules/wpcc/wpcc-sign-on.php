@@ -118,8 +118,10 @@ class WPCC_Sign_On {
 	}
 
 	function no_credentials_admin_notice() {
+		$disable_url = wp_nonce_url( Jetpack::admin_url( 'action=deactivate&module=wpcc' ), 'jetpack_deactivate-wpcc' );
 		?>
 		<div id="wpcc-needs-config" class="updated">
+			<p class="alignright"><a href="<?php echo esc_url( $disable_url ); ?>"><?php _e( 'Close', 'jetpack' ); ?></a></p>
 			<p><?php printf( __( '<strong>Almost done.</strong> Before WordPress.com Connect can finish activating, you\'ll need to <a href="%s">register your website as an application on WordPress.com</a>', 'jetpack' ), esc_url( admin_url( 'options-general.php#wpcc-sign-on-section' ) ) ); ?></p>
 		</div>
 		<?php
@@ -142,8 +144,6 @@ class WPCC_Sign_On {
 
 		<p id="wpcc-sign-on-section">
 			<?php
-				printf( __( 'Log-in with <a href="%s">WordPress.com Connect</a>.', 'jetpack' ), 'http://en.blog.wordpress.com/2013/08/13/introducing-wordpress-com-connect/' );
-				echo ' ';
 				if ( empty( $this->client_id ) || empty( $this->client_secret ) ) {
 					printf( __( 'Visit WordPress.com to <a href="%s">register a new WPCC client id and secret key</a>.', 'jetpack' ), $this->get_new_app_url() );
 				} else {
@@ -151,6 +151,9 @@ class WPCC_Sign_On {
 				}
 			?>
 		</p>
+		<script>
+			jQuery('#wpcc-sign-on-section a').attr( 'target', '_blank' );
+		</script>
 
 		<?php
 	}
