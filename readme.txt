@@ -95,6 +95,10 @@ Learn more (and get detailed instructions) in our [contribute guide](http://jetp
 * Enhancement: Updated identity crisis checker
 * Enhancement: Tiled Gallery widget added
 * Enhancement: Google +1 button changed to Google+ Share button, to avoid confusion
+* Bug Fix: Redirect issue with G+ authorship when WordPress is not in the root directory
+* Enhancement: Better security if carousel to prevent self-XSS 
+* Enhancement: Better handling of cookies for subsites on multisite installs
+* Bug Fix: Check for post in G+ authorship before accessing it
 
 = 2.4.2 =
 * Enhancement: Converted to module headers to detect Auto-Activating modules.

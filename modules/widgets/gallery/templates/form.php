@@ -75,7 +75,7 @@
 				$selected = "selected='selected' ";
 			} ?>
 
-			<option value="<?php echo $key; ?>" <?php echo $selected; ?>><?php esc_html_e( $label , 'jetpack' ); ?></option>
+			<option value="<?php echo $key; ?>" <?php echo $selected; ?>><?php esc_html_e( $label, 'jetpack' ); ?></option>
 		<?php } ?>
 	</select>
 </p>
