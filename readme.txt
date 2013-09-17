@@ -95,6 +95,7 @@ Learn more (and get detailed instructions) in our [contribute guide](http://jetp
 * Enhancement: Updated identity crisis checker
 * Enhancement: Tiled Gallery widget added
 * Enhancement: Google +1 button changed to Google+ Share button, to avoid confusion
+* Enhancement: Added the ability to embed Facebook posts
 
 = 2.4.2 =
 * Enhancement: Converted to module headers to detect Auto-Activating modules.
