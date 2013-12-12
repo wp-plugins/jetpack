@@ -12,23 +12,24 @@
 				</td>
 			</tr>
 -->
-			<tr valign="top">
+            <tr valign="top">
 				<th scope="row"><label for="sub-site-override">Sub-site override?</label></th>
 				<td>
 					<input type="checkbox" name="sub-site-connection-override" id="sub-site-override" value="1" <?php checked($options['sub-site-connection-override']); ?> />
 					<label for="sub-site-override">Allow individual site administrators to reconnect with their own Jetpack account.</label>
 				</td>
 			</tr>
-			<tr>
+<!--
+            <tr>
 				<td><label for="manage_auto_activated_modules">Manage modules?</label></td>
 				<td>
 					<input type="checkbox" name="manage_auto_activated_modules" id="manage_auto_activated_modules" onclick="jQuery('#jpms_settings_modules').toggle();" value="1" <?php checked( $options['manage_auto_activated_modules'] ); ?>/>
 					<label for="manage_auto_activated_modules">Control which modules are auto-activated?</label>
 				</td>
 			</tr>
-
+-->
 		</table>
-		
+<!--	
 		<?php
 			$display_modules = ( 1 == $this->get_option( 'manage_auto_activated_modules' ) )? 'block': 'none';
 		?>
@@ -37,12 +38,10 @@
 		<p>Modules to be automatically activated when new sites are created.</p>
 		<table>
 			<thead>
-								<!--
 				<tr>
 					<td><input type="checkbox"></td>
 					<td>Only show checked modules on subsites?</td>
 				</tr>
-				-->
 			</thead>
 			<tbody>
 				<?php foreach( $this->list_modules() AS $module ) { ?>
@@ -59,7 +58,7 @@
 			</tbody>
 		</table>
 		</div>
-
+-->
 		<p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"  /></p>
 
 

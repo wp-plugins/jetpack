@@ -79,11 +79,10 @@ class Jetpack_Network {
 		    }
 		}
 		    
-		add_filter( 'jetpack_get_default_modules', array( $this, 'set_auto_activated_modules' ) );
+		//add_filter( 'jetpack_get_default_modules', array( $this, 'set_auto_activated_modules' ) );
 	}
 
 	public function set_auto_activated_modules( $modules ) {
-		echo '<pre>'; var_dump($this->get_option( 'modules' ) ); echo '</pre>'; die();
 		return (array) $this->get_option( 'modules' );
 	}
 
