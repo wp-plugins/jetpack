@@ -282,6 +282,9 @@ class Jetpack {
 		add_action( 'wp_ajax_jetpack-check-news-subscription', array( $this, 'check_news_subscription' ) );
 		add_action( 'wp_ajax_jetpack-subscribe-to-news', array( $this, 'subscribe_to_news' ) );
 
+		add_action( 'wp_ajax_jetpack-sync-reindex-trigger', array( $this, 'sync_reindex_trigger' ) );
+		add_action( 'wp_ajax_jetpack-sync-reindex-status', array( $this, 'sync_reindex_status' ) );
+
 		add_action( 'wp_loaded', array( $this, 'register_assets' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'devicepx' ) );
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'devicepx' ) );
@@ -299,7 +302,7 @@ class Jetpack {
 		 * These actions run checks to load additional files.
 		 * They check for external files or plugins, so they need to run as late as possible.
 		 */
-		add_action( 'plugins_loaded', array( $this, 'check_open_graph' ),       999 );
+		add_action( 'wp_head', array( $this, 'check_open_graph' ),       1 );
 		add_action( 'plugins_loaded', array( $this, 'check_twitter_tags' ),     999 );
 		add_action( 'plugins_loaded', array( $this, 'check_rest_api_compat' ), 1000 );
 
@@ -390,7 +393,7 @@ class Jetpack {
 	 * @filter require_lib_dir
 	 */
 	function require_lib_dir( $lib_dir ) {
-		return JETPACK__PLUGIN_DIR . 'lib';
+		return JETPACK__PLUGIN_DIR . '_inc/lib';
 	}
 
 	/**
@@ -426,6 +429,21 @@ class Jetpack {
 			return false;
 		}
 		return (bool) Jetpack_Data::get_access_token( $user_id );
+	}
+	
+	/**
+	 * Get the wpcom email of the current connected user. 
+	 */
+	public static function get_connected_user_email() {
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client( array(
+			'user_id' => get_current_user_id()
+		) );
+		$xml->query( 'wpcom.getUserEmail' );
+		if ( ! $xml->isError() ) {
+			return $xml->getResponse();
+		}
+		return false;
 	}
 
 	function current_user_is_connection_owner() {
@@ -618,6 +636,14 @@ class Jetpack {
 			'open-graph-protocol-framework/open-graph-protocol-framework.php',			// Open Graph Protocol Framework
 			'all-in-one-seo-pack/all_in_one_seo_pack.php',						// All in One SEO Pack
 			'facebook-featured-image-and-open-graph-meta-tags/fb-featured-image.php',		// Facebook Featured Image & OG Meta Tags
+			'add-meta-tags/add-meta-tags.php',							// Add Meta Tags
+			'only-tweet-like-share-and-google-1/tweet-like-plusone.php',				// Tweet, Like, Google +1 and Share
+			'easy-facebook-share-thumbnails/esft.php',						// Easy Facebook Share Thumbnail
+			'2-click-socialmedia-buttons/2-click-socialmedia-buttons.php',				// 2 Click Social Media Buttons
+			'facebook-thumb-fixer/_facebook-thumb-fixer.php',					// Facebook Thumb Fixer
+			'zoltonorg-social-plugin/zosp.php',							// Zolton.org Social Plugin
+			'wp-caregiver/wp-caregiver.php',							// WP Caregiver
+			'facebook-revised-open-graph-meta-tag/index.php',					// Facebook Revised Open Graph Meta Tag
 		);
 
 		foreach ( $conflicting_plugins as $plugin ) {
@@ -3274,6 +3300,24 @@ p {
 		exit;
 	}
 
+	function sync_reindex_trigger() {
+		if ( $this->current_user_is_connection_owner() && current_user_can( 'manage_options' ) ) {
+			echo json_encode( $this->sync->reindex_trigger() );
+		} else {
+			echo '{"status":"ERROR"}';
+		}
+		exit;
+	}
+
+	function sync_reindex_status(){
+		if ( $this->current_user_is_connection_owner() && current_user_can( 'manage_options' ) ) {
+			echo json_encode( $this->sync->reindex_status() );
+		} else {
+			echo '{"status":"ERROR"}';
+		}
+		exit;
+	}
+
 /* Client API */
 
 	/**
@@ -3760,7 +3804,9 @@ p {
 		if ( ! isset( $clients[$client_blog_id] ) ) {
 			Jetpack::load_xml_rpc_client();
 			$clients[$client_blog_id] = new Jetpack_IXR_ClientMulticall( array( 'user_id' => JETPACK_MASTER_USER, ) );
-			ignore_user_abort( true );
+			if ( function_exists( 'ignore_user_abort' ) ) {
+				ignore_user_abort( true );
+			}
 			add_action( 'shutdown', array( 'Jetpack', 'xmlrpc_async_call' ) );
 		}
 
