@@ -420,7 +420,9 @@ class Jetpack {
 	 * This improves the resolution of gravatars and wordpress.com uploads on hi-res and zoomed browsers.
 	 */
 	function devicepx() {
-		wp_enqueue_script( 'devicepx', ( is_ssl() ? 'https' : 'http' ) . '://s0.wp.com/wp-content/js/devicepx-jetpack.js', array(), gmdate( 'oW' ), true );
+		if ( Jetpack::is_active() ) {
+			wp_enqueue_script( 'devicepx', set_url_scheme( 'http://s0.wp.com/wp-content/js/devicepx-jetpack.js' ), array(), gmdate( 'oW' ), true );
+		}
 	}
 
 	/*
@@ -683,6 +685,7 @@ class Jetpack {
 			'wp-caregiver/wp-caregiver.php',							// WP Caregiver
 			'facebook-revised-open-graph-meta-tag/index.php',					// Facebook Revised Open Graph Meta Tag
 			'facebook-and-digg-thumbnail-generator/facebook-and-digg-thumbnail-generator.php',	// Fedmich's Facebook Open Graph Meta
+			'facebook-meta-tags/facebook-metatags.php',						// Facebook Meta Tags
 		);
 
 		foreach ( $conflicting_plugins as $plugin ) {
@@ -2792,43 +2795,6 @@ p {
 			    $url = add_query_arg( 'is_multisite', network_admin_url(
 			    'admin.php?page=jetpack-settings' ), $url );
 			}
-		} else if( is_network_admin() ) {
-/***********
-This does not actually work. 
-Need to add a $_GET var to the above if is_network_admin()
-Then in check below (not this one) add the is_network=network_admin
-************/
-			$role = $this->translate_current_user_to_role();
-			$signed_role = $this->sign_role( $role );
-
-			$user = wp_get_current_user();
-
-			$redirect = $redirect ? esc_url_raw( $redirect ) : '';
-
-			$args = urlencode_deep(
-				array(
-					'response_type' => 'code',
-					'client_id'     => Jetpack_Options::get_option( 'id' ),
-					'redirect_uri'  => add_query_arg(
-						array(
-							'action'   => 'authorize',
-							'_wpnonce' => wp_create_nonce( "jetpack-authorize_{$role}_{$redirect}" ),
-							'redirect' => $redirect ? urlencode( $redirect ) : false,
-						),
-						menu_page_url( 'jetpack', false )
-					),
-					'state'         => $user->ID,
-					'scope'         => $signed_role,
-					'user_email'    => $user->user_email,
-					'user_login'    => $user->user_login,
-					'is_active'     => Jetpack::is_active(),
-					'is_network'	=> 1,
-			        )
-			);
-
-			$url = add_query_arg( $args, Jetpack::api_url( 'authorize' ) );
-		
-		
 		} else {
 			$role = $this->translate_current_user_to_role();
 			$signed_role = $this->sign_role( $role );
@@ -2983,7 +2949,16 @@ Then in check below (not this one) add the is_network=network_admin
 					</div>
 				</div>
 
-				<?php elseif ( ! $is_user_connected ) : ?>
+				else /* blog and user are connected */ : ?>
+					<?php /* TODO: if not master user, show user disconnect button? */ ?>
+				<?php endif; ?>
+			<?php endif; // ! Jetpack::is_development_mode() ?>
+
+
+
+
+
+			<?php if ( Jetpack::is_active() && !Jetpack::is_development_mode() && ! $is_user_connected ) : ?>
 
 				<div id="message" class="updated jetpack-message jp-connect" style="display:block !important;">
 					<div class="jetpack-wrap-container">
@@ -2998,10 +2973,10 @@ Then in check below (not this one) add the is_network=network_admin
 					</div>
 				</div>
 
-				<?php else /* blog and user are connected */ : ?>
-					<?php /* TODO: if not master user, show user disconnect button? */ ?>
-				<?php endif; ?>
-			<?php endif; // ! Jetpack::is_development_mode() ?>
+			<?php endif; ?>
+
+
+
 
 			<?php
 			if ( isset( $_GET['configure'] ) && Jetpack::is_module( $_GET['configure'] ) && current_user_can( 'manage_options' ) ) {
@@ -3621,6 +3596,7 @@ Then in check below (not this one) add the is_network=network_admin
 	 * @return bool|WP_Error
 	 */
 	public static function register() {
+		add_action( 'pre_update_jetpack_option_register', array( 'Jetpack_Options', 'delete_option' ) );
 		$secrets = Jetpack::init()->generate_secrets();
 
 		Jetpack_Options::update_option( 'register', $secrets[0] . ':' . $secrets[1].
