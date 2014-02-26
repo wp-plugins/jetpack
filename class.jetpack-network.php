@@ -36,7 +36,7 @@ class Jetpack_Network {
 	 */
 	private $setting_defaults = array(
 		'auto-connect'		=> 0,
-		'sub-site-connection-override'	=> 0,
+		'sub-site-connection-override'	=> 1,
 	//	'manage_auto_activated_modules' => 0,
 	);
 
@@ -57,8 +57,8 @@ class Jetpack_Network {
 			add_action( 'admin_init', array ( $this,  'jetpack_sites_list' ) );
 			add_filter( 'admin_body_class', array( $this, 'body_class' ) );
 			add_filter( 'wpmu_blogs_columns', array( $this, 'add_jetpack_sites_column' ) );
-			add_action( 'manage_sites_custom_column', array( $this, 'render_jetpack_sites_column' ), 10, 2 );
-			add_action( 'manage_blogs_custom_column', array( $this, 'render_jetpack_sites_column' ), 10, 2 );
+			//add_action( 'manage_sites_custom_column', array( $this, 'render_jetpack_sites_column' ), 10, 2 );
+			//add_action( 'manage_blogs_custom_column', array( $this, 'render_jetpack_sites_column' ), 10, 2 );
 		}
 
 		/*
@@ -754,6 +754,9 @@ class Jetpack_Network {
 	 **/
 	public function get_option( $name ) {
 		$options = get_site_option( $this->settings_name );
+
+		$options = wp_parse_args( $options, $this->setting_defaults );
+
 		if( !isset( $options[$name] ) )
 			$options[$name] = null;
 
