@@ -3,7 +3,7 @@ Contributors: automattic, alternatekev, andy, apeatling, azaozz, barry, beaulebe
 Tags: WordPress.com, statistics, stats, views, tweets, twitter, widget, gravatar, hovercards, profile, equations, latex, math, maths, youtube, shortcode, archives, audio, blip, bliptv, dailymotion, digg, flickr, googlevideo, google, googlemaps, kyte, kytetv, livevideo, redlasso, rockyou, rss, scribd, slide, slideshare, soundcloud, vimeo, shortlinks, wp.me, subscriptions, notifications, notes, json, api, rest, mosaic, gallery, slideshow
 Requires at least: 3.5
 Tested up to: 3.6
-Stable tag: 2.3.5
+Stable tag: 2.3.7
 
 Supercharge your WordPress site with powerful features previously only available to WordPress.com users.
 
@@ -78,7 +78,21 @@ Easy! There are a couple of ways (more coming soon):
 7. CSS Editor
 8. Mobile Theme
 
+== Upgrade Notice ==
+
+= 2.3.7 =
+Jetpack 2.3.6 fixes a security bug, and 2.3.7 fixes a rare fatal error. Please upgrade immediately.
+
+= 2.3.6 =
+Jetpack 2.3.6 fixes a security bug. Please upgrade immediately.
+
 == Changelog ==
+
+= 2.3.7 =
+* Bug Fix: Avoid function which isn't always defined.
+
+= 2.3.6 =
+* Important security update. CVE-2014-0173
 
 = 2.3.5 =
 * Enhancement: Added Path support to Publicize.
