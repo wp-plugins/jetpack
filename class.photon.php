@@ -355,15 +355,27 @@ class Jetpack_Photon {
 				$image_args = self::image_sizes();
 				$image_args = $image_args[ $size ];
 
-				// Expose arguments to a filter before passing to Photon
 				$photon_args = array();
 
-				if ( $image_args['crop'] )
-					$photon_args['resize'] = $image_args['width'] . ',' . $image_args['height'];
-				else
-					$photon_args['fit'] = $image_args['width'] . ',' . $image_args['height'];
+				// `full` is a special case in WP
+				// To ensure filter receives consistent data regardless of requested size, `$image_args` is overridden with dimensions of original image.
+				if ( 'full' == $size ) {
+					$image_meta = wp_get_attachment_metadata( $attachment_id );
 
-				$photon_args = apply_filters( 'jetpack_photon_image_downsize_string', $photon_args, compact( 'image_args', 'image_url', 'attachment_id', 'size' ) );
+					// 'crop' is true so Photon's `resize` method is used
+					$image_args = array(
+						'width'  => $image_meta['width'],
+						'height' => $image_meta['height'],
+						'crop'   => true
+					);
+				}
+
+				// Expose determined arguments to a filter before passing to Photon
+				$transform = $image_args['crop'] ? 'resize' : 'fit';
+
+				$photon_args[ $transform ] = $image_args['width'] . ',' . $image_args['height'];
+
+				$photon_args = apply_filters( 'jetpack_photon_image_downsize_string', $photon_args, compact( 'image_args', 'image_url', 'attachment_id', 'size', 'transform' ) );
 
 				// Generate Photon URL
 				$image = array(
@@ -412,8 +424,13 @@ class Jetpack_Photon {
 	 * @return bool
 	 */
 	protected static function validate_image_url( $url ) {
+		$parsed_url = @parse_url( $url );
+
+		if ( ! $parsed_url )
+			return false;
+
 		// Parse URL and ensure needed keys exist, since the array returned by `parse_url` only includes the URL components it finds.
-		$url_info = wp_parse_args( parse_url( $url ), array(
+		$url_info = wp_parse_args( $parsed_url, array(
 			'scheme' => null,
 			'host'   => null,
 			'port'   => null,
@@ -471,6 +488,11 @@ class Jetpack_Photon {
 				'large'  => array(
 					'width'  => intval( get_option( 'large_size_w' ) ),
 					'height' => intval( get_option( 'large_size_h' ) ),
+					'crop'   => false
+				),
+				'full'   => array(
+					'width'  => null,
+					'height' => null,
 					'crop'   => false
 				)
 			);
