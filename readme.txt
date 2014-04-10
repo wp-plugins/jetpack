@@ -86,10 +86,16 @@ Learn more (and get detailed instructions) in our [contribute guide](http://jetp
 
 == Upgrade Notice ==
 
+= 2.9.4 =
+Jetpack 2.9.3 fixes a security bug, and 2.9.4 fixes a rare fatal error. Please upgrade immediately.
+
 = 2.9.3 =
 Jetpack 2.9.3 fixes a security bug. Please upgrade immediately.
 
 == Changelog ==
+
+= 2.9.4 =
+* Bug Fix: Avoid function which isn't always defined.
 
 = 2.9.3 =
 * Important security update. CVE-2014-0173
