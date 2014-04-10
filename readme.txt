@@ -3,7 +3,7 @@ Contributors: automattic, apeatling, beaulebens, hugobaeta, Joen, mdawaffe, andy
 Tags: WordPress.com, statistics, stats, views, tweets, twitter, widget, gravatar, hovercards, profile, equations, latex, math, maths, youtube, shortcode, archives, audio, blip, bliptv, dailymotion, digg, flickr, googlevideo, google, googlemaps, kyte, kytetv, livevideo, redlasso, rockyou, rss, scribd, slide, slideshare, soundcloud, vimeo, shortlinks, wp.me, subscriptions, notifications, notes, json, api, rest
 Requires at least: 3.2
 Tested up to: 3.4.2
-Stable tag: 1.9
+Stable tag: 1.9.4
 
 Supercharge your WordPress site with powerful features previously only available to WordPress.com users.
 
@@ -85,7 +85,21 @@ Use [shortcodes](http://support.wordpress.com/shortcodes/) to embed your media. 
 7. CSS Editor
 8. Mobile Theme
 
+== Upgrade Notice ==
+
+= 1.9.4 =
+Jetpack 1.9.3 fixes a security bug, and 1.9.4 fixes a rare fatal error. Please upgrade immediately.
+
+= 1.9.3 =
+Jetpack 1.9.3 fixes a security bug. Please upgrade immediately.
+
 == Changelog ==
+
+= 1.9.4 =
+* Bug Fix: Avoid function which isn't always defined.
+
+= 1.9.3 =
+* Important security update. CVE-2014-0173
 
 = 1.9.2 =
 * Bug Fix: Only sync options on upgrade once.
