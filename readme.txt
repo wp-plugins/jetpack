@@ -3,7 +3,7 @@ Contributors: automattic, apeatling, beaulebens, hugobaeta, Joen, mdawaffe, andy
 Tags: WordPress.com, statistics, stats, views, tweets, twitter, widget, gravatar, hovercards, profile, equations, latex, math, maths, youtube, shortcode, archives, audio, blip, bliptv, dailymotion, digg, flickr, googlevideo, google, googlemaps, kyte, kytetv, livevideo, redlasso, rockyou, rss, scribd, slide, slideshare, soundcloud, vimeo, shortlinks, wp.me, subscriptions, notifications, notes, json, api, rest, mosaic, gallery, slideshow
 Requires at least: 3.3
 Tested up to: 3.5
-Stable tag: 2.1.2
+Stable tag: 2.1.3
 
 Supercharge your WordPress site with powerful features previously only available to WordPress.com users.
 
@@ -88,7 +88,15 @@ Use [shortcodes](http://support.wordpress.com/shortcodes/) to embed your media. 
 7. CSS Editor
 8. Mobile Theme
 
+== Upgrade Notice ==
+
+= 2.1.3 =
+Jetpack 2.1.3 fixes a security bug. Please upgrade immediately.
+
 == Changelog ==
+
+= 2.1.3 =
+* Important security update. CVE-2014-0173
 
 = 2.1.2 =
 * Enhancement: Infinite Scroll: Introduce filters for Infinite Scroll.
