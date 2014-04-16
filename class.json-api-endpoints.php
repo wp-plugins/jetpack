@@ -585,11 +585,11 @@ abstract class WPCOM_JSON_API_Endpoint {
 		if ( empty( $this->example_response ) ) {
 
 			// Examples for endpoint documentation response
-			$response_key = 'dev_response_' . $this->version . '_' . $this->method . '_' . sanitize_title( $this->path );
-			$response     = wp_cache_get( $response_key );
+			$response_key  = 'dev_example_response_' . $this->version . '_' . $this->method . '_' . sanitize_key( $this->path );
+			$response_body = wp_cache_get( $response_key );
 
 			// Response doesn't exist, so run the request
-			if ( false === $response ) {
+			if ( false === $response_body ) {
 
 				// Only trust GET request
 				if ( 'GET' === $this->method ) {
@@ -597,8 +597,8 @@ abstract class WPCOM_JSON_API_Endpoint {
 					$response_body = wp_remote_retrieve_body( $response );
 
 					// Only cache if there's a result
-					if ( strlen( $response_body ) ) {
-						wp_cache_set( $response_key, $response );
+					if ( ! is_wp_error( $response ) && strlen( $response_body ) ) {
+						wp_cache_set( $response_key, $response_body );
 					} else {
 						wp_cache_delete( $response_key );
 					}
@@ -607,14 +607,14 @@ abstract class WPCOM_JSON_API_Endpoint {
 
 		// Example response was passed into the constructor via params
 		} else {
-			$response = $this->example_response;
+			$response_body = $this->example_response;
 		}
 
 		// Wrap the response in a sourcecode shortcode
-		if ( !empty( $response ) ) {
-			$response = '[sourcecode language="php" wraplines="false" light="true" autolink="false" htmlscript="false"]' . $response . '[/sourcecode]';
-			$response = apply_filters( 'the_content', $response );
-			$this->example_response = $response;
+		if ( !empty( $response_body ) && !is_wp_error( $response ) ) {
+			$response_body = '[sourcecode language="javascript" wraplines="false" light="true" autolink="false" htmlscript="false"]' . $response_body . '[/sourcecode]';
+			$response_body = apply_filters( 'the_content', $response_body );
+			$this->example_response = $response_body;
 		}
 
 		$curl = 'curl';
@@ -954,6 +954,34 @@ EOPHP;
 		return (object) $author;
 	}
 
+	function get_media_item( $media_id ) {	
+		$media_item = get_post( $media_id );
+
+		if ( !$media_item || is_wp_error( $media_item ) )
+			return new WP_Error( 'unknown_media', 'Unknown Media', 404 );
+
+		$response = array(
+			'id'    => strval( $media_item->ID ),
+			'date' =>  (string) $this->format_date( $media_item->post_date_gmt, $media_item->post_date ),
+			'parent'           => $media_item->post_parent,
+			'link'             => wp_get_attachment_url( $media_item->ID ),
+			'title'            => $media_item->post_title,
+			'caption'          => $media_item->post_excerpt,
+			'description'      => $media_item->post_content,
+			'metadata'         => wp_get_attachment_metadata( $media_item->ID ),
+		);
+
+		$response['meta'] = (object) array(
+			'links' => (object) array(
+				'self' => (string) $this->get_media_link( $this->api->get_blog_id_for_output(), $media_id ),
+				'help' => (string) $this->get_media_link( $this->api->get_blog_id_for_output(), $media_id, 'help' ),
+				'site' => (string) $this->get_site_link( $this->api->get_blog_id_for_output() ),
+			),
+		);
+
+		return (object) $response;
+	}
+
 	function get_taxonomy( $taxonomy_id, $taxonomy_type, $context ) {
 
 		$taxonomy = get_term_by( 'slug', $taxonomy_id, $taxonomy_type );
@@ -979,6 +1007,7 @@ EOPHP;
 		}
 
 		$response                = array();
+		$response['ID']          = (int) $taxonomy->term_id;
 		$response['name']        = (string) $taxonomy->name;
 		$response['slug']        = (string) $taxonomy_id;
 		$response['description'] = (string) $taxonomy->description;
@@ -1103,6 +1132,10 @@ EOPHP;
 			return $this->get_link( '/sites/%d/categories/slug:%s', $blog_id, $taxonomy_id, $path );
 		else
 			return $this->get_link( '/sites/%d/tags/slug:%s', $blog_id, $taxonomy_id, $path );
+	}
+
+	function get_media_link( $blog_id, $media_id, $path = '' ) {
+		return $this->get_link( '/sites/%d/media/%d', $blog_id, $media_id, $path );
 	}
 
 	function get_site_link( $blog_id, $path = '' ) {
@@ -1814,6 +1847,17 @@ class WPCOM_JSON_API_List_Posts_Endpoint extends WPCOM_JSON_API_Post_Endpoint {
 		if ( $this->date_range ) {
 			add_filter( 'posts_where', array( $this, 'handle_date_range' ) );
 		}
+
+		/**
+		 * 'column' necessary for the me/posts endpoint (which extends sites/$site/posts). 
+		 * Would need to be added to the sites/$site/posts definition if we ever want to 
+		 * use it there.
+		 */
+		$column_whitelist = array( 'post_modified_gmt' );
+		if ( isset( $args['column'] ) && in_array( $args['column'], $column_whitelist ) ) {
+			$query['column'] = $args['column'];
+		}
+
 		$wp_query = new WP_Query( $query );
 		if ( $this->date_range ) {
 			remove_filter( 'posts_where', array( $this, 'handle_date_range' ) );
@@ -2037,10 +2081,11 @@ class WPCOM_JSON_API_Update_Post_Endpoint extends WPCOM_JSON_API_Post_Endpoint {
 			$insert["tax_input"]["category"] = $categories;
 
 		$has_media = isset( $input['media'] ) && $input['media'] ? count( $input['media'] ) : false;
+		$has_media_by_url = isset( $input['media_urls'] ) && $input['media_urls'] ? count( $input['media_urls'] ) : false;
 
 		if ( $new ) {
-			if ( false === strpos( $input['content'], '[gallery' ) && $has_media ) {
-				switch ( $has_media ) {
+			if ( false === strpos( $input['content'], '[gallery' ) && ( $has_media || $has_media_by_url ) ) {
+				switch ( ( $has_media + $has_media_by_url ) ) {
 				case 0 :
 					// No images - do nothing.
 					break;
@@ -2067,6 +2112,12 @@ class WPCOM_JSON_API_Update_Post_Endpoint extends WPCOM_JSON_API_Post_Endpoint {
 				$this->api->trap_wp_die( null );
 
 				unset( $_FILES['.api.media.item.'] );
+			}
+
+			if ( $has_media_by_url ) {
+				foreach ( $input['media_urls'] as $url ) {
+					media_sideload_image( esc_url_raw( $url ), $post_id );
+				}
 			}
 		} else {
 			$insert['ID'] = $post->ID;
@@ -2274,6 +2325,47 @@ class WPCOM_JSON_API_Get_Taxonomy_Endpoint extends WPCOM_JSON_API_Taxonomy_Endpo
 	}
 }
 
+class WPCOM_JSON_API_Get_Taxonomies_Endpoint extends WPCOM_JSON_API_Endpoint {
+	// /sites/%s/tags       -> $blog_id
+	// /sites/%s/categories -> $blog_id
+	function callback( $path = '', $blog_id = 0 ) {
+		$blog_id = $this->api->switch_to_blog_and_validate_user( $this->api->get_blog_id( $blog_id ) );
+		if ( is_wp_error( $blog_id ) ) {
+			return $blog_id;
+		}
+		if ( preg_match( '#/tags#i', $path ) ) {
+			return $this->tags();
+		} else {
+			return $this->categories();
+		}
+	}
+
+	function categories() {
+		$cats = get_categories( array( 'get' => 'all' ) );
+		$found = count( $cats );
+		$cats_obj = array();
+		foreach ( $cats as $cat ) {
+			$cats_obj[] = $this->get_taxonomy( $cat->slug, 'category', 'display' );
+		}
+		return array(
+			'found'       => $found,
+			'categories'  => $cats_obj
+		);
+	}
+
+	function tags() {
+		$tags = (array) get_tags( array( 'get' => 'all' ) );
+		$found = count( $tags );
+		$tags_obj = array();
+		foreach ( $tags as $tag ) {
+			$tags_obj[] = $this->get_taxonomy( $tag->slug, 'post_tag', 'display' );
+		}
+		return array(
+			'found' => $found,
+			'tags'  => $tags_obj
+		);
+	}
+}
 
 class WPCOM_JSON_API_Update_Taxonomy_Endpoint extends WPCOM_JSON_API_Taxonomy_Endpoint {
 	// /sites/%s/tags|categories/new    -> $blog_id
@@ -2654,6 +2746,7 @@ class WPCOM_JSON_API_List_Comments_Endpoint extends WPCOM_JSON_API_Comment_Endpo
 				'unapproved' => 'Return only comments in the moderation queue.',
 				'spam'       => 'Return only comments marked as spam.',
 				'trash'      => 'Return only comments in the trash.',
+				'all'        => 'Return comments of all statuses.',
 			),
 		) );
 	}
@@ -2710,6 +2803,9 @@ class WPCOM_JSON_API_List_Comments_Endpoint extends WPCOM_JSON_API_Comment_Endpo
 			if ( 'unapproved' === $args['status'] ) {
 				$status = 'hold';
 				$count_status = 'moderated';
+			} elseif ( 'all' === $args['status'] ) { 
+				$status = 'all';
+				$count_status = 'total_comments';
 			} else {
 				$status = $count_status = $args['status'];
 			}
@@ -3094,6 +3190,7 @@ class WPCOM_JSON_API_GET_Site_Endpoint extends WPCOM_JSON_API_Endpoint {
 		'visible'           => '(bool) If this site is visible in the user\'s site list',
 		'is_private'        => '(bool) If the site is a private site or not',
 		'is_following'      => '(bool) If the current user is subscribed to this site in the reader',
+		'options'           => '(array) An array of options/settings for the blog. Only viewable by users with access to the site.',
 		'meta'              => '(object) Meta data',
 	);
 
@@ -3206,15 +3303,55 @@ class WPCOM_JSON_API_GET_Site_Endpoint extends WPCOM_JSON_API_Endpoint {
 				}
                 break;
 			case 'is_following':
-				$response[$key] = (int) $this->api->is_following( $blog_id );
+				$response[$key] = (bool) $this->api->is_following( $blog_id );
+				break;
+			case 'options':
+				// Figure out if the blog supports VideoPress, have to do some extra checking for JP blogs
+				$has_videopress = false;
+				if ( get_option( 'video_upgrade' ) == '1' ) {
+					$has_videopress = true;
+				} else {
+					if ( class_exists( 'Jetpack_Options' ) ) {
+						$videopress = Jetpack_Options::get_option( 'videopress', array() );
+						if ( $videopress['blog_id'] > 0 )
+							$has_videopress = true;
+					}
+				}
+
+				// Get a list of supported post formats
+				$all_formats = get_post_format_strings();
+				$supported = get_theme_support( 'post-formats' );
+				foreach ( $supported[0] as $format ) {
+					$supported_formats[ $format ] = $all_formats[ $format ]; 
+				}
+
+				$response[$key] = array(
+					'videopress_enabled'      => $has_videopress,
+					'login_url'               => wp_login_url(),
+					'admin_url'               => get_admin_url(),
+					'featured_images_enabled' => current_theme_supports( 'post-thumbnails' ),
+					'image_default_link_type' => get_option( 'image_default_link_type' ),
+					'image_thumbnail_width'   => (int)  get_option( 'thumbnail_size_w' ),
+					'image_thumbnail_height'  => (int)  get_option( 'thumbnail_size_h' ),
+					'image_thumbnail_crop'    => get_option( 'thumbnail_crop' ),
+					'image_medium_width'      => (int)  get_option( 'medium_size_w' ),
+					'image_medium_height'     => (int)  get_option( 'medium_size_h' ),
+					'image_large_width'       => (int)  get_option( 'large_size_w' ),
+					'image_large_height'      => (int) get_option( 'large_size_h' ),
+					'post_formats'            => $supported_formats,
+				);
+				if ( !current_user_can( 'publish_posts' ) )
+					unset( $response[ $key] );
 				break;
 			case 'meta' :
+				$xmlrpc_url = site_url( 'xmlrpc.php' );
 				$response[$key] = (object) array(
 					'links' => (object) array(
 						'self'     => (string) $this->get_site_link( $blog_id ),
 						'help'     => (string) $this->get_site_link( $blog_id, 'help'      ),
 						'posts'    => (string) $this->get_site_link( $blog_id, 'posts/'    ),
 						'comments' => (string) $this->get_site_link( $blog_id, 'comments/' ),
+						'xmlrpc'   => (string) $xmlrpc_url,
 					),
 				);
 				break;
@@ -3226,6 +3363,170 @@ class WPCOM_JSON_API_GET_Site_Endpoint extends WPCOM_JSON_API_Endpoint {
 	}
 
 }
+
+class WPCOM_JSON_API_List_Media_Endpoint extends WPCOM_JSON_API_Endpoint {
+
+	function callback( $path = '', $blog_id = 0 ) {
+		$blog_id = $this->api->switch_to_blog_and_validate_user( $this->api->get_blog_id( $blog_id ) );
+		if ( is_wp_error( $blog_id ) ) {
+			return $blog_id;
+		}
+
+		//upload_files can probably be used for other endpoints but we want contributors to be able to use media too
+		if ( !current_user_can( 'edit_posts' ) ) {
+			return new WP_Error( 'unauthorized', 'User cannot view media', 403 );
+		}
+
+		$args = $this->query_args();
+
+		if ( $args['number'] < 1 ) {
+			$args['number'] = 20;
+		} elseif ( 100 < $args['number'] ) {
+			return new WP_Error( 'invalid_number',  'The NUMBER parameter must be less than or equal to 100.', 400 );
+		}
+
+		$media = get_posts( array(
+			'post_type' => 'attachment',
+			'post_parent' => $args['parent_id'],
+			'offset' => $args['offset'],
+			'numberposts' => $args['number'],
+			'post_mime_type' => $args['mime_type']
+		) );
+			
+		$response = array();
+		foreach ( $media as $item ) {
+			$response[] = $this->get_media_item( $item->ID );
+		}
+
+		$_num = (array) wp_count_attachments();
+		$_total_media = array_sum( $_num ) - $_num['trash'];
+
+		$return = array(
+			'found' => $_total_media,
+			'media' => $response
+		);
+
+		return $return;
+	}
+
+}
+
+class WPCOM_JSON_API_Upload_Media_Endpoint extends WPCOM_JSON_API_Endpoint {
+	function callback( $path = '', $blog_id = 0 ) {
+		$blog_id = $this->api->switch_to_blog_and_validate_user( $this->api->get_blog_id( $blog_id ) );
+		if ( is_wp_error( $blog_id ) ) {
+			return $blog_id;
+		}
+
+		if ( !current_user_can( 'upload_files', $media_id ) ) {
+			return new WP_Error( 'unauthorized', 'User cannot upload media.', 403 );
+		}
+
+		$input = $this->input( true );
+
+		$has_media = isset( $input['media'] ) && $input['media'] ? count( $input['media'] ) : false;
+		$media_ids = $files = array();
+
+		if ( $has_media ) {
+			$this->api->trap_wp_die( 'upload_error' );
+			foreach ( $input['media'] as $media_item ) {
+				$_FILES['.api.media.item.'] = $media_item;
+				// check for WP_Error if we ever actually need $media_id
+				$media_id = media_handle_upload( '.api.media.item.', 0 );
+				$media_ids[] = $media_id;
+				$files[] = $media_item;
+			}
+			$this->api->trap_wp_die( null );
+
+			unset( $_FILES['.api.media.item.'] );
+		}
+
+		$results = array();
+		foreach ( $media_ids as $media_id ) {
+			$results[] = $this->get_media_item( $media_id );
+		}
+
+		return array( 'media' => $results );
+	}
+}
+
+class WPCOM_JSON_API_Get_Media_Endpoint extends WPCOM_JSON_API_Endpoint {
+	function callback( $path = '', $blog_id = 0, $media_id = 0 ) {
+		$blog_id = $this->api->switch_to_blog_and_validate_user( $this->api->get_blog_id( $blog_id ) );
+		if ( is_wp_error( $blog_id ) ) {
+			return $blog_id;
+		}
+
+		//upload_files can probably be used for other endpoints but we want contributors to be able to use media too
+		if ( !current_user_can( 'edit_posts', $media_id ) ) {
+			return new WP_Error( 'unauthorized', 'User cannot view media', 403 );
+		}
+
+		return $this->get_media_item( $media_id );
+	}
+}
+
+class WPCOM_JSON_API_Update_Media_Endpoint extends WPCOM_JSON_API_Endpoint {
+	function callback( $path = '', $blog_id = 0, $media_id = 0 ) {
+		$blog_id = $this->api->switch_to_blog_and_validate_user( $this->api->get_blog_id( $blog_id ) );
+		if ( is_wp_error( $blog_id ) ) {
+			return $blog_id;
+		}
+
+		if ( !current_user_can( 'upload_files', $media_id ) ) {
+			return new WP_Error( 'unauthorized', 'User cannot view media', 403 );
+		}
+
+		$item = $this->get_media_item( $media_id );
+
+		if ( is_wp_error( $item ) ) {
+			return new WP_Error( 'unknown_media', 'Unknown Media', 404 );
+		}
+
+		$input = $this->input( true );
+		$insert = array();
+
+		if ( !empty( $input['title'] ) ) {
+			$insert['post_title'] = $input['title'];
+		}
+
+		if ( !empty( $input['caption'] ) )
+			$insert['post_excerpt'] = $input['caption'];
+
+		if ( !empty( $input['description'] ) )
+			$insert['post_content'] = $input['description'];
+
+		$insert['ID'] = $media_id;
+		wp_update_post( (object) $insert );
+
+		$item = $this->get_media_item( $media_id );
+		return $item;
+	}
+}
+
+class WPCOM_JSON_API_Delete_Media_Endpoint extends WPCOM_JSON_API_Endpoint {
+	function callback( $path = '', $blog_id = 0, $media_id = 0 ) {
+		$blog_id = $this->api->switch_to_blog_and_validate_user( $this->api->get_blog_id( $blog_id ) );
+		if ( is_wp_error( $blog_id ) ) {
+			return $blog_id;
+		}
+
+		if ( !current_user_can( 'upload_files', $media_id ) ) {
+			return new WP_Error( 'unauthorized', 'User cannot view media', 403 );
+		}
+
+		$item = $this->get_media_item( $media_id );
+
+		if ( is_wp_error( $item ) ) {
+			return new WP_Error( 'unknown_media', 'Unknown Media', 404 );
+		}
+
+		wp_delete_post( $media_id );
+		$item->status = 'deleted';
+		return $item;
+	}
+}
+
 
 /*
  * Set up endpoints
@@ -3388,6 +3689,7 @@ new WPCOM_JSON_API_Update_Post_Endpoint( array(
 		'format'     => get_post_format_strings(),
 		'media'      => "(media) An array of images to attach to the post. To upload media, the entire request should be multipart/form-data encoded.  Multiple media items will be displayed in a gallery.  Accepts images (image/gif, image/jpeg, image/png) only.<br /><br /><strong>Example</strong>:<br />" .
 				"<code>curl \<br />--form 'title=Image' \<br />--form 'media[]=@/path/to/file.jpg' \<br />-H 'Authorization: BEARER your-token' \<br />'https://public-api.wordpress.com/rest/v1/sites/123/posts/new'</code>",
+		'media_urls' => "(array) An array of URLs for images to attach to a post. Sideloads the media in for a post.",
 		'metadata'      => "(array) Array of metadata objects containing the following properties: `key` (metadata key), `id` (meta ID), `previous_value` (if set, the action will only occur for the provided previous value), `value` (the new value to set the meta to), `operation` (the operation to perform: `update` or `add`; defaults to `update`). All unprotected meta keys are available by default for read requests. Both unprotected and protected meta keys are avaiable for authenticated requests with proper capabilities. Protected meta keys can be made available with the <code>rest_api_allowed_public_metadata</code> filter.",
 		'comments_open' => "(bool) Should the post be open to comments?  Defaults to the blog's preference.",
 		'pings_open'    => "(bool) Should the post be open to comments?  Defaults to the blog's preference.",
@@ -3737,6 +4039,139 @@ new WPCOM_JSON_API_Update_Post_Endpoint( array(
 ) );
 
 /*
+ * Media Endpoints
+ */
+new WPCOM_JSON_API_List_Media_Endpoint( array(
+	'description' => 'Return the media library',
+	'group'       => 'media',
+	'stat'        => 'media',
+
+	'method'      => 'GET',
+	'path'        => '/sites/%s/media/',
+	'path_labels' => array(
+		'$site' => '(int|string) The site ID, The site domain',
+	),
+
+	'query_parameters' => array(
+		'number'    => '(int=20) The number of media items to return.  Limit: 100.',
+		'offset'    => '(int=0) 0-indexed offset.',
+		'parent_id' => '(int) Default is nothing. The post where the media item is attached. Passing nothing shows all media items. 0 shows unattached media items.',
+		'mime_type' => "(string) Default is nothing. Filter by mime type (e.g., 'image/jpeg', 'application/pdf'",
+	),
+
+	'response_format' => array(
+ 		'media' => '(array) Array of media',
+ 		'found' => '(int) The number of total results found'
+	),
+
+	'example_request'      => 'https://public-api.wordpress.com/rest/v1/sites/example.wordpress.com/media/?pretty=true',
+) );
+
+new WPCOM_JSON_API_Get_Media_Endpoint( array(
+	'description' => 'Return a single media item (by ID)',
+	'group'       => 'media',
+	'stat'        => 'media:1',
+
+	'method'      => 'GET',
+	'path'        => '/sites/%s/media/%d',
+	'path_labels' => array(
+		'$site'    => '(int|string) The site ID, The site domain',
+		'$media_ID' => '(int) The ID of the media item',
+	),
+	'response_format' => array(
+		'id'    => '(int) The ID of the media item',
+		'date' =>  '(ISO 8601 datetime) The date the media was uploaded',
+		'parent'           => '(int) ID of the post this media is attached to',
+		'link'             => '(string) URL to the file',
+		'title'            => '(string) File name',
+		'caption'          => '(string) User provided caption of the file',
+		'description'      => '(string) Description of the file',
+		'metadata'         => '(array) Misc array of information about the file, such as exif data or sizes',
+	),
+
+	'example_request'      => 'https://public-api.wordpress.com/rest/v1/sites/example.wordpress.com/media/36',
+) );
+
+new WPCOM_JSON_API_Upload_Media_Endpoint( array(
+	'description' => 'Upload a new piece of media',
+	'group'       => 'media',
+	'stat'        => 'media:new',
+
+	'method'      => 'POST',
+	'path'        => '/sites/%s/media/new',
+	'path_labels' => array(
+		'$site' => '(int|string) The site ID, The site domain',
+	),
+
+	'request_format' => array(
+		'media'      => "(media) An array of media to attach to the post. To upload media, the entire request should be multipart/form-data encoded.  Accepts images (image/gif, image/jpeg, image/png) only at this time.<br /><br /><strong>Example</strong>:<br />" .
+				"<code>curl \<br />--form 'files[]=@/path/to/file.jpg' \<br />-H 'Authorization: BEARER your-token' \<br />'https://public-api.wordpress.com/rest/v1/sites/123/media/new'</code>",
+	),
+
+	'example_request'      => 'https://public-api.wordpress.com/rest/v1/sites/30434183/media/new/',
+
+	'response_format' => array(
+ 		'media' => '(array) Array of uploaded media',
+	),
+) );
+
+new WPCOM_JSON_API_Update_Media_Endpoint( array(
+	'description' => 'Edit basic information about a media item',
+	'group'       => 'media',
+	'stat'        => 'media:1:POST',
+
+	'method'      => 'POST',
+	'path'        => '/sites/%s/media/%d',
+	'path_labels' => array(
+		'$site'    => '(int|string) The site ID, The site domain',
+		'$media_ID' => '(int) The ID of the media item',
+	),
+
+	'request_format' => array(
+		'title'       => '(string) The file name.',
+		'caption'     => '(string) File caption.',
+		'description' => '(HTML) Description of the file.',
+	),
+
+	'response_format' => array(
+		'id'          => '(int) The ID of the media item',
+		'date'        =>  '(ISO 8601 datetime) The date the media was uploaded',
+		'parent'      => '(int) ID of the post this media is attached to',
+		'link'        => '(string) URL to the file',
+		'title'       => '(string) File name',
+		'caption'     => '(string) User provided caption of the file',
+		'description' => '(string) Description of the file',
+		'metadata'    => '(array) Misc array of information about the file, such as exif data or sizes',
+	)
+) );
+
+
+new WPCOM_JSON_API_Delete_Media_Endpoint( array(
+	'description' => 'Delete a piece of media',
+	'group'       => 'media',
+	'stat'        => 'media:1:delete',
+
+	'method'      => 'POST',
+	'path'        => '/sites/%s/media/%d/delete',
+	'path_labels' => array(
+		'$site'    => '(int|string) The site ID, The site domain',
+		'$media_ID' => '(int) The media ID',
+	),
+
+	'response_format' => array(
+		'status' => '(string) Returns deleted if the media was successfully deleted',
+		'id'    => '(int) The ID of the media item',
+		'date' =>  '(ISO 8601 datetime) The date the media was uploaded',
+		'parent'           => '(int) ID of the post this media is attached to',
+		'link'             => '(string) URL to the file',
+		'title'            => '(string) File name',
+		'caption'          => '(string) User provided caption of the file',
+		'description'      => '(string) Description of the file',
+		'metadata'         => '(array) Misc array of information about the file, such as exif data or sizes',
+	)
+) );
+
+/*
  * Comment endpoints
  */
 new WPCOM_JSON_API_List_Comments_Endpoint( array(
@@ -4074,6 +4509,38 @@ new WPCOM_JSON_API_Get_Taxonomy_Endpoint( array(
 	),
 
 	'example_request'  => 'https://public-api.wordpress.com/rest/v1/sites/en.blog.wordpress.com/categories/slug:community?pretty=1'
+) );
+
+new WPCOM_JSON_API_Get_Taxonomies_Endpoint( array(
+	'description' => "Returns a list of a site's categories",
+	'group'       => 'taxonomy',
+	'stat'        => 'categories',
+	'method'      => 'GET',
+	'path'        => '/sites/%s/categories',
+	'path_labels' => array(
+		'$site'     => '(int|string) The site ID, The site domain'
+	),
+	'response_format' => array(
+		'found'      => '(int) The number of categories returned.',
+		'categories' => '(array) Array of category objects.',
+	),
+	'example_request'  => 'https://public-api.wordpress.com/rest/v1/sites/en.blog.wordpress.com/categories?pretty=1'
+) );
+
+new WPCOM_JSON_API_Get_Taxonomies_Endpoint( array(
+	'description' => "Returns a list of a site's tags",
+	'group'       => 'taxonomy',
+	'stat'        => 'tags',
+	'method'      => 'GET',
+	'path'        => '/sites/%s/tags',
+	'path_labels' => array(
+		'$site'     => '(int|string) The site ID, The site domain'
+	),
+	'response_format' => array(
+		'found'    => '(int) The number of tags returned.',
+		'tags'     => '(array) Array of tag objects.',
+	),
+	'example_request'  => 'https://public-api.wordpress.com/rest/v1/sites/en.blog.wordpress.com/tags?pretty=1'
 ) );
 
 new WPCOM_JSON_API_Get_Taxonomy_Endpoint( array(

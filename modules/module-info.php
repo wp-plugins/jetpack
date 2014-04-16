@@ -619,28 +619,6 @@ add_action( 'jetpack_learn_more_button_minileven', 'jetpack_minileven_more_butto
 add_action( 'jetpack_module_more_info_minileven', 'jetpack_minileven_more_info' );
 // Minileven: STOP
 
-
-// Mobile Push Notifications: START
-function jetpack_mobile_push_notifications_more_info() { ?>
-	<div class="jp-info-img">
-		<img class="jp-info-img" src="<?php echo plugins_url( basename( dirname( dirname( __FILE__ ) ) ) . '/_inc/images/screenshots/mobile-push-notifications.jpg' ) ?>" alt="<?php esc_attr_e( 'Mobile Push Notifications', 'jetpack' ) ?>" width="300" height="150" />
-	</div>
-
-	<h4><?php esc_html_e( 'Mobile Push Notifications' , 'jetpack' ); ?></h4>
-
-	<p><?php echo sprintf( __( 'If you use <a href="%1$s">WordPress for iOS</a> or <a href="%2$s">WordPress for Android</a>, you’ll now be able to opt in to receive push notifications of new comments, which makes it easier than ever to keep up with your readers and moderate comments on the go.', 'jetpack' ), 'http://ios.wordpress.org/', 'http://android.wordpress.org/' ); ?></p>
-
-<?php
-}
-
-function jetpack_mobile_push_notifications_more_link() {
-	echo '<a class="button-secondary more-info-link" href="#">' . __( 'Learn More', 'jetpack' ) . '</a>';
-}
-
-add_action( 'jetpack_learn_more_button_mobile-push', 'jetpack_mobile_push_notifications_more_link' );
-add_action( 'jetpack_module_more_info_mobile-push', 'jetpack_mobile_push_notifications_more_info' );
-// Mobile Push Notifications: STOP
-
 // Infinite Scroll: START
 /**
  *
@@ -963,4 +941,19 @@ function jetpack_markdown_more_link() {
 }
 add_action( 'jetpack_learn_more_button_markdown', 'jetpack_markdown_more_link' );
 // Markdown: STOP
+
+// Site Verification Tools: START
+function jetpack_verification_tools_more_info() { ?>
+	<h4><?php esc_html_e( 'Site Verification Tools' , 'jetpack' ); ?></h4>
+	<p><?php esc_html_e( 'Use these tools to verify that you own/control your website with other external services like Google, Bing and Pinterest.', 'jetpack' ); ?></p>
+	<p><?php printf( __( "Verifying your site allows you to access advanced features on these other services (e.g. Webmaster tools, or getting a verified badge). We'll just add an invisible %s tag to the source code of your homepage.", 'jetpack' ), '<code>meta</code>' ); ?></p>
+<?php
+}
+add_action( 'jetpack_module_more_info_verification-tools', 'jetpack_verification_tools_more_info' );
+
+function jetpack_verification_tools_more_link() {
+	echo '<a class="button-secondary more-info-link" href="http://support.wordpress.com/webmaster-tools/">' . __( 'Learn More', 'jetpack' ) . '</a>';
+}
+add_action( 'jetpack_learn_more_button_verification-tools', 'jetpack_verification_tools_more_link' );
+// Site Verification Tools: STOP
 
