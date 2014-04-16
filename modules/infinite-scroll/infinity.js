@@ -83,9 +83,7 @@ Scroller = function( settings ) {
  */
 Scroller.prototype.check = function() {
 	var bottom = this.window.scrollTop() + this.window.height(),
-		threshold = this.element.offset().top + this.element.outerHeight(false) - this.window.height();
-
-	threshold = Math.round( threshold * 0.75 );
+		threshold = this.element.offset().top + this.element.outerHeight(false) - (this.window.height() * 2);
 
 	return bottom > threshold;
 };
@@ -190,7 +188,7 @@ Scroller.prototype.refresh = function() {
 	}, this.query() );
 
 	// Fire the ajax request.
-	jqxhr = $.get( infiniteScroll.settings.ajaxurl, query );
+	jqxhr = $.post( infiniteScroll.settings.ajaxurl, query );
 
 	// Allow refreshes to occur again if an error is triggered.
 	jqxhr.fail( function() {
@@ -455,8 +453,9 @@ Scroller.prototype.updateURL = function( page ) {
 		offset = self.offset > 0 ? self.offset - 1 : 0,
 		pageSlug = -1 == page ? self.origURL : window.location.protocol + '//' + self.history.host + self.history.path.replace( /%d/, page + offset ) + self.history.parameters;
 
-	if ( window.location.href != pageSlug )
+	if ( window.location.href != pageSlug ) {
 		history.pushState( null, null, pageSlug );
+	}
 }
 
 /**
@@ -464,7 +463,7 @@ Scroller.prototype.updateURL = function( page ) {
  */
 $( document ).ready( function() {
 	// Check for our variables
-	if ( 'object' != typeof infiniteScroll ) 
+	if ( 'object' != typeof infiniteScroll )
 		return;
 
 	// Set ajaxurl (for brevity)
