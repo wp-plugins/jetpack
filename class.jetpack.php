@@ -169,6 +169,7 @@ class Jetpack {
 		'facebook-and-digg-thumbnail-generator/facebook-and-digg-thumbnail-generator.php',
 		                                                         // Fedmich's Facebook Open Graph Meta
 		'facebook-meta-tags/facebook-metatags.php',              // Facebook Meta Tags
+		'wordpress-seo-premium/wp-seo-premium.php',              // WordPress SEO Premium by Yoast
 	);
 
 	/**
@@ -1685,6 +1686,8 @@ p {
 		if ( ! add_option( 'jetpack_log', $log, null, 'no' ) ) {
 			Jetpack_Options::update_option( 'log', $log );
 		}
+
+		do_action( 'jetpack_log_entry', $log_entry );
 	}
 
 	/**
@@ -2640,7 +2643,7 @@ p {
 		case 'authorized' :
 			$this->message  = __( '<strong>You&#8217;re fueled up and ready to go.</strong> ', 'jetpack' );
 			$this->message .= "<br />\n";
-			$this->message .= __( 'The features below are now active. Click the learn more buttons to explore each feature.', 'jetpack' );
+			$this->message .= sprintf( __( 'Jetpack is now active. Browse through each Jetpack feature below. Visit the <a href="%s">settings page</a> to activate/deactivate features.', 'jetpack' ), admin_url( 'admin.php?page=jetpack_modules' ) );
 			$this->message .= Jetpack::jetpack_comment_notice();
 			break;
 

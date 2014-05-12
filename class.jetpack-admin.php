@@ -185,7 +185,7 @@ class Jetpack_Admin {
 	}
 
 	function admin_menu_modules() {
-		$hook = add_submenu_page( 'jetpack', __( 'Jetpack Modules', 'jetpack' ), __( 'Modules', 'jetpack' ), 'jetpack_manage_modules', 'jetpack_modules', array( $this, 'admin_page_modules' ) );
+		$hook = add_submenu_page( 'jetpack', __( 'Jetpack Settings', 'jetpack' ), __( 'Settings', 'jetpack' ), 'jetpack_manage_modules', 'jetpack_modules', array( $this, 'admin_page_modules' ) );
 
 		add_action( "load-$hook",                array( $this, 'admin_page_load'   ) );
 		add_action( "admin_head-$hook",          array( $this, 'admin_head'        ) );
@@ -326,8 +326,42 @@ class Jetpack_Admin {
 				</svg>
 			</div>
 			<div class="subhead">
+				<?php if ( $is_connected ) : ?>
+				<h2><?php _e("You're successfully connected to Jetpack!", 'jetpack' ); ?></h2>
+				<?php else : ?>
+				<h2><?php _e('Once you’ve connected Jetpack, you’ll get access to all the delightful features below.', 'jetpack' ); ?></h2>
+				<?php endif; ?>
 			</div>
 		</div><!-- .masthead -->
+		<div class="featured">
+			<h2><?php _e('Jetpack team favorites', 'jetpack' ); ?></h2>
+		
+			<div class="features">
+				<div class="feature">
+					<a href="/support/custom-css/" data-name="Custom CSS" class="f-img"><div class="feature-img custom-css"></div></a>
+					<a href="/support/custom-css/" data-name="Custom CSS" class="feature-description">
+						<h3><?php _e('Custom CSS', 'jetpack' ); ?></h3>
+						<p><?php _e('Customize the look of your site, without modifying your theme.', 'jetpack' ); ?></p>
+					</a>
+				</div>
+		
+				<div class="feature">
+					<a href="/support/sso/" data-name="Jetpack Single Sign On" class="f-img"><div class="feature-img wordpress-connect no-border"></div></a>
+					<a href="/support/sso/" data-name="Jetpack Single Sign On" class="feature-description">
+						<h3><?php _e('Single Sign On', 'jetpack' ); ?></h3>
+						<p><?php _e('Let users log in through WordPress.com with one click.', 'jetpack' ); ?></p>
+					</a>
+				</div>
+		
+				<div class="feature">
+					<a href="/support/wordpress-com-stats/" data-name="WordPress.com Stats" class="f-img"><div class="feature-img wordpress-stats"></div></a>
+					<a href="/support/wordpress-com-stats/" data-name="WordPress.com Stats" class="feature-description">
+						<h3><?php _e('WordPress.com Stats', 'jetpack' ); ?></h3>
+						<p><?php _e('Simple, concise site stats with no additional load on your server.', 'jetpack' ); ?></p>
+					</a>
+				</div>
+			</div>
+		</div><!-- .featured -->
 		<div class="page-content about">
 		<div class="module-grid">
 			<h2><?php esc_html_e( 'Jetpack features', 'jetpack' ); ?></h2>
@@ -338,8 +372,8 @@ class Jetpack_Admin {
 			</form>
 
 			<div class="jp-filter" id="jp-filters">
-				<a href="#" id="newest" data-filter="added" class="selected"><?php esc_html_e( 'Newest', 'jetpack' ); ?></a>
-				<a href="#" id="category" data-filter="cat"><?php _e('Category'); ?></a>
+				<a href="#" id="newest" data-filter="introduced" class="selected"><?php esc_html_e( 'Newest', 'jetpack' ); ?></a>
+				<a href="#" id="category" data-filter="cat"><?php _e('Category', 'jetpack' ); ?></a>
 				<a href="#" id="alphabetical" data-filter="name"><?php esc_html_e( 'Alphabetical', 'jetpack' ); ?></a>
 			</div>
 
