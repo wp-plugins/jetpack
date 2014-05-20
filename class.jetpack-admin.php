@@ -255,11 +255,13 @@ class Jetpack_Admin {
 				'jetpack-js',
 				'jetpackL10n',
 				array(
-					'ays_disconnect' => __( "This will deactivate all Jetpack modules.\nAre you sure you want to disconnect?", 'jetpack' ),
-					'ays_unlink'     => __( "This will prevent user-specific modules such as Publicize, Notifications and Post By Email from working.\nAre you sure you want to unlink?", 'jetpack' ),
-					'ays_dismiss'    => __( "This will deactivate Jetpack.\nAre you sure you want to deactivate Jetpack?", 'jetpack' ),
-					'modules'        => array_values( $this->get_modules() ),
-					'currentVersion' => JETPACK__VERSION,
+					'ays_disconnect'    => __( "This will deactivate all Jetpack modules.\nAre you sure you want to disconnect?", 'jetpack' ),
+					'ays_unlink'        => __( "This will prevent user-specific modules such as Publicize, Notifications and Post By Email from working.\nAre you sure you want to unlink?", 'jetpack' ),
+					'ays_dismiss'       => __( "This will deactivate Jetpack.\nAre you sure you want to deactivate Jetpack?", 'jetpack' ),
+					'view_all_features' => __( 'View all Jetpack features', 'jetpack' ),
+					'no_modules_found'  => sprintf( __( 'Sorry, no modules were found for the search term "%s"', 'jetpack' ), '{term}' ),
+					'modules'           => array_values( $this->get_modules() ),
+					'currentVersion'    => JETPACK__VERSION,
 				)
 			);
 		} else {
@@ -299,9 +301,9 @@ class Jetpack_Admin {
 					<p><?php esc_html_e( 'Jetpack is network activated and notices can not be dismissed.', 'jetpack' ); ?></p>
 				</div>
 			<?php endif; ?>
-	
+
 			<?php do_action( 'jetpack_notices' ) ?>
-			
+
 			<h1><?php esc_html_e( 'Supercharge your self-hosted site with a suite of the most powerful WordPress.com features.', 'jetpack' ); ?></h1>
 
 			<?php if ( ! $is_connected && current_user_can( 'jetpack_connect' ) ) : ?>
@@ -336,27 +338,27 @@ class Jetpack_Admin {
 		</div><!-- .masthead -->
 		<div class="featured">
 			<h2><?php _e('Jetpack team favorites', 'jetpack' ); ?></h2>
-		
+
 			<div class="features">
 				<div class="feature">
-					<a href="/support/custom-css/" data-name="Custom CSS" class="f-img"><div class="feature-img custom-css"></div></a>
-					<a href="/support/custom-css/" data-name="Custom CSS" class="feature-description">
+					<a href="http://jetpack.me/support/custom-css/" data-name="Custom CSS" class="f-img"><div class="feature-img custom-css"></div></a>
+					<a href="http://jetpack.me/support/custom-css/" data-name="Custom CSS" class="feature-description">
 						<h3><?php _e('Custom CSS', 'jetpack' ); ?></h3>
 						<p><?php _e('Customize the look of your site, without modifying your theme.', 'jetpack' ); ?></p>
 					</a>
 				</div>
-		
+
 				<div class="feature">
-					<a href="/support/sso/" data-name="Jetpack Single Sign On" class="f-img"><div class="feature-img wordpress-connect no-border"></div></a>
-					<a href="/support/sso/" data-name="Jetpack Single Sign On" class="feature-description">
+					<a href="http://jetpack.me/support/sso/" data-name="Jetpack Single Sign On" class="f-img"><div class="feature-img wordpress-connect no-border"></div></a>
+					<a href="http://jetpack.me/support/sso/" data-name="Jetpack Single Sign On" class="feature-description">
 						<h3><?php _e('Single Sign On', 'jetpack' ); ?></h3>
 						<p><?php _e('Let users log in through WordPress.com with one click.', 'jetpack' ); ?></p>
 					</a>
 				</div>
-		
+
 				<div class="feature">
-					<a href="/support/wordpress-com-stats/" data-name="WordPress.com Stats" class="f-img"><div class="feature-img wordpress-stats"></div></a>
-					<a href="/support/wordpress-com-stats/" data-name="WordPress.com Stats" class="feature-description">
+					<a href="http://jetpack.me/support/wordpress-com-stats/" data-name="WordPress.com Stats" class="f-img"><div class="feature-img wordpress-stats"></div></a>
+					<a href="http://jetpack.me/support/wordpress-com-stats/" data-name="WordPress.com Stats" class="feature-description">
 						<h3><?php _e('WordPress.com Stats', 'jetpack' ); ?></h3>
 						<p><?php _e('Simple, concise site stats with no additional load on your server.', 'jetpack' ); ?></p>
 					</a>
@@ -417,6 +419,7 @@ class Jetpack_Admin {
 		$this->admin_page_top();
 		?>
 		<div class="clouds-sm"></div>
+		<?php do_action( 'jetpack_notices' ) ?>
 		<div class="page-content configure">
 			<div class="frame top hide-if-no-js">
 				<div class="wrap">
