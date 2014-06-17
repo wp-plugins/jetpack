@@ -3,7 +3,7 @@ Contributors: automattic, alternatekev, andy, apeatling, azaozz, barry, beaulebe
 Tags: WordPress.com, statistics, stats, views, tweets, twitter, widget, gravatar, hovercards, profile, equations, latex, math, maths, youtube, shortcode, archives, audio, blip, bliptv, dailymotion, digg, flickr, googlevideo, google, googlemaps, kyte, kytetv, livevideo, redlasso, rockyou, rss, scribd, slide, slideshare, soundcloud, vimeo, shortlinks, wp.me, subscriptions, notifications, notes, json, api, rest, mosaic, gallery, slideshow, videopress, monitor, search, omnisearch, sso, jet pack
 Stable tag: 3.0.1
 Requires at least: 3.8
-Tested up to: 3.9.2
+Tested up to: 3.9.1
 
 Supercharge your WordPress site with powerful features previously only available to WordPress.com users.
 
@@ -110,7 +110,6 @@ Jetpack 3.0 is full of enhancements and bug fixes, including a new Administrativ
 * Enhancement: Better settings link
 * Enhancement: Make module categories filter more visible when active
 * Enhancement: Link to the contact form
-* Enhancement: Stats Smiley doesn't show by default
 
 = 3.0.1 =
 * Bugfix: AtD: A wpcom-only function got synced by mistake and caused a few errors. Fixed.
