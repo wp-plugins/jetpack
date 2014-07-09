@@ -1,9 +1,9 @@
 === Jetpack by WordPress.com ===
-Contributors: automattic, alternatekev, andy, apeatling, azaozz, barry, beaulebens, blobaugh, cfinke, chellycat, danielbachhuber, daniloercoli, designsimply, eoigal, ethitter, gibrown, georgestephanis, hew, hugobaeta, iammattthomas, jblz, jeherve, jkudish, Joen, johnjamesjacoby, jshreve, kraftbj, lancewillett, martinremy, matt, matveb, mcsf, mdawaffe, migueluy, nickmomrik, obenland, pento, richardmtl, stephdau, tmoorewp, Viper007Bond, westi, yoavf
+Contributors: automattic, alternatekev, andy, apeatling, azaozz, barry, beaulebens, blobaugh, cathyjf, cfinke, chellycat, danielbachhuber, daniloercoli, designsimply, eoigal, enej, ethitter, gibrown, georgestephanis, hew, hugobaeta, iammattthomas, jblz, jeherve, jkudish, Joen, johnjamesjacoby, jshreve, kraftbj, koke, lancewillett, martinremy, matt, matveb, mcsf, mdawaffe, Michael Arestad, migueluy, nickmomrik, obenland, pento, richardmtl, richardmuscat, stephdau, tonykova, tmoorewp, Viper007Bond, westi, yoavf
 Tags: WordPress.com, statistics, stats, views, tweets, twitter, widget, gravatar, hovercards, profile, equations, latex, math, maths, youtube, shortcode, archives, audio, blip, bliptv, dailymotion, digg, flickr, googlevideo, google, googlemaps, kyte, kytetv, livevideo, redlasso, rockyou, rss, scribd, slide, slideshare, soundcloud, vimeo, shortlinks, wp.me, subscriptions, notifications, notes, json, api, rest, mosaic, gallery, slideshow, videopress, monitor, search, omnisearch, sso, jet pack
 Stable tag: 3.0.2
 Requires at least: 3.8
-Tested up to: 3.9.1
+Tested up to: 3.9.2
 
 Supercharge your WordPress site with powerful features previously only available to WordPress.com users.
 
@@ -91,6 +91,9 @@ Jetpack 3.0 is full of enhancements and bug fixes, including a new Administrativ
 
 == Changelog ==
 
+
+= 3.1 =
+
 = 3.0.2 =
 * Enhancement: General: Make module categories filter more visible when active.
 * Enhancement: General: Updated translation files with more strings added since the last release.
@@ -109,7 +112,7 @@ Jetpack 3.0 is full of enhancements and bug fixes, including a new Administrativ
 * Bug Fix: Contact Form: Updated to no longer use a deprecated Akismet function.
 * Bug Fix: Contact Form: Sends email to the administrator that is not marked as spam again.
 * Bug Fix: Open Graph: Resolved PHP warning on open graph gallery pages when the gallery is empty.
-
+ 
 = 3.0.1 =
 * Bugfix: AtD: A wpcom-only function got synced by mistake and caused a few errors. Fixed.
 * Bugfix: Post By Email: Add static keyword to a function.
