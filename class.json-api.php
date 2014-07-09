@@ -121,6 +121,8 @@ class WPCOM_JSON_API {
 	}
 
 	function serve( $exit = true ) {
+		ini_set( 'display_errors', false );
+
 		$this->exit = (bool) $exit;
 
 		add_filter( 'home_url', array( $this, 'ensure_http_scheme_of_home_url' ), 10, 3 );
@@ -147,7 +149,18 @@ class WPCOM_JSON_API {
 		$is_help = preg_match( '#/help/?$#i', $this->path );
 		$matching_endpoints = array();
 
+		if ( 'OPTIONS' == $this->method ) {
+			do_action( 'wpcom_json_api_options' );
+			exit;
+		}
+
 		if ( $is_help ) {
+			$origin = get_http_origin();
+
+			if ( !empty( $origin ) && 'GET' == $this->method ) {
+				header( 'Access-Control-Allow-Origin: ' . esc_url_raw( $origin ) );
+			}
+			
 			$this->path = substr( rtrim( $this->path, '/' ), 0, -5 );
 			// Show help for all matching endpoints regardless of method
 			$methods = $allowed_methods;
@@ -256,8 +269,8 @@ class WPCOM_JSON_API {
 		do_action( 'wpcom_json_api_output', $endpoint->stat );
 
 		$response = $this->process_request( $endpoint, $path_pieces );
-
-		if ( !$response ) {
+		
+		if ( !$response && !is_array( $response ) ) {
 			return $this->output( 500, '', 'text/plain' );
 		} elseif ( is_wp_error( $response ) ) {
 			return $this->output_error( $response );
@@ -346,9 +359,7 @@ class WPCOM_JSON_API {
 		return $content_type;
 	}
 
-	function output_error( $error ) {
-		if ( function_exists( 'bump_stats_extra' ) )
-			bump_stats_extra( 'rest-api-errors', $this->token_details['client_id'] );
+	public static function serializable_error ( $error ) {
 
 		$status_code = $error->get_error_data();
 
@@ -362,7 +373,19 @@ class WPCOM_JSON_API {
 			'error'   => $error->get_error_code(),
 			'message' => $error->get_error_message(),
 		);
-		return $this->output( $status_code, $response );
+		return array(
+			'status_code' => $status_code,
+			'errors' => $response
+		);
+	}
+
+	function output_error( $error ) {
+		if ( function_exists( 'bump_stats_extra' ) )
+			bump_stats_extra( 'rest-api-errors', $this->token_details['client_id'] );
+
+		$error_response = $this->serializable_error( $error );
+
+		return $this->output( $error_response[ 'status_code'], $error_response['errors'] );
 	}
 
 	function filter_fields( $response ) {
