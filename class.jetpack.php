@@ -77,6 +77,7 @@ class Jetpack {
 			'Livefyre'                       => 'livefyre-comments/livefyre.php',
 			'Comments Evolved for WordPress' => 'gplus-comments/comments-evolved.php',
 			'Google+ Comments'               => 'google-plus-comments/google-plus-comments.php',
+			'WP-SpamShield Anti-Spam'        => 'wp-spamshield/wp-spamshield.php',
 		),
 		'contact-form'      => array(
 			'Contact Form 7'                 => 'contact-form-7/wp-contact-form-7.php',
@@ -728,12 +729,14 @@ class Jetpack {
 		}
 
 		foreach ( $modules as $module ) {
-			// If not connected and we're in dev mode, disable modules requiring a connection
-			if ( ! Jetpack::is_active() ) {
+			// If we're in dev mode, disable modules requiring a connection
+			if ( Jetpack::is_development_mode() ) {
+				// Prime the pump if we need to
 				if ( empty( $modules_data[ $module ] ) ) {
 					$modules_data[ $module ] = Jetpack::get_module( $module );
 				}
-				if ( $modules_data[ $module ]['requires_connection'] || ! Jetpack::is_development_mode() ) {
+				// If the module requires a connection, but we're in local mode, don't include it.
+				if ( $modules_data[ $module ]['requires_connection'] ) {
 					continue;
 				}
 			}

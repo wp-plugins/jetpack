@@ -29,6 +29,10 @@ class WPCOM_JSON_API_Update_Post_Endpoint extends WPCOM_JSON_API_Post_Endpoint {
 		$new  = $this->api->ends_with( $path, '/new' );
 		$args = $this->query_args();
 
+		// unhook publicize, it's hooked again later -- without this, skipping services is impossible
+		remove_action( 'save_post', array( $GLOBALS['publicize_ui']->publicize, 'async_publicize_post' ), 100, 2 );
+		add_action( 'rest_api_inserted_post', array( $GLOBALS['publicize_ui']->publicize, 'async_publicize_post' ) );
+
 		if ( $new ) {
 			$input = $this->input( true );
 
@@ -339,9 +343,11 @@ class WPCOM_JSON_API_Update_Post_Endpoint extends WPCOM_JSON_API_Post_Endpoint {
 			}
 		}
 
+
 		// We ask the user/dev to pass Publicize services he/she wants activated for the post, but Publicize expects us
 		// to instead flag the ones we don't want to be skipped. proceed with said logic.
-		if ( $publicize === false ) {
+		// any posts coming from Path (client ID 25952) should also not publicize
+		if ( $publicize === false || 25952 == $this->api->token_details['client_id'] ) {
 			// No publicize at all, skipp all by full service
 			foreach ( $GLOBALS['publicize_ui']->publicize->get_services( 'all' ) as $name => $service ) {
 				update_post_meta( $post_id, $GLOBALS['publicize_ui']->publicize->POST_SKIP . $name, 1 );

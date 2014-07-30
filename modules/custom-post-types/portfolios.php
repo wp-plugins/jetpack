@@ -149,7 +149,6 @@ class Jetpack_Portfolio {
 		?>
 		<p>
 			<?php esc_html_e( 'Use these settings to display different types of content on your site.', 'jetpack' ); ?>
-			<a target="_blank" href="http://en.support.wordpress.com/portfolios/"><?php esc_html_e( 'Learn More', 'jetpack' ); ?></a>
 		</p>
 		<?php
 	}
@@ -161,16 +160,15 @@ class Jetpack_Portfolio {
 	 * @return html
 	 */
 	function setting_html() {
-		
-		if( current_theme_supports( self::CUSTOM_POST_TYPE ) ) { ?>
+		if( current_theme_supports( self::CUSTOM_POST_TYPE ) ) : ?>
 			<p><?php printf( __( 'Your theme supports <strong>%s</strong>', 'jetpack' ), self::CUSTOM_POST_TYPE ); ?></p>
-		<?php } else { ?>
-		<label for="<?php echo esc_attr( self::OPTION_NAME ); ?>">
-			<input name="<?php echo esc_attr( self::OPTION_NAME ); ?>" id="<?php echo esc_attr( self::OPTION_NAME ); ?>" <?php echo checked( get_option( self::OPTION_NAME, '0' ), true, false ); ?> type="checkbox" value="1" />
-			<?php esc_html_e('Enable', 'jetpack' ); ?>
-		</label>
-		<?php
-		}
+		<?php else : ?>
+			<label for="<?php echo esc_attr( self::OPTION_NAME ); ?>">
+				<input name="<?php echo esc_attr( self::OPTION_NAME ); ?>" id="<?php echo esc_attr( self::OPTION_NAME ); ?>" <?php echo checked( get_option( self::OPTION_NAME, '0' ), true, false ); ?> type="checkbox" value="1" />
+				<?php esc_html_e( 'Enable Portfolio Projects for this site.', 'jetpack' ); ?>
+				<a target="_blank" href="http://en.support.wordpress.com/portfolios/"><?php esc_html_e( 'Learn More', 'jetpack' ); ?></a>
+			</label>
+		<?php endif;
 	}
 
 	function jetpack_cpt_section_reading(){
@@ -549,14 +547,14 @@ class Jetpack_Portfolio {
 			// Render styles
 			//self::themecolor_styles();
 
-			$html = '<div class="jetpack-portfolio-shortcode column-' . esc_attr( $atts['columns'] ) . '">'; // open .jetpack-portfolio
+			$html = '<div class="jetpack-portfolio-shortcode">'; // open .jetpack-portfolio
 
 			// Construct the loop...
 			while ( $query->have_posts() ) {
 				$query->the_post();
 				$post_id = get_the_ID();
 
-				$html .= '<div class="portfolio-entry' . esc_attr( self::get_project_class( $i, $atts['columns'] ) ) . '">'; // open .portfolio-entry
+				$html .= '<div class="portfolio-entry ' . esc_attr( self::get_project_class( $i, $atts['columns'] ) ) . '">'; // open .portfolio-entry
 
 				$html .= '<header class="portfolio-entry-header">';
 
@@ -614,28 +612,38 @@ class Jetpack_Portfolio {
 	 */
 	static function get_project_class( $i, $columns ) {
 		$project_types = wp_get_object_terms( get_the_ID(), self::CUSTOM_TAXONOMY_TYPE, array( 'fields' => 'slugs' ) );
-		$class = '';
+		$class = array();
 
+		$class[] = 'portfolio-entry-column-'.$columns;
 		// add a type- class for each project type
 		foreach ( $project_types as $project_type ) {
-			$class .= ' type-' . esc_html( $project_type );
+			$class[] = 'type-' . esc_html( $project_type );
 		}
-
+		if( $columns > 1) {
+			if ( ($i % 2) == 0 ) {
+				$class[] = 'portfolio-entry-mobile-first-item-row';
+			} else {
+				$class[] = 'portfolio-entry-mobile-last-item-row';
+			}
+		}
+		
 		// add first and last classes to first and last items in a row
 		if ( ($i % $columns) == 0 ) {
-			$class .= ' first-item-row';
+			$class[] = 'portfolio-entry-first-item-row';
 		} elseif ( ($i % $columns) == ( $columns - 1 ) ) {
-			$class .= ' last-item-row';
+			$class[] = 'portfolio-entry-last-item-row';
 		}
+		
+
 		/**
 		 * Filter the class applied to project div in the portfolio 
 		 *
 		 * @param string $class class name of the div.
 		 * @param int $i iterator count the number of columns up starting from 0.
-		 * @param int $column number of columns to display the content in.
+		 * @param int $columns number of columns to display the content in.
 		 * 
 		 */
-		return apply_filters( 'portfolio-project-post-class', $class, $i, $column );
+		return apply_filters( 'portfolio-project-post-class', implode( " ", $class) , $i, $columns );
 	}
 
 	/**
@@ -651,8 +659,8 @@ class Jetpack_Portfolio {
 			return;
 		}
 
-		$html = '<div class="project-types"><span>' . __( 'Types', 'jetpack' ) . '</span>';
-
+		$html = '<div class="project-types"><span>' . __( 'Types', 'jetpack' ) . ':</span>';
+		$types = array();
 		// Loop thorugh all the types
 		foreach ( $project_types as $project_type ) {
 			$project_type_link = get_term_link( $project_type, self::CUSTOM_TAXONOMY_TYPE );
@@ -661,9 +669,9 @@ class Jetpack_Portfolio {
 				return $project_type_link;
 			}
 
-			$html .= '<a href="' . esc_url( $project_type_link ) . '" rel="tag">' . esc_html( $project_type->name ) . '</a>';
+			$types[] = '<a href="' . esc_url( $project_type_link ) . '" rel="tag">' . esc_html( $project_type->name ) . '</a>';
 		}
-
+		$html .= ' '.implode( ', ', $types );
 		$html .= '</div>';
 
 		return $html;
@@ -682,8 +690,8 @@ class Jetpack_Portfolio {
 			return false;
 		}
 
-		$html = '<div class="project-tags"><span>' . __( 'Tags', 'jetpack' ) . '</span>';
-
+		$html = '<div class="project-tags"><span>' . __( 'Tags', 'jetpack' ) . ':</span>';
+		$tags = array();
 		// Loop thorugh all the tags
 		foreach ( $project_tags as $project_tag ) {
 			$project_tag_link = get_term_link( $project_tag, self::CUSTOM_TAXONOMY_TYPE );
@@ -692,9 +700,9 @@ class Jetpack_Portfolio {
 				return $project_tag_link;
 			}
 
-			$html .= '<a href="' . esc_url( $project_tag_link ) . '" rel="tag">' . esc_html( $project_tag->name ) . '</a>';
+			$tags[] = '<a href="' . esc_url( $project_tag_link ) . '" rel="tag">' . esc_html( $project_tag->name ) . '</a>';
 		}
-
+		$html .= ' '. implode( ', ', $tags);
 		$html .= '</div>';
 
 		return $html;
