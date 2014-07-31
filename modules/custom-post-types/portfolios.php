@@ -184,7 +184,8 @@ class Jetpack_Portfolio {
 				)
 			);
 		} else {
-			printf( __( 'You need to <a href="%s">enable portfolio</a> custom post type before you can update it\'s settings.' , 'jetpack' ), admin_url( 'options-writing.php#jetpack_portfolio' ) ); 
+			// Temporary Fix for 3.1 so we don't break a translation string before release.
+			printf( str_replace( 'update it\'s settings.', 'update its settings.', __( 'You need to <a href="%s">enable portfolio</a> custom post type before you can update it\'s settings.', 'jetpack' ) ), admin_url( 'options-writing.php#jetpack_portfolio' ) ); 
 		}
 	}
 
@@ -206,7 +207,7 @@ class Jetpack_Portfolio {
 			$projects = (int) wp_count_posts( self::CUSTOM_POST_TYPE )->publish;
 
 			if ( ! empty( $projects ) ) {
-				set_transient( 'jetpack-portfolio-count-cache', $projects, 60*60*12 );
+				set_transient( 'jetpack-portfolio-count-cache', $projects, HOUR_IN_SECONDS * 12 );
 			}
 		}
 	}
@@ -214,7 +215,7 @@ class Jetpack_Portfolio {
 	/**
 	 * On plugin activation, check if current theme supports CPT
 	 */
-	function plugin_activation_post_type_support() {
+	static function plugin_activation_post_type_support() {
 		if ( current_theme_supports( self::CUSTOM_POST_TYPE ) ) {
 			update_option( self::OPTION_NAME, '1' );
 		}
@@ -226,7 +227,7 @@ class Jetpack_Portfolio {
 	 *
 	 * Plugin activation is for backwards compatibility with old CPT theme support
 	 */
-	function theme_activation_post_type_support() {
+	static function theme_activation_post_type_support() {
 		if ( current_theme_supports( self::CUSTOM_POST_TYPE ) ) {
 			update_option( self::OPTION_NAME, '1' );
 		}
@@ -723,4 +724,5 @@ class Jetpack_Portfolio {
 add_action( 'init', array( 'Jetpack_Portfolio', 'init' ) );
 
 // Check on plugin activation if theme supports CPT
-register_activation_hook( __FILE__, array( 'Jetpack_Portfolio', 'plugin_activation_post_type_support' ) );
+register_activation_hook( __FILE__,                         array( 'Jetpack_Portfolio', 'plugin_activation_post_type_support' ) );
+add_action( 'jetpack_activate_module_custom-content-types', array( 'Jetpack_Portfolio', 'plugin_activation_post_type_support' ) );
