@@ -86,6 +86,11 @@ Learn more (and get detailed instructions) in our [contribute guide](http://jetp
 
 == Changelog ==
 
+= 3.2 =
+Release Date:
+
+* ???
+
 = 3.1.1 =
 Release Date: August 7, 2014
 
