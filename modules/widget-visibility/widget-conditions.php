@@ -453,12 +453,13 @@ class Jetpack_Widget_Conditions {
 						get_currentuserinfo();
 
 						$user_roles = $current_user->roles;
-
-						if ( in_array( $rule['minor'], $user_roles ) ) {
+					
+						if( in_array( $rule['minor'], $user_roles ) ) {
 							$condition_result = true;
 						} else {
 							$condition_result = false;
 						}
+
 					} else {
 						$condition_result = false;
 					}

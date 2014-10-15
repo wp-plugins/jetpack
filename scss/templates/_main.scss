@@ -754,6 +754,16 @@ body {
 		display: none;
 	}
 
+	&.active {
+		border-color: $lightblue;
+		box-shadow: inset 4px 0 0 $lightblue;
+
+		&:hover {
+			border-color: lighten( $lightblue, 15% );
+			box-shadow: inset 4px 0 0 lighten( $lightblue, 15% );
+		}
+	}
+
 	.cat & {
 		@include breakpoint(large-desktop){
 			&:nth-child(3n + 1) {
@@ -1349,10 +1359,6 @@ body {
 .jetpack-modules #widgets .info a:before {
 	content: '\f116';
 	font: normal 20px "dashicons";
-}
-.gplus-authorship:before,
-.jetpack-modules #gplus-authorship .info a:before {
-	content: '\f218';
 }
 .modules h3.gravatar-hovercards:before,
 .jetpack-modules #gravatar-hovercards .info a:before {

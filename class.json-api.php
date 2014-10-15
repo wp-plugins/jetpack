@@ -1,6 +1,9 @@
 <?php
-
 defined( 'WPCOM_JSON_API__DEBUG' ) or define( 'WPCOM_JSON_API__DEBUG', false );
+if( defined( 'WPCOM_JSON_API__DEBUG' ) && WPCOM_JSON_API__DEBUG )
+	require_once ABSPATH . 'wp-content/lib/statsd-client.php';
+
+
 
 class WPCOM_JSON_API {
 	static $self = null;
@@ -269,7 +272,7 @@ class WPCOM_JSON_API {
 		do_action( 'wpcom_json_api_output', $endpoint->stat );
 
 		$response = $this->process_request( $endpoint, $path_pieces );
-		
+
 		if ( !$response && !is_array( $response ) ) {
 			return $this->output( 500, '', 'text/plain' );
 		} elseif ( is_wp_error( $response ) ) {
@@ -281,7 +284,24 @@ class WPCOM_JSON_API {
 
 	function process_request( WPCOM_JSON_API_Endpoint $endpoint, $path_pieces ) {
 		$this->endpoint = $endpoint;
-		return call_user_func_array( array( $endpoint, 'callback' ), $path_pieces );
+
+		// Process API request and time it
+		$api_timer = microtime( true );
+		$response = call_user_func_array( array( $endpoint, 'callback' ), $path_pieces );
+		$api_timer = 1000 * ( microtime( true ) - $api_timer );
+		if( defined( 'WPCOM_JSON_API__DEBUG' ) && WPCOM_JSON_API__DEBUG ) {
+			// Don't track API timings per node / DC for now, maybe in the future
+			$statsd = new StatsD();
+			$statsd_prefix = 'com.wordpress.web.ALL.ALL.rest_api.method';
+			$statsd_name = str_replace( ':', '.', $endpoint->stat );
+
+			if ( ( !$response && !is_array( $response ) ) || is_wp_error( $response ) ) {
+				$statsd->timing( "{$statsd_prefix}.error.{$statsd_name}", $api_timer );
+			} else {
+				$statsd->timing( "{$statsd_prefix}.ok.{$statsd_name}", $api_timer );
+			}
+		}
+		return $response;
 	}
 
 	function output_early( $status_code, $response = null, $content_type = 'application/json' ) {

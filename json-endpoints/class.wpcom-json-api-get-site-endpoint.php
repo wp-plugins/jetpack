@@ -123,11 +123,17 @@ class WPCOM_JSON_API_GET_Site_Endpoint extends WPCOM_JSON_API_Endpoint {
 			case 'icon' :
 				if ( function_exists( 'blavatar_domain' ) && function_exists( 'blavatar_exists' ) && function_exists( 'blavatar_url' ) ) {
 					$domain = blavatar_domain( home_url() );
-					if ( blavatar_exists( $domain ) )
-						$response[$key] = array(
+					if ( blavatar_exists( $domain ) ) {
+						$response[ $key ] = array(
 							'img' => (string) remove_query_arg( 's', blavatar_url( $domain, 'img' ) ),
 							'ico' => (string) remove_query_arg( 's', blavatar_url( $domain, 'ico' ) ),
 						);
+					}
+				} elseif ( function_exists( 'jetpack_site_icon_url' ) && function_exists( 'jetpack_photon_url' ) ) {
+					$response[ $key ] = array(
+						'img' => (string) jetpack_photon_url( jetpack_site_icon_url( get_current_blog_id() , 80 ), array( 'w' => 80 ), 'https' ),
+						'ico' => (string) jetpack_photon_url( jetpack_site_icon_url( get_current_blog_id() , 16 ), array( 'w' => 16 ), 'https' ),
+					);
 				}
 				break;
 			case 'logo' :
@@ -152,6 +158,7 @@ class WPCOM_JSON_API_GET_Site_Endpoint extends WPCOM_JSON_API_Endpoint {
 				}
 				break;
 			case 'subscribers_count' :
+
 				if ( function_exists( 'wpcom_subs_total_wpcom_subscribers' ) ) {
 					$total_wpcom_subs = wpcom_subs_total_wpcom_subscribers(
 						array(
@@ -208,6 +215,19 @@ class WPCOM_JSON_API_GET_Site_Endpoint extends WPCOM_JSON_API_Endpoint {
 					}
 				}
 
+				if ( function_exists( 'get_mime_types' ) ) {
+					$allowed_file_types = get_mime_types();
+				} else {
+					// http://codex.wordpress.org/Uploading_Files
+					$mime_types = get_allowed_mime_types();
+					foreach ( $mime_types as $type => $mime_type ) {
+						$extras = explode( '|', $type );
+						foreach ( $extras as $extra ) {
+							$allowed_file_types[] = $extra;
+						}
+					}
+				}
+
 				$response[$key] = array(
 					'timezone'                => (string) get_option( 'timezone_string' ),
 					'gmt_offset'              => (float) get_option( 'gmt_offset' ),
@@ -228,6 +248,7 @@ class WPCOM_JSON_API_GET_Site_Endpoint extends WPCOM_JSON_API_Endpoint {
 					'image_large_width'       => (int)  get_option( 'large_size_w' ),
 					'image_large_height'      => (int) get_option( 'large_size_h' ),
 					'post_formats'            => $supported_formats,
+					'allowed_file_types'      => $allowed_file_types,
 					'default_likes_enabled'   => (bool) apply_filters( 'wpl_is_enabled_sitewide', ! get_option( 'disabled_likes' ) ),
 					'default_sharing_status'  => (bool) $default_sharing_status,
 					'default_comment_status'  => ( 'closed' == get_option( 'default_comment_status' ) ? false : true ),

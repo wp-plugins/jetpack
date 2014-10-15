@@ -330,7 +330,7 @@ class The_Neverending_Home_Page {
 		add_filter( 'body_class', array( $this, 'body_class' ) );
 
 		// Add our scripts.
-		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), 20140523, true );
+		wp_enqueue_script( 'the-neverending-homepage', plugins_url( 'infinity.js', __FILE__ ), array( 'jquery' ), 20141013, true );
 
 		// Add our default styles.
 		wp_enqueue_style( 'the-neverending-homepage', plugins_url( 'infinity.css', __FILE__ ), array(), '20140422' );
@@ -376,6 +376,10 @@ class The_Neverending_Home_Page {
 	function get_last_post_date() {
 		if ( self::got_infinity() )
 			return;
+
+		if ( ! self::wp_query()->have_posts() ) {
+			return null;
+		}
 
 		$post = end( self::wp_query()->posts );
 		$orderby = isset( self::wp_query()->query_vars['orderby'] ) ?
