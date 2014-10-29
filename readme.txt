@@ -9,7 +9,7 @@ Your WordPress, Streamlined.
 
 == Description ==
 
-[Jetpack](http://jetpack.me/) adds powerful features previously only available to WordPress.com users including customisation, traffic, mobile, content, and performance tools.
+[Jetpack](http://jetpack.me/) adds powerful features previously only available to WordPress.com users including customization, traffic, mobile, content, and performance tools.
 
 **Features include:**
 
@@ -101,7 +101,7 @@ Learn more (and get detailed instructions) in our [contribute guide](http://jetp
 == Changelog ==
 
 = 3.2 =
-Release Date:
+Release Date: October 29, 2014
 
 * Enhancement: Speed Improvements (woohoo!).
 * Enhancement: Add site icons: an avatar for your blog.
