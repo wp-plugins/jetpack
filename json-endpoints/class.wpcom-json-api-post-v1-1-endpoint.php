@@ -1,6 +1,6 @@
 <?php
 
-abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
+abstract class WPCOM_JSON_API_Post_v1_1_Endpoint extends WPCOM_JSON_API_Endpoint {
 	var $post_object_format = array(
 		// explicitly document and cast all output
 		'ID'        => '(int) The post ID.',
@@ -28,11 +28,9 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 		'password' => '(string) The plaintext password protecting the post, or, more likely, the empty string if the post is not password protected.',
 		'parent'   => "(object>post_reference|false) A reference to the post's parent, if it has one.",
 		'type'     => "(string) The post's post_type. Post types besides post, page and revision need to be whitelisted using the <code>rest_api_allowed_post_types</code> filter.",
-		'comments_open'  => '(bool) Is the post open for comments?',
-		'pings_open'     => '(bool) Is the post open for pingbacks, trackbacks?',
+		'discussion'     => '(object) Hash of discussion options for the post',
 		'likes_enabled' => "(bool) Is the post open to likes?",
 		'sharing_enabled' => "(bool) Should sharing buttons show on this post?",
-		'comment_count'  => '(int) The number of comments for this post.',
 		'like_count'     => '(int) The number of likes for this post.',
 		'i_like'         => '(bool) Does the current user like this post?',
 		'is_reblogged'   => '(bool) Did the current user reblog this post?',
@@ -48,7 +46,6 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 		'attachments'	 => '(object:attachment) Hash of post attachments (keyed by attachment ID).',
 		'metadata'	     => '(array) Array of post metadata keys and values. All unprotected meta keys are available by default for read requests. Both unprotected and protected meta keys are available for authenticated requests with access. Protected meta keys can be made available with the <code>rest_api_allowed_public_metadata</code> filter.',
 		'meta'           => '(object) API result meta data',
-		'current_user_can' => '(object) List of permissions. Note, deprecated in favor of `capabilities`',
 		'capabilities'   => '(object) List of post-specific permissions for the user; publish_post, edit_post, delete_post',
 	);
 
@@ -169,9 +166,6 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 		}
 
 		$response = array();
-
-		$capabilities = $this->get_current_user_capabilities( $post );
-
 		foreach ( array_keys( $this->post_object_format ) as $key ) {
 			switch ( $key ) {
 			case 'ID' :
@@ -266,11 +260,14 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 			case 'type' :
 				$response[$key] = (string) $post->post_type;
 				break;
-			case 'comments_open' :
-				$response[$key] = (bool) comments_open( $post->ID );
-				break;
-			case 'pings_open' :
-				$response[$key] = (bool) pings_open( $post->ID );
+			case 'discussion' :
+				$response[$key] = array(
+					'comments_open'  => (bool) comments_open( $post->ID ),
+					'comment_status' => (string) $post->comment_status,
+					'pings_open'     => (bool) pings_open( $post->ID ),
+					'ping_status'    => (string) $post->ping_status,
+					'comment_count'  => (int) $post->comment_count,
+				);
 				break;
 			case 'likes_enabled' :
 				$sitewide_likes_enabled = (bool) apply_filters( 'wpl_is_enabled_sitewide', ! get_option( 'disabled_likes' ) );
@@ -290,9 +287,6 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 				if ( !empty( $switched_status ) )
 					$show = false;
 				$response[$key] = (bool) $show;
-				break;
-			case 'comment_count' :
-				$response[$key] = (int) $post->comment_count;
 				break;
 			case 'like_count' :
 				$response[$key] = (int) $this->api->post_like_count( $blog_id, $post->ID );
@@ -413,7 +407,7 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 				$response[$key] = array();
 				$_attachments = get_posts( array( 'post_parent' => $post->ID, 'post_status' => 'inherit', 'post_type' => 'attachment' ) );
 				foreach ( $_attachments as $attachment ) {
-					$response[$key][$attachment->ID] = $this->get_attachment( $attachment );
+					$response[$key][$attachment->ID] = $this->get_media_item_v1_1( $attachment->ID );
 				}
 				$response[$key] = (object) $response[$key];
 				break;
@@ -456,11 +450,8 @@ abstract class WPCOM_JSON_API_Post_Endpoint extends WPCOM_JSON_API_Endpoint {
 					),
 				);
 				break;
-			case 'current_user_can' :
-				$response[$key] = $capabilities;
-				break;
 			case 'capabilities' :
-				$response[$key] = $capabilities;
+				$response[$key] = $this->get_current_user_capabilities( $post );
 				break;
 
 			}

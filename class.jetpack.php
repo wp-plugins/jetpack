@@ -330,6 +330,11 @@ class Jetpack {
 			delete_option( 'hide_gplus' );
 			delete_metadata( 'post', 0, 'gplus_authorship_disabled', null, true );
 		}
+
+		if ( Jetpack::is_active() && Jetpack::maybe_set_version_option() ) {
+			do_action( 'jetpack_sync_all_registered_options' );
+		}
+
 	}
 
 	/**
@@ -345,8 +350,12 @@ class Jetpack {
 		 * Do things that should run even in the network admin
 		 * here, before we potentially fail out.
 		 */
-		add_filter( 'jetpack_require_lib_dir', array( $this, 'require_lib_dir' ) );
-
+		add_filter( 'jetpack_require_lib_dir', 		array( $this, 'require_lib_dir' ) );
+		/**
+		 * Update the main_network_site on .com
+		 */
+		add_filter( 'pre_option_main_network_site', array( $this, 'main_network_site_option' ) );
+		add_action( 'update_option_siteurl', 			array( $this, 'update_main_network_site_option' ) );
 		/*
 		 * Load things that should only be in Network Admin.
 		 *
@@ -373,8 +382,11 @@ class Jetpack {
 			'siteurl',
 			'blogname',
 			'gmt_offset',
-			'timezone_string'
+			'timezone_string',
+			'main_network_site'
 		);
+
+		add_action( 'update_option', array( $this, 'log_settings_change' ), 10, 3 );
 
 		if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST && isset( $_GET['for'] ) && 'jetpack' == $_GET['for'] ) {
 			@ini_set( 'display_errors', false ); // Display errors can cause the XML to be not well formed.
@@ -444,6 +456,8 @@ class Jetpack {
 		add_action( 'jetpack_activate_module', array( $this, 'activate_module_actions' ) );
 
 		add_action( 'plugins_loaded', array( $this, 'extra_oembed_providers' ), 100 );
+
+		add_action( 'jetpack_notices', array( $this, 'show_development_mode_notice' ) );
 
 		/**
 		 * These actions run checks to load additional files.
@@ -622,6 +636,23 @@ class Jetpack {
 	}
 
 	/**
+	 * Return the network_site_url so that .com knows what network this site is a part of.
+	 * @param  bool $option
+	 * @return string
+	 */
+	function main_network_site_option( $option ) {
+		return network_site_url();
+	}
+
+	/**
+	 * Trigger an update to the main_network_site when we update the siteurl of a site.
+	 * @return null
+	 */
+	function update_main_network_site_option(){
+		do_action( "add_option_main_network_site", "main_network_site", network_site_url() );
+	}
+
+	/**
 	 * Is Jetpack active?
 	 */
 	public static function is_active() {
@@ -642,6 +673,27 @@ class Jetpack {
 			$development_mode = true;
 		}
 		return apply_filters( 'jetpack_development_mode', $development_mode );
+	}
+
+	/**
+	* Get Jetpack development mode notice text and notice class.
+	*
+	* Mirrors the checks made in Jetpack::is_development_mode
+	*
+	*/
+	public static function show_development_mode_notice() {
+		if ( Jetpack::is_development_mode() ) {
+			if ( defined( 'JETPACK_DEV_DEBUG' ) && JETPACK_DEV_DEBUG ) {
+				$notice = __( 'In Development Mode, via the JETPACK_DEV_DEBUG constant being defined in wp-config.php or elsewhere.', 'jetpack' );
+			} elseif ( site_url() && false === strpos( site_url(), '.' ) ) {
+				$notice = __( 'In Development Mode, via site URL lacking a dot (e.g. http://localhost).', 'jetpack' );
+			} else {
+				$notice = __( 'In Development Mode, via the jetpack_development_mode filter.', 'jetpack' );
+			}
+
+			$output = '<div class="error"><p>' . $notice . '</p></div>';
+			echo $output;
+		}
 	}
 
 	/**
@@ -1819,7 +1871,19 @@ p {
 		return Jetpack_Options::get_option( 'log', array() );
 	}
 
-/* Admin Pages */
+	/**
+	 * Log modification of important settings.
+	 */
+	public static function log_settings_change( $option, $old_value, $value ) {
+		switch( $option ) {
+			case 'jetpack_sync_non_public_post_stati':
+			case 'jetpack_json_api_full_management':
+				self::log( $option, $value );
+				break;
+		}
+	}
+
+	/* Admin Pages */
 
 	function admin_init() {
 		// If the plugin is not connected, display a connect message.

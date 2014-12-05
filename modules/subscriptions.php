@@ -563,7 +563,18 @@ class Jetpack_Subscriptions_Widget extends WP_Widget {
 	}
 
 	function widget( $args, $instance ) {
-		global $current_user;
+		if ( ( ! defined( 'IS_WPCOM' ) || ! IS_WPCOM )
+		    && false === apply_filters( 'jetpack_auto_fill_logged_in_user', false )
+		) {
+			$subscribe_email = esc_html__( 'Email Address', 'jetpack' );
+		} else {
+			global $current_user;
+			if ( ! empty( $current_user->user_email ) ) {
+				$subscribe_email = esc_attr( $current_user->user_email );
+			} else {
+				$subscribe_email = esc_html__( 'Email Address', 'jetpack' );
+			}
+		}
 
 
 
@@ -623,7 +634,7 @@ class Jetpack_Subscriptions_Widget extends WP_Widget {
 		<form action="#" method="post" accept-charset="utf-8" id="subscribe-blog-<?php echo $widget_id; ?>">
 			<?php
 			if ( ! isset ( $_GET['subscribe'] ) ) {
-				?><p id="subscribe-text"><?php echo $subscribe_text ?></p><?php
+				?><div id="subscribe-text"><?php echo wpautop( $subscribe_text ); ?></div><?php
 			}
 
 			if ( $show_subscribers_total && 0 < $subscribers_total['value'] ) {
@@ -635,7 +646,7 @@ class Jetpack_Subscriptions_Widget extends WP_Widget {
 				<label id="jetpack-subscribe-label" for="email">
 					<?php echo !empty( $subscribe_placeholder ) ? esc_html( $subscribe_placeholder ) : esc_html__( 'Email Address:', 'jetpack' ); ?>
 				</label>
-				<input type="email" name="email" value="<?php echo !empty( $current_user->user_email ) ? esc_attr( $current_user->user_email ) : ''; ?>" id="<?php echo esc_attr( $subscribe_field_id ) ?>" placeholder="<?php echo esc_attr( $subscribe_placeholder ); ?>" />
+				<input type="email" name="email" value="<?php echo esc_attr( $subscribe_email ); ?>" id="<?php echo esc_attr( $subscribe_field_id ) ?>" placeholder="<?php echo esc_attr( $subscribe_placeholder ); ?>" />
 			</p>
 
 			<p id="subscribe-submit">
