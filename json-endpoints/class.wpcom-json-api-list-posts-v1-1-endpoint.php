@@ -40,12 +40,29 @@ class WPCOM_JSON_API_List_Posts_v1_1_Endpoint extends WPCOM_JSON_API_Post_v1_1_E
 			}
 		}
 
+		// determine statuses
+		$status = $args['status'];
+		$status = ( $status ) ? explode( ',', $status ) : [ 'publish' ];
+		if ( in_array( 'any', $status ) ) {
+			$status = [];
+		} else {
+			$statuses_whitelist = array(
+				'publish',
+				'trash',
+				'pending',
+				'draft',
+				'future',
+				'private',
+			);
+			$status = array_intersect( $status, $statuses_whitelist );
+		}
+
 		$query = array(
 			'posts_per_page' => $args['number'],
 			'order'          => $args['order'],
 			'orderby'        => $args['order_by'],
 			'post_type'      => isset( $args['type'] ) ? $args['type'] : null,
-			'post_status'    => $args['status'],
+			'post_status'    => $status,
 			'post_parent'    => isset( $args['parent_id'] ) ? $args['parent_id'] : null,
 			'author'         => isset( $args['author'] ) && 0 < $args['author'] ? $args['author'] : null,
 			's'              => isset( $args['search'] ) ? $args['search'] : null,
@@ -96,12 +113,14 @@ class WPCOM_JSON_API_List_Posts_v1_1_Endpoint extends WPCOM_JSON_API_Post_v1_1_E
 		}
 
 		if ( isset( $args['page'] ) ) {
-			$is_eligible_for_page_handle = false;
 			if ( $args['page'] < 1 ) {
 				$args['page'] = 1;
 			}
 
 			$query['paged'] = $args['page'];
+			if ( $query['paged'] !== 1 ) {
+				$is_eligible_for_page_handle = false;
+			}
 		} else {
 			if ( $args['offset'] < 0 ) {
 				$args['offset'] = 0;
@@ -214,7 +233,7 @@ class WPCOM_JSON_API_List_Posts_v1_1_Endpoint extends WPCOM_JSON_API_Post_v1_1_E
 
 			if ( ( $return['found'] > count( $return['posts'] ) ) && $last_post ) {
 				$return['meta'] = array();
-				$return['meta']['next_page'] = $this->build_next_page_link( $last_post, $query );
+				$return['meta']['next_page'] = $this->build_page_handle( $last_post, $query );
 			}
 		}
 
@@ -223,18 +242,12 @@ class WPCOM_JSON_API_List_Posts_v1_1_Endpoint extends WPCOM_JSON_API_Post_v1_1_E
 		return $return;
 	}
 
-	function build_next_page_link( $post, $query ) {
+	function build_page_handle( $post, $query ) {
 		$column = $query['orderby'];
 		if ( ! $column ) {
 			$column = 'date';
 		}
-
-		// yes, we really have to double encode this. The page handle is itself url-encoded and it's stuck into
-		// a URL. So once for the page handle values, once overall for the URL.
-		// If we used a different way of encoding the map of values for the page handle, this might seem saner,
-		// but then we get to invent our own escaping system.
-		$handle = build_query( array( 'value' => urlencode($post[$column]), 'id' => $post['ID'] ) );
-		return add_query_arg( array( 'page_handle' => urlencode( $handle ) ), $this->api->url );
+		return build_query( array( 'value' => urlencode($post[$column]), 'id' => $post['ID'] ) );
 	}
 
 	function _build_date_range_query( $column, $range, $where ) {

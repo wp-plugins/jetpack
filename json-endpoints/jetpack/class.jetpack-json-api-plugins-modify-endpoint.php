@@ -120,6 +120,11 @@ class Jetpack_JSON_API_Plugins_Modify_Endpoint extends Jetpack_JSON_API_Plugins_
 
 	protected function update() {
 
+		wp_clean_plugins_cache();
+		ob_start();
+		wp_update_plugins(); // Check for Plugin updates
+		ob_end_clean();
+
 		$update_plugins = get_site_transient( 'update_plugins' );
 
 		if ( isset( $update_plugins->response ) ) {
@@ -146,17 +151,15 @@ class Jetpack_JSON_API_Plugins_Modify_Endpoint extends Jetpack_JSON_API_Plugins_
 
 			$update_attempted = true;
 
-			wp_clean_plugins_cache();
-			ob_start();
-			wp_update_plugins(); // Check for Plugin updates
-			ob_end_clean();
-
 			// Object created inside the for loop to clean the messages for each plugin
 			$skin = new Automatic_Upgrader_Skin();
 			// The Automatic_Upgrader_Skin skin shouldn't output anything.
 			$upgrader = new Plugin_Upgrader( $skin );
 			$upgrader->init();
+			// This avoids the plugin to be deactivated.
+			defined( 'DOING_CRON' ) or define( 'DOING_CRON', true );
 			$result = $upgrader->upgrade( $plugin );
+
 			$this->log[ $plugin ][]  = $upgrader->skin->get_upgrade_messages();
 		}
 
