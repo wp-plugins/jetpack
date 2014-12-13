@@ -468,7 +468,7 @@ class Jetpack_Subscriptions {
 
 		$str = '';
 
-		if ( FALSE === has_filter( 'comment_form', 'show_subscription_checkbox' ) && 1 == get_option( 'stc_enabled', 1 ) ) {
+		if ( FALSE === has_filter( 'comment_form', 'show_subscription_checkbox' ) && 1 == get_option( 'stc_enabled', 1 ) && empty( $post->post_password ) ) {
 			// Subscribe to comments checkbox
 			$str .= '<p class="comment-subscription-form"><input type="checkbox" name="subscribe_comments" id="subscribe_comments" value="subscribe" style="width: auto; -moz-appearance: checkbox; -webkit-appearance: checkbox;"' . $comments_checked . ' /> ';
 			$str .= '<label class="subscribe-label" id="subscribe-label" for="subscribe_comments">' . __( 'Notify me of follow-up comments by email.', 'jetpack' ) . '</label>';
@@ -643,10 +643,10 @@ class Jetpack_Subscriptions_Widget extends WP_Widget {
 			?>
 
 			<p id="subscribe-email">
-				<label id="jetpack-subscribe-label" for="email">
+				<label id="jetpack-subscribe-label" for="<?php echo esc_attr( $subscribe_field_id ); ?>">
 					<?php echo !empty( $subscribe_placeholder ) ? esc_html( $subscribe_placeholder ) : esc_html__( 'Email Address:', 'jetpack' ); ?>
 				</label>
-				<input type="email" name="email" value="<?php echo esc_attr( $subscribe_email ); ?>" id="<?php echo esc_attr( $subscribe_field_id ) ?>" placeholder="<?php echo esc_attr( $subscribe_placeholder ); ?>" />
+				<input type="email" name="email" value="<?php echo esc_attr( $subscribe_email ); ?>" id="<?php echo esc_attr( $subscribe_field_id ); ?>" placeholder="<?php echo esc_attr( $subscribe_placeholder ); ?>" />
 			</p>
 
 			<p id="subscribe-submit">
@@ -672,7 +672,6 @@ class Jetpack_Subscriptions_Widget extends WP_Widget {
  					label.style.height   = '1px';
  					label.style.width    = '1px';
  					label.style.overflow = 'hidden';
- 						
 				}
 			} ) ( document );
 		</script>
