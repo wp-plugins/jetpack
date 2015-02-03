@@ -1,3 +1,4 @@
+var sharing_js_options;
 if ( sharing_js_options && sharing_js_options.counts ) {
 	var WPCOMSharing = {
 		done_urls : [],
@@ -36,6 +37,12 @@ if ( sharing_js_options && sharing_js_options.counts ) {
 					window.location.protocol +
 						'//www.linkedin.com/countserv/count/share?format=jsonp&callback=WPCOMSharing.update_linkedin_count&url=' +
 						encodeURIComponent( url )
+				],
+				// Pinterest, like LinkedIn, handles share counts for both http and https
+				pinterest: [
+					window.location.protocol +
+						'//api.pinterest.com/v1/urls/count.json?callback=WPCOMSharing.update_pinterest_count&url=' +
+						encodeURIComponent( url )
 				]
 			};
 
@@ -48,16 +55,29 @@ if ( sharing_js_options && sharing_js_options.counts ) {
 					jQuery.getScript( service_url );
 				}
 			}
-
 			WPCOMSharing.done_urls[ id ] = true;
 		},
 		// get the version of the url that was stored in the dom (sharing-$service-URL)
 		get_permalink: function( url ) {
 			if ( 'https:' == window.location.protocol ) {
-				return url.replace( /^http:\/\//i, 'https://' );
+				url = url.replace( /^http:\/\//i, 'https://' );
 			} else {
-				return url.replace( /^https:\/\//i, 'http://' );
+				url = url.replace( /^https:\/\//i, 'http://' );
 			}
+
+			// Some services (e.g. Twitter) canonicalize the URL with a trailing
+			// slash. We can account for this by checking whether either format
+			// exists as a known URL
+			if ( ! ( url in WPCOM_sharing_counts ) ) {
+				var rxTrailingSlash = /\/$/,
+					formattedSlashUrl = rxTrailingSlash.test( url ) ? url.replace( rxTrailingSlash, '' ) : url + '/';
+
+				if ( formattedSlashUrl in WPCOM_sharing_counts ) {
+					url = formattedSlashUrl;
+				}
+			}
+
+			return url;
 		},
 		update_facebook_count : function( data ) {
 			var shareCount = 0;
@@ -93,6 +113,11 @@ if ( sharing_js_options && sharing_js_options.counts ) {
 		update_linkedin_count : function( data ) {
 			if ( 'undefined' != typeof data.count && ( data.count * 1 ) > 0 ) {
 				WPCOMSharing.inject_share_count( 'sharing-linkedin-' + WPCOM_sharing_counts[ data.url ], data.count );
+			}
+		},
+		update_pinterest_count : function( data ) {
+			if ( 'undefined' != typeof data.count && ( data.count * 1 ) > 0 ) {
+				WPCOMSharing.inject_share_count( 'sharing-pinterest-' + WPCOM_sharing_counts[ data.url ], data.count );
 			}
 		},
 		inject_share_count : function( id, count ) {
@@ -258,19 +283,19 @@ if ( sharing_js_options && sharing_js_options.counts ) {
 		}
 
 		$( document ).click(function() {
-		
-			// Click outside 
+
+			// Click outside
 			// remove any timer
 			$more_sharing_buttons.each( function() {
 				clearTimeout( $( this ).data( 'timer' ) );
 			} );
 			$more_sharing_buttons.data( 'timer', false );
-			
+
 			// slide down forcibly
 			$( '.sharedaddy .inner' ).slideUp();
-			
+
 		});
-		
+
 		// Add click functionality
 		$( '.sharedaddy ul' ).each( function( item ) {
 

@@ -1,6 +1,6 @@
 <?php
 
-define( 'WPCOM_JSON_API__CURRENT_VERSION', '1' );
+require_once( dirname( __FILE__ ) . '/json-api-config.php' );
 
 // Endpoint
 abstract class WPCOM_JSON_API_Endpoint {
@@ -51,8 +51,8 @@ abstract class WPCOM_JSON_API_Endpoint {
 			'false' => '',
 			'true'  => 'Output pretty JSON',
 		),
-		'meta' => "(string) Optional. Loads data from the endpoints found in the 'meta' part of the response. Comma separated list. Example: meta=site,likes",
-		'fields' => '(string) Optional. Returns specified fields only. Comma separated list. Example: fields=ID,title',
+		'meta' => "(string) Optional. Loads data from the endpoints found in the 'meta' part of the response. Comma-separated list. Example: meta=site,likes",
+		'fields' => '(string) Optional. Returns specified fields only. Comma-separated list. Example: fields=ID,title',
 		// Parameter name => description (default value is empty)
 		'callback' => '(string) An optional JSONP callback function.',
 	);
@@ -986,7 +986,7 @@ EOPHP;
 			}
 		}
 
-		if ( -1 == get_option( 'blog_public' ) && !current_user_can( 'read_post', $post->ID ) ) {
+		if ( -1 == get_option( 'blog_public' ) && ! apply_filters( 'wpcom_json_api_user_can_view_post', current_user_can( 'read_post', $post->ID ), $post ) ) {
 			return new WP_Error( 'unauthorized', 'User cannot view post', array( 'status_code' => 403, 'error' => 'private_blog' ) );
 		}
 
@@ -1106,6 +1106,12 @@ EOPHP;
 			'description'      => $media_item->post_content,
 			'metadata'         => wp_get_attachment_metadata( $media_item->ID ),
 		);
+
+		if ( defined( 'IS_WPCOM' ) && IS_WPCOM && is_array( $response['metadata'] ) && ! empty( $response['metadata']['file'] ) ) {
+			remove_filter( '_wp_relative_upload_path', 'wpcom_wp_relative_upload_path', 10 );
+			$response['metadata']['file'] = _wp_relative_upload_path( $response['metadata']['file'] );
+			add_filter( '_wp_relative_upload_path', 'wpcom_wp_relative_upload_path', 10, 2 );
+		}
 
 		$response['meta'] = (object) array(
 			'links' => (object) array(
@@ -1466,11 +1472,11 @@ EOPHP;
 	}
 
 	function get_publicize_connections_link( $keyring_token_id, $path = '' ) {
-		return $this->get_link( '.1/me/publicize-connections/?keyring_token_ID=%d', $keyring_token_id, $path );
+		return $this->get_link( '.1/me/publicize-connections/?keyring_connection_ID=%d', $keyring_token_id, $path );
 	}
 
-	function get_keyring_token_link( $keyring_token_id, $path = '' ) {
-		return $this->get_link( '.1/me/keyring-tokens/%d', $keyring_token_id, $path );
+	function get_keyring_connection_link( $keyring_token_id, $path = '' ) {
+		return $this->get_link( '.1/me/keyring-connections/%d', $keyring_token_id, $path );
 	}
 
 	function get_external_service_link( $external_service, $path = '' ) {
@@ -1681,6 +1687,19 @@ EOPHP;
 		return $mimes;
 	}
 
+	function is_current_site_multi_user() {
+		$users = wp_cache_get( 'site_user_count', 'WPCOM_JSON_API_Endpoint' );
+		if ( false === $users ) {
+			$user_query = new WP_User_Query( array(
+				'blog_id' => get_current_blog_id(),
+				'fields'  => 'ID',
+			) );
+			$users = (int) $user_query->get_total();
+			wp_cache_set( 'site_user_count', $users, 'WPCOM_JSON_API_Endpoint', DAY_IN_SECONDS );
+		}
+		return $users > 1;
+	}
+
 	/**
 	 * Return endpoint response
 	 *
@@ -1692,6 +1711,7 @@ EOPHP;
 	 *	$data: HTTP 200, json_encode( $data ) response body
 	 */
 	abstract function callback( $path = '' );
+
 
 }
 
