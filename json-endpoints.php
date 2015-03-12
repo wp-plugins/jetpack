@@ -369,7 +369,7 @@ new WPCOM_JSON_API_List_Posts_Endpoint( array(
 		'type'     => "(string) Specify the post type. Defaults to 'post', use 'any' to query for both posts and pages. Post types besides post and page need to be whitelisted using the <code>rest_api_allowed_post_types</code> filter.",
 		'parent_id' => '(int) Returns only posts which are children of the specified post. Applies only to hierarchical post types.',
 		'exclude'  => '(array:int|int) Excludes the specified post ID(s) from the response',
-		'exclude_tree' => '(int) Excludes the specified post and all of its descendents from the response. Applies only to hierarhical post types.',
+		'exclude_tree' => '(int) Excludes the specified post and all of its descendants from the response. Applies only to hierarchical post types.',
 		'status'   => array(
 			'publish' => 'Return only published posts.',
 			'private' => 'Return only private posts.',
@@ -431,11 +431,12 @@ new WPCOM_JSON_API_List_Posts_v1_1_Endpoint( array(
 		'type'     => "(string) Specify the post type. Defaults to 'post', use 'any' to query for both posts and pages. Post types besides post and page need to be whitelisted using the <code>rest_api_allowed_post_types</code> filter.",
 		'parent_id' => '(int) Returns only posts which are children of the specified post. Applies only to hierarchical post types.',
 		'exclude'  => '(array:int|int) Excludes the specified post ID(s) from the response',
-		'exclude_tree' => '(int) Excludes the specified post and all of its descendents from the response. Applies only to hierarhical post types.',
+		'exclude_tree' => '(int) Excludes the specified post and all of its descendants from the response. Applies only to hierarchical post types.',
 		'status'   => '(string) Comma-separated list of statuses for which to query, including any of: "publish", "private", "draft", "pending", "future", and "trash", or simply "any". Defaults to "publish"',
 		'sticky'    => array(
 			'include'   => 'Sticky posts are not excluded from the list.',
 			'exclude'   => 'Sticky posts are excluded from the list.',
+			'require'   => 'Only include sticky posts',
 		),
 		'author'   => "(int) Author's user ID",
 		'search'   => '(string) Search query',
@@ -1675,8 +1676,8 @@ new WPCOM_JSON_API_List_Media_Endpoint( array(
 	'query_parameters' => array(
 		'number'    => '(int=20) The number of media items to return. Limit: 100.',
 		'offset'    => '(int=0) 0-indexed offset.',
-		'parent_id' => '(int) Default is nothing. The post where the media item is attached. Passing nothing shows all media items. 0 shows unattached media items.',
-		'mime_type' => "(string) Default is nothing. Filter by mime type (e.g., 'image/jpeg', 'application/pdf'",
+		'parent_id' => '(int) Default is showing all items. The post where the media item is attached. 0 shows unattached media items.',
+		'mime_type' => "(string) Default is empty. Filter by mime type (e.g., 'image/jpeg', 'application/pdf'). Partial searches also work (e.g. passing 'image' will search for all image files).",
 	),
 
 	'response_format' => array(
@@ -1702,8 +1703,22 @@ new WPCOM_JSON_API_List_Media_v1_1_Endpoint( array(
 	'query_parameters' => array(
 		'number'    => '(int=20) The number of media items to return. Limit: 100.',
 		'offset'    => '(int=0) 0-indexed offset.',
-		'post_ID'   => '(int) Default is all media items. Searching with a post ID will show media attached to a specific post. Passing 0 shows unattached media items.',
-		'mime_type' => "(string) Default is nothing. Filter by mime type (e.g., 'image/jpeg', 'application/pdf'",
+		'page'     => '(int) Return the Nth 1-indexed page of posts. Takes precedence over the <code>offset</code> parameter.',
+		'page_handle' => '(string) A page handle, returned from a previous API call as a <code>meta.next_page</code> property. This is the most efficient way to fetch the next page of results.',
+		'order'    => array(
+			'DESC' => 'Return files in descending order. For dates, that means newest to oldest.',
+			'ASC'  => 'Return files in ascending order. For dates, that means oldest to newest.',
+		),
+		'order_by' => array(
+			'date'          => 'Order by the uploaded time of each file.',
+			'title'         => "Order lexicographically by file titles.",
+			'ID'            => 'Order by media ID.',
+		),
+		'search'    => '(string) Search query.',
+		'post_ID'   => '(int) Default is showing all items. The post where the media item is attached. 0 shows unattached media items.',
+		'mime_type' => "(string) Default is empty. Filter by mime type (e.g., 'image/jpeg', 'application/pdf'). Partial searches also work (e.g. passing 'image' will search for all image files).",
+		'after'     => '(ISO 8601 datetime) Return media items uploaded after the specified datetime.',
+		'before'    => '(ISO 8601 datetime) Return media items uploaded before the specified datetime.',
 	),
 
 	'response_format' => array(
@@ -1734,6 +1749,7 @@ new WPCOM_JSON_API_List_Media_v1_1_Endpoint( array(
 	            "title": "Screen Shot 2014-10-14 at 3.22.19 PM",
 	            "caption": "",
 	            "description": "",
+	            "alt": "",
 	            "height": 602,
 	            "width": 764,
 	            "exif": {
@@ -1848,6 +1864,7 @@ new WPCOM_JSON_API_Get_Media_v1_1_Endpoint( array(
 		'title'            => '(string) Filename',
 		'caption'          => '(string) User-provided caption of the file',
 		'description'      => '(string) Description of the file',
+		'alt'              => '(string)  Alternative text for image files.',
 		'height'           => '(int) (Image & video only) Height of the media item',
 		'width'            => '(int) (Image & video only) Width of the media item',
 		'exif'             => '(array) (Image & audio only) Exif (meta) information about the media item',
@@ -1875,6 +1892,7 @@ new WPCOM_JSON_API_Get_Media_v1_1_Endpoint( array(
 	    "title": "Screen Shot 2014-10-14 at 3.22.19 PM",
 	    "caption": "",
 	    "description": "",
+	    "alt": "",
 	    "height": 602,
 	    "width": 764,
 	    "exif": {
@@ -1944,7 +1962,7 @@ new WPCOM_JSON_API_Upload_Media_v1_1_Endpoint( array(
 		'media'      => "(media) An array of media to attach to the post. To upload media, the entire request should be multipart/form-data encoded. Accepts  jpg, jpeg, png, gif, pdf, doc, ppt, odt, pptx, docx, pps, ppsx, xls, xlsx, key. Audio and Video may also be available. See <code>allowed_file_types</code> in the options response of the site endpoint.<br /><br /><strong>Example</strong>:<br />" .
 		                "<code>curl \<br />--form 'media[]=@/path/to/file.jpg' \<br />-H 'Authorization: BEARER your-token' \<br />'https://public-api.wordpress.com/rest/v1/sites/123/media/new'</code>",
 		'media_urls' => "(array) An array of URLs to upload to the post. Errors produced by media uploads, if any, will be in `media_errors` in the response.",
-		'attrs' => "(array) An array of attributes (`title`, `description`, `caption` and `parent_id`) are supported to assign to the media uploaded via the `media` or `media_urls` properties. You must use a numeric index for the keys of `attrs` which follows the same sequence as `media` and `media_urls`. <br /><br /><strong>Example</strong>:<br />" .
+		'attrs' => "(array) An array of attributes (`title`, `description`, `caption` `alt` for images, `artist` for audio, `album` for audio, and `parent_id`) are supported to assign to the media uploaded via the `media` or `media_urls` properties. You must use a numeric index for the keys of `attrs` which follows the same sequence as `media` and `media_urls`. <br /><br /><strong>Example</strong>:<br />" .
 		                 "<code>curl \<br />--form 'media[]=@/path/to/file1.jpg' \<br />--form 'media_urls[]=http://example.com/file2.jpg' \<br /> \<br />--form 'attrs[0][caption]=This will be the caption for file1.jpg' \<br />--form 'attrs[1][title]=This will be the title for file2.jpg' \<br />-H 'Authorization: BEARER your-token' \<br />'https://public-api.wordpress.com/rest/v1/sites/123/posts/new'</code>",
 	),
 
@@ -1977,6 +1995,7 @@ new WPCOM_JSON_API_Upload_Media_v1_1_Endpoint( array(
 				"title": "codeispoetry-rgb",
 				"caption": "",
 				"description": "",
+				"alt": "",
 				"height": 34,
 				"width": 500,
 				"exif": {
@@ -2049,10 +2068,13 @@ new WPCOM_JSON_API_Update_Media_v1_1_Endpoint( array(
 	),
 
 	'request_format' => array(
-		'post_ID'      => '(int) ID of the post this media is attached to',
+		'parent_id'   => '(int) ID of the post this media is attached to',
 		'title'       => '(string) The file name.',
 		'caption'     => '(string) File caption.',
 		'description' => '(HTML) Description of the file.',
+		'alt'         => "(string) Alternative text for image files.",
+		'artist'      => "(string) Audio Only. Artist metadata for the audio track.",
+		'album'       => "(string) Audio Only. Album metadata for the audio track.",
 	),
 
 	'response_format' => array(
@@ -2067,6 +2089,7 @@ new WPCOM_JSON_API_Update_Media_v1_1_Endpoint( array(
 		'title'            => '(string) File name',
 		'caption'          => '(string) User provided caption of the file',
 		'description'      => '(string) Description of the file',
+		'alt'              => '(string)  Alternative text for image files.',
 		'height'           => '(int) (Image & video only) Height of the media item',
 		'width'            => '(int) (Image & video only) Width of the media item',
 		'exif'             => '(array) (Image & audio only) Exif (meta) information about the media item',
@@ -2097,6 +2120,7 @@ new WPCOM_JSON_API_Update_Media_v1_1_Endpoint( array(
 	    "title": "Updated Title",
 	    "caption": "",
 	    "description": "",
+	    "alt": "",
 	    "height": 602,
 	    "width": 764,
 	    "exif": {
@@ -2177,6 +2201,7 @@ new WPCOM_JSON_API_Delete_Media_v1_1_Endpoint( array(
 		'title'            => '(string) File name',
 		'caption'          => '(string) User-provided caption of the file',
 		'description'      => '(string) Description of the file',
+		'alt'              => '(string)  Alternative text for image files.',
 		'height'           => '(int) (Image & video only) Height of the media item',
 		'width'            => '(int) (Image & video only) Width of the media item',
 		'exif'             => '(array) (Image & audio only) Exif (meta) information about the media item',
@@ -2205,6 +2230,7 @@ new WPCOM_JSON_API_Delete_Media_v1_1_Endpoint( array(
 	    "title": "Screen Shot 2014-10-14 at 3.22.19 PM",
 	    "caption": "",
 	    "description": "",
+	    "alt": "",
 	    "height": 602,
 	    "width": 764,
 	    "exif": {
@@ -2660,7 +2686,7 @@ new WPCOM_JSON_API_Update_Taxonomy_Endpoint( array(
 	'request_format' => array(
 		'name'        => '(string) Name of the category',
 		'description' => '(string) A description of the category',
-		'parent'      => '(id) ID of the parent category',
+		'parent'      => '(int) ID of the parent category',
 	),
 
 	'example_request'      => 'https://public-api.wordpress.com/rest/v1/sites/30434183/categories/new/',
@@ -2789,7 +2815,7 @@ new WPCOM_JSON_API_Update_Taxonomy_Endpoint( array(
 	'request_format' => array(
 		'name'        => '(string) Name of the category',
 		'description' => '(string) A description of the category',
-		'parent'      => '(id) ID of the parent category',
+		'parent'      => '(int) ID of the parent category',
 	),
 
 	'example_request'      => 'https://public-api.wordpress.com/rest/v1/sites/30434183/categories/slug:testing-category',
@@ -2976,6 +3002,7 @@ new WPCOM_JSON_API_Site_Settings_Endpoint( array(
 		'jetpack_relatedposts_enabled' => '(bool) Enable related posts?',
 		'jetpack_relatedposts_show_headline' => '(bool) Show headline in related posts?',
 		'jetpack_relatedposts_show_thumbnails' => '(bool) Show thumbnails in related posts?',
+		'jetpack_protect_whitelist'    => '(array) List of IP addresses to whitelist',
 		'infinite_scroll'              => '(bool) Support infinite scroll of posts?',
 		'default_category'             => '(int) Default post category',
 		'default_post_format'          => '(string) Default post format',
@@ -3008,6 +3035,8 @@ new WPCOM_JSON_API_Site_Settings_Endpoint( array(
 		'sharing_label'                => '(string) Label to use for sharing buttons, e.g. "Share this:"',
 		'sharing_show'                 => '(string|array:string) Post type or array of types where sharing buttons are to be displayed',
 		'sharing_open_links'           => '(string) Link target for sharing buttons (same or new)',
+		'twitter_via'                  => '(string) Twitter username to include in tweets when people share using the Twitter button',
+		'jetpack-twitter-cards-site-tag' => '(string) The Twitter username of the owner of the site\'s domain.',
 	),
 
 	'response_format' => array(
@@ -3162,6 +3191,52 @@ new WPCOM_JSON_API_Get_Sharing_Button_Endpoint( array(
 }'
 ) );
 
+new WPCOM_JSON_API_Update_Sharing_Buttons_Endpoint( array(
+	'description' => 'Edit all sharing buttons for a site.',
+	'group'       => '__do_not_document',
+	'stat'        => 'sharing-buttons:X:POST',
+	'method'      => 'POST',
+	'path'        => '/sites/%s/sharing-buttons',
+	'path_labels' => array(
+		'$site'      => '(int|string) Site ID or domain',
+	),
+	'request_format' => array(
+		'sharing_buttons' => '(array:sharing_button) An array of sharing button objects',
+	),
+	'response_format' => array(
+		'success' => '(bool) Confirmation that all sharing buttons were updated as specified',
+		'updated' => '(array) An array of updated sharing buttons',
+	),
+	'example_request' => 'https://public-api.wordpress.com/rest/v1/sites/30434183/sharing-buttons',
+	'example_request_data' => array(
+		'headers' => array(
+			'authorization' => 'Bearer YOUR_API_TOKEN',
+		),
+		'body' => array(
+			'sharing_buttons' => array(
+				array(
+					'ID'         => 'facebook',
+					'visibility' => 'hidden',
+				)
+			)
+		)
+	),
+	'example_response' => '{
+	"success": true,
+	"updated": [
+		{
+			"ID": "facebook"
+			"name": "Facebook"
+			"shortname": "facebook"
+			"custom": false
+			"enabled": true,
+			"visibility": "hidden",
+			"genericon": "\f204"
+		}
+	]
+}'
+) );
+
 new WPCOM_JSON_API_Update_Sharing_Button_Endpoint( array(
 	'description' => 'Create a new custom sharing button.',
 	'group'       => '__do_not_document',
@@ -3179,7 +3254,7 @@ new WPCOM_JSON_API_Update_Sharing_Button_Endpoint( array(
 		'visibility' => '(string) If enabled, the visibility of the sharing button, either "visible" (default) or "hidden"',
 	),
 	'response_format' => array(
-		'ID'           => '(int) Sharing button ID',
+		'ID'           => '(string) Sharing button ID',
 		'name'         => '(string) Sharing button name, used as a label on the button itself',
 		'shortname'    => '(string) A generated short name for the sharing button',
 		'URL'          => '(string) The URL pattern defined for a custom sharing button',
@@ -3232,7 +3307,7 @@ new WPCOM_JSON_API_Update_Sharing_Button_Endpoint( array(
 		'visibility' => '(string) If enabled, the visibility of the sharing button, either "visible" (default) or "hidden"',
 	),
 	'response_format' => array(
-		'ID'           => '(int) Sharing button ID',
+		'ID'           => '(string) Sharing button ID',
 		'name'         => '(string) Sharing button name, used as a label on the button itself',
 		'shortname'    => '(string) A generated short name for the sharing button',
 		'URL'          => '(string) The URL pattern defined for a custom sharing button',

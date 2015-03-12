@@ -326,7 +326,9 @@ class Share_Email extends Sharing_Source {
 
 			<?php do_action( 'sharing_email_dialog', 'jetpack' ); ?>
 
-			<img style="float: right; display: none" class="loading" src="<?php echo apply_filters( 'jetpack_static_url', plugin_dir_url( __FILE__ ) . 'images/loading.gif' ); ?>" alt="loading" width="16" height="16" />
+			<img style="float: right; display: none" class="loading" src="<?php 
+			/** This filter is documented in modules/shortcodes/audio.php */
+			echo apply_filters( 'jetpack_static_url', plugin_dir_url( __FILE__ ) . 'images/loading.gif' ); ?>" alt="loading" width="16" height="16" />
 			<input type="submit" value="<?php esc_attr_e( 'Send Email', 'jetpack' ); ?>" class="sharing_send" />
 			<a href="#cancel" class="sharing_cancel"><?php _e( 'Cancel', 'jetpack' ); ?></a>
 
@@ -350,7 +352,7 @@ class Share_Email extends Sharing_Source {
 class Share_Twitter extends Sharing_Source {
 	var $shortname = 'twitter';
 	var $genericon = '\f202';
-	// 'https://dev.twitter.com/docs/api/1.1/get/help/configuration' ( 2013/06/24 ) short_url_length is 22
+	// 'https://dev.twitter.com/rest/reference/get/help/configuration' ( 2015/02/06 ) short_url_length is 22, short_url_length_https is 23
 	var $short_url_length = 24;
 
 	public function __construct( $id, array $settings ) {
@@ -411,12 +413,13 @@ class Share_Twitter extends Sharing_Source {
 
 		if ( $via ) {
 			$via = '&via=' . rawurlencode( $via );
-
-			$related = $this->get_related_accounts( $post );
-			if ( ! empty( $related ) && $related !== $via )
-				$via .= '&related=' . rawurlencode( $related );
 		} else {
 			$via = '';
+		}
+
+		$related = $this->get_related_accounts( $post );
+		if ( ! empty( $related ) && $related !== $via ) {
+			$via .= '&related=' . rawurlencode( $related );
 		}
 
 		$share_url = $this->get_share_url( $post->ID );
@@ -445,20 +448,18 @@ class Share_Twitter extends Sharing_Source {
 		}
 
 		$via = $this->sharing_twitter_via( $post );
+		$related = $this->get_related_accounts( $post );
 		if ( $via ) {
-			$related = $this->get_related_accounts( $post );
-			if ( $related === $via )
+			$sig = " via @$via";
+			if ( $related === $via ) {
 				$related = false;
-
-			$sig     = " via @$via";
+			}
 		} else {
-			$via     = false;
-			$related = false;
-			$sig     = '';
+			$via = false;
+			$sig = '';
 		}
 
-
-		$suffix_length = $this->short_url_length + $strlen( " {$sig}" );
+		$suffix_length = $this->short_url_length + $strlen( $sig );
 		// $sig is handled by twitter in their 'via' argument.
 		// $post_link is handled by twitter in their 'url' argument.
 		if ( 140 < $strlen( $post_title ) + $suffix_length ) {
@@ -474,7 +475,7 @@ class Share_Twitter extends Sharing_Source {
 		$url = $post_link;
 		$twitter_url = add_query_arg(
 			urlencode_deep( array_filter( compact( 'via', 'related', 'text', 'url' ) ) ),
-			sprintf( '%s://twitter.com/intent/tweet', $this->http() )
+			'https://twitter.com/intent/tweet'
 		);
 
 		// Redirect to Twitter

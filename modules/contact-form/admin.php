@@ -176,7 +176,7 @@ function grunion_handle_bulk_spam() {
 	if ( ( empty( $_REQUEST['action'] ) || 'spam' != $_REQUEST['action'] ) && ( empty( $_REQUEST['action2'] ) || 'spam' != $_REQUEST['action2'] ) ) {
 		return;
 	}
-	
+
 	check_admin_referer('bulk-posts');
 
 	if ( empty( $_REQUEST['post'] ) ) {
@@ -828,7 +828,7 @@ function grunion_recheck_queue() {
 	foreach ( $approved_feedbacks as $feedback ) {
 		$meta = get_post_meta( $feedback->ID, '_feedback_akismet_values', true );
 
-		$is_spam = apply_filters( 'contact_form_is_spam', $meta );
+		$is_spam = apply_filters( 'jetpack_contact_form_is_spam', false, $meta );
 
 		if ( $is_spam ) {
 			wp_update_post( array( 'ID' => $feedback->ID, 'post_status' => 'spam' ) );

@@ -3,7 +3,7 @@ Contributors: automattic, alternatekev, andy, apeatling, azaozz, barry, beaulebe
 Tags: WordPress.com, statistics, stats, views, tweets, twitter, widget, gravatar, hovercards, profile, equations, latex, math, maths, youtube, shortcode, archives, audio, blip, bliptv, dailymotion, digg, flickr, googlevideo, google, googlemaps, kyte, kytetv, livevideo, redlasso, rockyou, rss, scribd, slide, slideshare, soundcloud, vimeo, shortlinks, wp.me, subscriptions, notifications, notes, json, api, rest, mosaic, gallery, slideshow, videopress, monitor, search, omnisearch, sso, jet pack
 Stable tag: 3.3.2
 Requires at least: 4.0
-Tested up to: 4.1
+Tested up to: 4.2
 
 Your WordPress, Streamlined.
 
@@ -155,6 +155,30 @@ Bug Fix : Mobile Theme: Minileven; Start after DOM ready
 Bug Fix : Extra Sidebar Widgets: Don't require height/width values in the Twitter Timeline widget
 Bug Fix : Increase CSS specificity for Contact Forms in widgets
 Bug Fix : When calling /sites/%s/posts/ include all attachments not just the first five via JSON API
+
+= 3.3.2 =
+Release Date: February 19th, 2015
+
+* Enhancement: Updated translation files.
+* Enhancement: Heartbeat: Correctly stat new datasets.
+* Bug Fix: Widget Visibility: Correct some caching of visibility results that may get evaluated too soon.
+* Bug Fix: Contact Form: Hardening.
+* Bug Fix: Photon: Make sure our gallery filter can parse array inputs as well as the default html.
+
+= 3.3.1 =
+Release Date: February 11th, 2015
+
+* Bug Fix: JSON API: Minor versioning data.
+* Bug Fix: Markdown: Re-run KSES after processing to account for syntax changes.
+* Bug Fix: Media Extractor: Don't call a gallery a gallery if it hasn't got any pictures!
+* Bug Fix: Module Management: Handle a core api change for folks running trunk.
+* Bug Fix: Related Posts: CSS -- better clear rows.
+* Bug Fix: Sharing: Including sharing account on Pinterest unofficial buttons as well.
+* Bug Fix: Sharing: Properly version external assets by Jetpack release version.
+* Bug Fix: Shortcodes: Soundcloud: Backport API compatibility fixes.
+* Bug Fix: Shortcodes: Flickr: Tidy up our regex url pattern matching.
+* Bug Fix: Subscriptions: Don't add 'Email Address' as the value -- we have placeholders!
+* Bug Fix: Widgets: Gallery Widget: Allow folks to upload images from the widget area in the customizer.
 
 = 3.3 =
 Release Date: December 15th, 2014
