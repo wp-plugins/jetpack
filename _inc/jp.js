@@ -173,7 +173,7 @@
 		$( location ).append( html );
 
 		// track Jump Start views
-		if(prop === 'jumpstart') {
+		if('Jumpstart' === prop) {
 			new Image().src = data.jumpstartStatsURLS.viewed;
 		}
 
@@ -266,7 +266,7 @@
 				});
 
 				$( '#jumpstart-success' ).html( response );
-				$( '.spinner' ).hide();
+				$( '.spinner, .jstart' ).hide();
 				$( '.jumpstart-message, .miguel' ).toggle();
 
 				// Log Jump Start event in MC Stats

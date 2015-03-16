@@ -1989,6 +1989,11 @@ class Jetpack {
 		// A flag for Jump Start so it's not shown again. Only set if it hasn't been yet.
 		if ( 'new_connection' === Jetpack_Options::get_option( 'jumpstart' ) ) {
 			Jetpack_Options::update_option( 'jumpstart', 'jetpack_action_taken' );
+
+			//Jump start is being dismissed send data to MC Stats
+			$jetpack->stat( 'jumpstart', 'manual,'.$module );
+
+			$jetpack->do_stats( 'server_side' );
 		}
 
 		if ( $redirect ) {
@@ -2008,6 +2013,8 @@ class Jetpack {
 	public static function deactivate_module( $module ) {
 		do_action( 'jetpack_pre_deactivate_module', $module );
 
+		$jetpack = Jetpack::init();
+
 		$active = Jetpack::get_active_modules();
 		$new    = array_filter( array_diff( $active, (array) $module ) );
 
@@ -2016,6 +2023,11 @@ class Jetpack {
 		// A flag for Jump Start so it's not shown again.
 		if ( 'new_connection' === Jetpack_Options::get_option( 'jumpstart' ) ) {
 			Jetpack_Options::update_option( 'jumpstart', 'jetpack_action_taken' );
+
+			//Jump start is being dismissed send data to MC Stats
+			$jetpack->stat( 'jumpstart', 'manual,deactivated-'.$module );
+
+			$jetpack->do_stats( 'server_side' );
 		}
 
 		return Jetpack_Options::update_option( 'active_modules', array_unique( $new ) );
@@ -2115,7 +2127,7 @@ p {
 
 		if ( ! $old_version ) { // For new sites
 			// Setting up jetpack manage
-			Jetpack_Options::update_options( 'json_api_full_management', true );
+			Jetpack::activate_module( 'manage' );
 		}
 	}
 
@@ -5545,7 +5557,10 @@ p {
 		if ( 'new_connection' !== Jetpack::get_option( 'jumpstart' ) ) {
 			return false;
 		}
-		
+
+		$jetpack = Jetpack::init();
+
+
 		// Manual build of module options
 		$option_names = array(
 			'sharing-options',
@@ -5576,7 +5591,13 @@ p {
 
 		if ( in_array( $option_name, $option_names ) ) {
 			Jetpack_Options::update_option( 'jumpstart', 'jetpack_action_taken' );
+
+			//Jump start is being dismissed send data to MC Stats
+			$jetpack->stat( 'jumpstart', 'manual,'.$option_name );
+
+			$jetpack->do_stats( 'server_side' );
 		}
+
 	}
 
 	/*
@@ -5630,6 +5651,16 @@ p {
 				array( __CLASS__, 'dashboard_widget' )
 			);
 			wp_enqueue_style( 'jetpack-dashboard-widget', plugins_url( 'css/dashboard-widget.css', JETPACK__PLUGIN_FILE ), array(), JETPACK__VERSION );
+
+			// If we're inactive and not in development mode, sort our box to the top.
+			if ( ! self::is_active() && ! self::is_development_mode() ) {
+				global $wp_meta_boxes;
+
+				$dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
+				$ours      = array( 'jetpack_summary_widget' => $dashboard['jetpack_summary_widget'] );
+
+				$wp_meta_boxes['dashboard']['normal']['core'] = array_merge( $ours, $dashboard );
+			}
 		}
 	}
 
@@ -5645,8 +5676,10 @@ p {
 			<?php if ( Jetpack::is_module_active( 'protect' ) ) : ?>
 				<h3><?php echo number_format_i18n( get_site_option( 'jetpack_protect_blocked_attempts', 0 ) ); ?></h3>
 				<p><?php echo esc_html_x( 'blocked malicious login attempts', '{#} blocked malicious login attempts -- number is on a prior line, text is a caption.', 'jetpack' ); ?></p>
-			<?php elseif ( current_user_can( 'jetpack_activate_modules' ) ) : ?>
-				<a href="#" class="button button-jetpack" title="<?php esc_attr_e( 'Jetpack Protect helps to keep you secure from brute-force login attacks.', 'jetpack' ); ?>"><?php esc_html_e( 'Activate Jetpack Protect', 'jetpack' ); ?></a>
+			<?php elseif ( current_user_can( 'jetpack_activate_modules' ) && ! self::is_development_mode() ) : ?>
+				<a href="<?php echo esc_url( wp_nonce_url( Jetpack::admin_url( array( 'action' => 'activate', 'module' => 'protect' ) ), 'jetpack_activate-protect' ) ); ?>" class="button button-jetpack" title="<?php esc_attr_e( 'Jetpack Protect helps to keep you secure from brute-force login attacks.', 'jetpack' ); ?>">
+					<?php esc_html_e( 'Activate Jetpack Protect', 'jetpack' ); ?>
+				</a>
 			<?php else : ?>
 				<?php esc_html_e( 'Jetpack Protect is inactive.', 'jetpack' ); ?>
 			<?php endif; ?>
@@ -5657,7 +5690,9 @@ p {
 				<h3><?php echo number_format_i18n( get_option( 'akismet_spam_count', 0 ) ); ?></h3>
 				<p><?php echo esc_html_x( 'spam comments blocked by Akismet.', '{#} spam comments blocked by Akismet -- number is on a prior line, text is a caption.', 'jetpack' ); ?></p>
 			<?php elseif ( current_user_can( 'activate_plugins' ) && ! is_wp_error( validate_plugin( 'akismet/akismet.php' ) ) ) : ?>
-				<a href="#" class="button button-jetpack"><?php esc_html_e( 'Activate Akismet', 'jetpack' ); ?></a>
+				<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'activate', 'plugin' => 'akismet/akismet.php' ), admin_url( 'plugins.php' ) ), 'activate-plugin_akismet/akismet.php' ) ); ?>" class="button button-jetpack">
+					<?php esc_html_e( 'Activate Akismet', 'jetpack' ); ?>
+				</a>
 			<?php else : ?>
 				<p><a href="<?php echo esc_url( 'https://akismet.com/?utm_source=jetpack&utm_medium=link&utm_campaign=Jetpack%20Dashboard%20Widget%20Footer%20Link' ); ?>"><?php esc_html_e( 'Akismet can help to keep your blog safe from spam!', 'jetpack' ); ?></a></p>
 			<?php endif; ?>
