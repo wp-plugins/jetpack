@@ -563,50 +563,18 @@ new Jetpack_JSON_API_Core_Endpoint( array(
 	'example_request' => 'https://public-api.wordpress.com/rest/v1/sites/example.wordpress.org/core'
 ) );
 
-require_once( $json_jetpack_endpoints_dir . 'class.jetpack-json-api-protect-whitelist.php' );
+require_once( $json_jetpack_endpoints_dir . 'class.jetpack-json-api-sync-endpoint.php' );
 
-new Jetpack_JSON_API_Protect_Whitelist( array(
-	'description'     => 'Get the IP address whitelist used by the Protect module',
-	'method'          => 'GET',
-	'path'            => '/sites/%s/whitelist',
-	'stat'            => 'protect',
-	'path_labels' => array(
-		'$site' => '(int|string) The site ID, The site domain'
-	),
-	'response_format' => array(
-		'whitelist' => '(array) An array of formatted whitelists',
-	),
-	'example_request_data' => array(
-		'headers' => array(
-			'authorization' => 'Bearer YOUR_API_TOKEN',
-		),
-	),
-	'example_request' => 'https://public-api.wordpress.com/rest/v1/sites/example.wordpress.org/whitelist'
-) );
-
-new Jetpack_JSON_API_Protect_Whitelist( array(
-	'description'     => 'Update the IP whitelist',
+new Jetpack_JSON_API_Sync_Endpoint( array(
+	'description'     => 'Force sync of all options and constants',
 	'method'          => 'POST',
-	'path'            => '/sites/%s/whitelist',
-	'stat'            => 'protect',
+	'path'            => '/sites/%s/sync',
+	'stat'            => 'sync',
 	'path_labels' => array(
 		'$site' => '(int|string) The site ID, The site domain'
 	),
-	'request_format' => array(
-		'whitelist'       => '(string) A list of IP addresses',
-		'global'          => '(bool) Does this apply to this site only, or all connected Jetpack sites',
-	),
 	'response_format' => array(
-		'whitelist' => '(array) An array of formatted whitelists',
+		'scheduled' => '(bool) Whether or not the synchronisation was scheduled'
 	),
-	'example_request_data' => array(
-		'headers' => array(
-			'authorization' => 'Bearer YOUR_API_TOKEN',
-		),
-		'body' => array(
-			'whitelist' => array( '123.456.789', '67.88.22'),
-			'global'    => false,
-		),
-	),
-	'example_request' => 'https://public-api.wordpress.com/rest/v1/sites/example.wordpress.org/whitelist'
+	'example_request' => 'https://public-api.wordpress.com/rest/v1.1/sites/example.wordpress.org/sync'
 ) );

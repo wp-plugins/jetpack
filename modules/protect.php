@@ -3,9 +3,11 @@
  * Module Name: Protect
  * Module Description: Adds brute force protection to your login page. Formerly BruteProtect.
  * Sort Order: 1
+ * Recommendation Order: 4
  * First Introduced: 3.4
  * Requires Connection: Yes
  * Auto Activate: Yes
+ * Module Tags: Recommended
  */
 
 include_once JETPACK__PLUGIN_DIR . 'modules/protect/shared-functions.php';
@@ -47,12 +49,10 @@ class Jetpack_Protect_Module {
 		add_filter( 'authenticate',                    array( $this, 'check_preauth' ), 10, 3 );
 		add_action( 'wp_login',                        array( $this, 'log_successful_login' ), 10, 2 );
 		add_action( 'wp_login_failed',                 array( $this, 'log_failed_attempt' ) );
-		add_action( 'wp_dashboard_setup',              array( $this, 'register_assets' ) );
-		add_action( 'wp_dashboard_setup',              array( $this, 'protect_dashboard_widget_load' ) );
-		
+
 		// This is a backup in case $pagenow fails for some reason
 		add_action( 'login_head', array( $this, 'check_login_ability' ) );
-		
+
 		// Runs a script every day to clean up expired transients so they don't
 		// clog up our users' databases
 		require_once( JETPACK__PLUGIN_DIR . '/modules/protect/transient-cleanup.php' );
@@ -141,18 +141,25 @@ class Jetpack_Protect_Module {
 	/**
 	 * Called via WP action wp_login_failed to log failed attempt with the api
 	 *
-	 * Fires custom, plugable action brute_log_failed_attempt with the IP
+	 * Fires custom, plugable action jpp_log_failed_attempt with the IP
 	 *
 	 * @return void
 	 */
 	function log_failed_attempt() {
+		/**
+		 * Fires before every failed login attempt.
+		 *
+		 * @since 3.4.0
+		 *
+		 * @param string jetpack_protect_get_ip IP stored by Jetpack Protect.
+		 */
 		do_action( 'jpp_log_failed_attempt', jetpack_protect_get_ip() );
-		
+
 		if( isset( $_COOKIE['jpp_math_pass'] ) ) {
-			
+
 			$transient = $this->get_transient( 'jpp_math_pass_' . $_COOKIE['jpp_math_pass'] );
 			$transient--;
-			
+
 			if( !$transient || $transient < 1 ) {
 				$this->delete_transient( 'jpp_math_pass_' . $_COOKIE['jpp_math_pass'] );
 				setcookie('jpp_math_pass', 0, time() - DAY_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN, false);
@@ -174,19 +181,16 @@ class Jetpack_Protect_Module {
 		Jetpack::module_configuration_screen( __FILE__, array( $this, 'configuration_screen' ) );
 	}
 
-	public function register_assets() {
-		wp_enqueue_style( 'protect-dashboard-widget', plugins_url( 'protect/protect-dashboard-widget.css', __FILE__ ) );
-		wp_style_add_data( 'protect-dashboard-widget', 'jetpack-inline', true );
-	}
-	
 	/**
 	 * Logs a successful login back to our servers, this allows us to make sure we're not blocking
-	 * a busy IP that has a lot of good logins along with some forgotten passwords
+	 * a busy IP that has a lot of good logins along with some forgotten passwords. Also saves current user's ip
+	 * to the ip address whitelist
 	 */
 	public function log_successful_login( $user_login, $user ) {
+		// TODO: update whitelist
 		$this->protect_call( 'successful_login', array( 'roles' => $user->roles ) );
 	}
-	
+
 
 	/**
 	 * Checks for loginability BEFORE authentication so that bots don't get to go around the log in form.
@@ -250,13 +254,13 @@ class Jetpack_Protect_Module {
 	/*
 	 * Checks if the IP address has been whitelisted
 	 *
-	 * @param int $ip
+	 * @param string $ip
 	 *
 	 * @return bool
 	 */
 	function ip_is_whitelisted( $ip ) {
 		// If we found an exact match in wp-config
-		if ( defined( 'JETPACK_IP_ADDRESS_OK' ) && 'JETPACK_IP_ADDRESS_OK' == $ip ) {
+		if ( defined( 'JETPACK_IP_ADDRESS_OK' ) && JETPACK_IP_ADDRESS_OK == $ip ) {
 			return true;
 		}
 
@@ -321,7 +325,7 @@ class Jetpack_Protect_Module {
 		}
 
 		if ( 'blocked' == $response['status'] ) {
-			$this->kill_login( $response['blocked_attempts'] );
+			$this->kill_login();
 		}
 
 		return true;
@@ -332,6 +336,13 @@ class Jetpack_Protect_Module {
 	 */
 	function kill_login() {
 		$ip = jetpack_protect_get_ip();
+		/**
+		 * Fires before every killed login.
+		 *
+		 * @since 3.4.0
+		 *
+		 * @param string $ip IP flagged by Jetpack Protect.
+		 */
 		do_action( 'jpp_kill_login', $ip );
 		$help_url = 'http://jetpack.me/support/security/';
 
@@ -359,18 +370,11 @@ class Jetpack_Protect_Module {
 	public function configuration_load() {
 
 		if ( isset( $_POST['action'] ) && $_POST['action'] == 'jetpack_protect_save_whitelist' && wp_verify_nonce( $_POST['_wpnonce'], 'jetpack-protect' ) ) {
-			$this->whitelist_saved = jetpack_protect_save_whitelist( $_POST['whitelist'], $global = false );
-			$this->whitelist_error = ! $this->whitelist_saved;
-		}
-
-		// TODO: REMOVE THIS, IT'S FOR BETA TESTING ONLY
-		if ( isset( $_POST['action'] ) && $_POST['action'] == 'remove_protect_key' && wp_verify_nonce( $_POST['_wpnonce'], 'jetpack-protect' ) ) {
-			delete_site_option( 'jetpack_protect_key' );
-		}
-
-		// TODO: REMOVE THIS, IT'S FOR BETA TESTING ONLY
-		if ( isset( $_POST['action'] ) && $_POST['action'] == 'add_whitelist_placeholder_data' && wp_verify_nonce( $_POST['_wpnonce'], 'jetpack-protect' ) ) {
-			$this->add_whitelist_placeholder_data();
+			$whitelist              = str_replace( ' ', '', $_POST['whitelist'] );
+			$whitelist              = explode( PHP_EOL, $whitelist);
+			$result                 = jetpack_protect_save_whitelist( $whitelist );
+			$this->whitelist_saved  = ! is_wp_error( $result );
+			$this->whitelist_error  = is_wp_error( $result );
 		}
 
 		if ( isset( $_POST['action'] ) && 'get_protect_key' == $_POST['action'] && wp_verify_nonce( $_POST['_wpnonce'], 'jetpack-protect' ) ) {
@@ -407,13 +411,13 @@ class Jetpack_Protect_Module {
 		if( ! is_multisite() ) {
 			return false;
 		}
-		
+
 		global $current_site;
 		$primary_blog_id = $current_site->blog_id;
-		
+
 		return $primary_blog_id;
 	}
-	
+
 	/**
 	 * Get jetpack blog id, or the jetpack blog id of the main blog in the main network
 	 *
@@ -497,7 +501,7 @@ class Jetpack_Protect_Module {
 		if ( is_array( $response_json ) ) {
 			$response = json_decode( $response_json['body'], true );
 		}
-		
+
 		if( isset( $response['blocked_attempts'] ) && $response['blocked_attempts'] ) {
 			update_site_option( 'jetpack_protect_blocked_attempts', $response['blocked_attempts'] );
 		}
@@ -520,9 +524,9 @@ class Jetpack_Protect_Module {
 
 		return $response;
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Wrapper for WordPress set_transient function, our version sets
 	 * the transient on the main site in the network if this is a multisite network
@@ -548,7 +552,7 @@ class Jetpack_Protect_Module {
 		}
 		return set_transient( $transient, $value, $expiration );
 	}
-	
+
 	/**
 	 * Wrapper for WordPress delete_transient function, our version deletes
 	 * the transient on the main site in the network if this is a multisite network
@@ -565,7 +569,7 @@ class Jetpack_Protect_Module {
 		}
 		return delete_transient( $transient );
 	}
-	
+
 	/**
 	 * Wrapper for WordPress get_transient function, our version gets
 	 * the transient on the main site in the network if this is a multisite network
@@ -582,23 +586,6 @@ class Jetpack_Protect_Module {
 		}
 		return get_transient( $transient );
 	}
-
-	/*
-	 * Time to add the dashboard widget!
-	 */
-	function protect_dashboard_widget_load() {
-        global $wp_meta_boxes;
-        wp_add_dashboard_widget( 'protect_dashboard_widget', 'Jetpack Protect', array(
-            $this,
-            'protect_dashboard_widget'
-        ) );
-	}
-	
-	function protect_dashboard_widget() {
-		$this->check_api_key();
-		include_once dirname( __FILE__ ) . '/protect/dashboard-widget.php';
-	}
-	
 
 	function get_api_host() {
 		if ( isset( $this->api_endpoint ) ) {
@@ -636,67 +623,6 @@ class Jetpack_Protect_Module {
 		$this->local_host = $domain;
 
 		return $this->local_host;
-	}
-
-	// TODO: REMOVE THIS, BETA TESTING ONLY
-	public function add_whitelist_placeholder_data() {
-		$ip1_1 = new stdClass();
-		$ip1_1->user_id = 1;
-		$ip1_1->global = false;
-		$ip1_1->range = false;
-		$ip1_1->ip_address = '22.22.22.22';
-		$ip1_2 = new stdClass();
-		$ip1_2->user_id = 1;
-		$ip1_2->global = false;
-		$ip1_2->range = false;
-		$ip1_2->ip_address = 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329';
-		$ip1_3 = new stdClass();
-		$ip1_3->user_id = 1;
-		$ip1_3->global = true;
-		$ip1_3->range = false;
-		$ip1_3->ip_address = 'FE80::0202:B3FF:FE1E:8329';
-		$ip1_4 = new stdClass();
-		$ip1_4->user_id = 1;
-		$ip1_4->global = false;
-		$ip1_4->range = true;
-		$ip1_4->range_low = '44.44.10.44';
-		$ip1_4->range_high = '44.44.100.44';
-		$ip1_5 = new stdClass();
-		$ip1_5->user_id = 1;
-		$ip1_5->global = false;
-		$ip1_5->range = true;
-		$ip1_5->range_low = '2001:db8::';
-		$ip1_5->range_high = '2001:db8:0000:0000:0000:0000:0000:0003';
-		$ip1_6 = new stdClass();
-		$ip1_6->user_id = 1;
-		$ip1_6->global = true;
-		$ip1_6->range = true;
-		$ip1_6->range_low = '200.145.20.12';
-		$ip1_6->range_high = '200.145.50.12';
-		$ip2_1 = new stdClass();
-		$ip2_1->user_id = 2;
-		$ip2_1->global = true;
-		$ip2_1->range = true;
-		$ip2_1->range_low = '62.33.1.14';
-		$ip2_1->range_high = '62.33.50.14';
-		$ip2_2 = new stdClass();
-		$ip2_2->user_id = 2;
-		$ip2_2->global = true;
-		$ip2_2->range = true;
-		$ip2_2->range_low = '2001:db8::';
-		$ip2_2->range_high = '2001:db8:0000:0000:0000:0000:0000:0007';
-		$ip3_1 = new stdClass();
-		$ip3_1->user_id = 3;
-		$ip3_1->global = false;
-		$ip3_1->range = false;
-		$ip3_1->ip_address = '202.1.19.4';
-		$ip3_2 = new stdClass();
-		$ip3_2->user_id = 3;
-		$ip3_2->global = false;
-		$ip3_2->range = false;
-		$ip3_2->ip_address = '2001:db8:0000:0000:0000:0000:0000:3fff';
-		$whitelist = array( $ip1_1, $ip1_2, $ip1_3, $ip1_4, $ip1_5, $ip1_6, $ip2_1, $ip2_2, $ip3_1, $ip3_2 );
-		update_site_option( 'jetpack_protect_whitelist', $whitelist );
 	}
 
 }

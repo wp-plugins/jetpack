@@ -378,8 +378,8 @@ abstract class WPCOM_JSON_API_Endpoint {
 					}
 
 					$return[$key] = $files;
+					break;
 				}
-				break;
 			} else {
 				// no break - treat as 'array'
 			}
@@ -552,6 +552,17 @@ abstract class WPCOM_JSON_API_Endpoint {
 				'module_tags' => '(array)    The module\'s tags.'
 			);
 			$return[$key] = (object) $this->cast_and_filter( $value, apply_filters( 'wpcom_json_api_plugin_cast_and_filter', $docs ), false, $for_output );
+			break;
+		case 'sharing_button' :
+			$docs = array(
+				'ID'         => '(string)',
+				'name'       => '(string)',
+				'URL'        => '(string)',
+				'icon'       => '(string)',
+				'enabled'    => '(bool)',
+				'visibility' => '(string)',
+			);
+			$return[$key] = (array) $this->cast_and_filter( $value, $docs, false, $for_output );
 			break;
 
 		default :
@@ -792,7 +803,10 @@ EOPHP;
 			$curl .= " \\\n";
 		}
 
-		$curl .= ' ' . escapeshellarg( $this->example_request );
+		// Escape square brackets to prevent curl "[globbing] bad range specification" errors
+		$example_request = strtr( $this->example_request, array( '[' => '\[', ']' => '\]' ) );
+
+		$curl .= ' ' . escapeshellarg( $example_request );
 
 		$curl = '[sourcecode language="bash" wraplines="false" light="true" autolink="false" htmlscript="false"]' . $curl . '[/sourcecode]';
 		$curl = apply_filters( 'the_content', $curl );
@@ -872,7 +886,10 @@ EOPHP;
 	 */
 	function generate_documentation() {
 		$format       = str_replace( '%d', '%s', $this->path );
-		$path_labeled = vsprintf( $format, array_keys( $this->path_labels ) );
+		$path_labeled = $format;
+		if ( ! empty( $this->path_labels ) ) {
+			$path_labeled = vsprintf( $format, array_keys( $this->path_labels ) );
+		}
 		$boolean_arg  = array( 'false', 'true' );
 		$naeloob_arg  = array( 'true', 'false' );
 
@@ -1028,7 +1045,7 @@ EOPHP;
 					return null;
 				$is_jetpack = true === apply_filters( 'is_jetpack_site', false, get_current_blog_id() );
 				$post_id = $author->ID;
-				if ( $is_jetpack ) {
+				if ( $is_jetpack && ( defined( 'IS_WPCOM' ) && IS_WPCOM ) ) { 
 					$ID    = get_post_meta( $post_id, '_jetpack_post_author_external_id', true );
 					$email = get_post_meta( $post_id, '_jetpack_author_email', true );
 					$login = '';
@@ -1146,6 +1163,7 @@ EOPHP;
 			'title'        => $media_item->post_title,
 			'caption'      => $media_item->post_excerpt,
 			'description'  => $media_item->post_content,
+			'alt'          => get_post_meta( $media_item->ID, '_wp_attachment_image_alt', true )
 		);
 
 		if ( in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif' ) ) ) {
@@ -1483,6 +1501,29 @@ EOPHP;
 		return $this->get_link( '.1/meta/external-services/%s', $external_service, $path );
 	}
 
+
+	/**
+	* Check whether a user can view or edit a post type
+	* @param string $post_type              post type to check
+	* @param string $context                'display' or 'edit'
+	* @return bool
+	*/
+	function current_user_can_access_post_type( $post_type, $context='display' ) {
+		$post_type_object = get_post_type_object( $post_type );
+		if ( ! $post_type_object ) {
+			return false;
+		}
+
+		switch( $context ) {
+			case 'edit':
+				return current_user_can( $post_type_object->cap->edit_posts );
+			case 'display':
+				return $post_type_object->public || current_user_can( $post_type_object->cap->read_private_posts );
+			default:
+				return false;
+		}
+	}
+
 	function is_post_type_allowed( $post_type ) {
 		// if the post type is empty, that's fine, WordPress will default to post
 		if ( empty( $post_type ) )
@@ -1620,7 +1661,7 @@ EOPHP;
 
 		$tmp = download_url( $url );
 		if ( is_wp_error( $tmp ) ) {
-			return false;
+			return $tmp;
 		}
 
 		if ( ! file_is_displayable_image( $tmp ) ) {
@@ -1636,6 +1677,10 @@ EOPHP;
 
 		$id = media_handle_sideload( $file_array, $parent_post_id );
 		@unlink( $tmp );
+
+		if ( is_wp_error( $id ) ) {
+			return $id;
+		}
 
 		if ( ! $id || ! is_int( $id ) ) {
 			return false;
