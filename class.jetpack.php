@@ -496,6 +496,8 @@ class Jetpack {
 		add_filter( 'admin_body_class', array( $this, 'admin_body_class' ) );
 
 		add_action( 'wp_dashboard_setup', array( $this, 'wp_dashboard_setup' ) );
+		// Filter the dashboard meta box order to swap the new one in in place of the old one.
+		add_filter( 'get_user_option_meta-box-order_dashboard', array( $this, 'get_user_option_meta_box_order_dashboard' ) );
 
 		add_action( 'wp_ajax_jetpack-check-news-subscription', array( $this, 'check_news_subscription' ) );
 		add_action( 'wp_ajax_jetpack-subscribe-to-news', array( $this, 'subscribe_to_news' ) );
@@ -551,7 +553,7 @@ class Jetpack {
 	/**
 	 * The callback for the Jump Start ajax requests.
 	 */
-	public static function jetpack_jumpstart_ajax_callback() {
+	function jetpack_jumpstart_ajax_callback() {
 		// Check for nonce
 		if ( ! isset( $_REQUEST['jumpstartNonce'] ) || ! wp_verify_nonce( $_REQUEST['jumpstartNonce'], 'jetpack-jumpstart-nonce' ) )
 			wp_die( 'permissions check failed' );
@@ -565,14 +567,23 @@ class Jetpack {
 			// Loops through the requested "Jump Start" modules, and activates them.
 			// Custom 'no_message' state, so that no message will be shown on reload.
 			$modules = $_REQUEST['jumpstartModSlug'];
+			$module_slugs = array();
 			foreach( $modules as $module => $value ) {
-				Jetpack::log( 'activate', $value['module_slug'] );
-				Jetpack::activate_module( $value['module_slug'], false, false );
+				$module_slugs[] = $value['module_slug'];
+			}
+
+			// Check for possible conflicting plugins
+			$module_slugs_filtered = $this->filter_default_modules( $module_slugs );
+			
+			foreach ( $module_slugs_filtered as $module_slug ) {
+				Jetpack::log( 'activate', $module_slug );
+				Jetpack::activate_module( $module_slug, false, false );
 				Jetpack::state( 'message', 'no_message' );
 			}
 
-			// Set the default sharing buttons if none have been set.
+			// Set the default sharing buttons and set to display on posts if none have been set.
 			$sharing_services = get_option( 'sharing-services' );
+			$sharing_options  = get_option( 'sharing-options' );
 			if ( empty( $sharing_services['visible'] ) ) {
 				// Default buttons to set
 				$visible = array(
@@ -581,6 +592,18 @@ class Jetpack {
 					'google-plus-1',
 				);
 				$hidden = array();
+
+				// Set some sharing settings
+				$sharing = new Sharing_Service();
+				$sharing_options['global'] = array(
+					'button_style'  => 'icon',
+					'sharing_label' => $sharing->default_sharing_label,
+					'open_links'    => 'same',
+					'show'          => array( 'post' ),
+					'custom'        => isset( $sharing_options['global']['custom'] ) ? $sharing_options['global']['custom'] : array()
+				);
+
+				update_option( 'sharing-options', $sharing_options );
 
 				// Send a success response so that we can display an error message.
 				$success = update_option( 'sharing-services', array( 'visible' => $visible, 'hidden' => $hidden ) );
@@ -5662,6 +5685,36 @@ p {
 				$wp_meta_boxes['dashboard']['normal']['core'] = array_merge( $ours, $dashboard );
 			}
 		}
+	}
+
+	/**
+	 * @param mixed $result Value for the user's option
+	 * @return mixed
+	 */
+	function get_user_option_meta_box_order_dashboard( $sorted ) {
+		if ( ! is_array( $sorted ) ) {
+			return $sorted;
+		}
+
+		foreach ( $sorted as $box_context => $ids ) {
+			if ( false === strpos( $ids, 'dashboard_stats' ) ) {
+				// If the old id isn't anywhere in the ids, don't bother exploding and fail out.
+				continue;
+			}
+
+			$ids_array = explode( ',', $ids );
+			$key = array_search( 'dashboard_stats', $ids_array );
+
+			if ( false !== $key ) {
+				// If we've found that exact value in the option (and not `google_dashboard_stats` for example)
+				$ids_array[ $key ] = 'jetpack_summary_widget';
+				$sorted[ $box_context ] = implode( ',', $ids_array );
+				// We've found it, stop searching, and just return.
+				break;
+			}
+		}
+
+		return $sorted;
 	}
 
 	public static function dashboard_widget() {
