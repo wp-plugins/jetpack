@@ -100,6 +100,11 @@ Learn more (and get detailed instructions) in our [contribute guide](http://jetp
 
 == Changelog ==
 
+= 3.5.3 =
+Release Date: May 6th, 2015
+
+* Security Hardening: Remove Genericons example.html file.
+
 = 3.5.2 =
 Release Date: May 5th, 2015
 
