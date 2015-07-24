@@ -111,9 +111,11 @@ Release Date: July 24, 2015
 
 = 3.6 =
 Release Date: July 6th, 2015
-Release Post: http://jetpack.me/2015/07/06/jetpack-3-6-updated-social-widgets-jetpack-cli-and-more/
+
+Release Post: http://jetpack.me/2015/07/06/jetpack-3-6-updated-social-widgets-jetpack-cli-and-more
 
 Feature Enhancements:
+
 * CLI: Add a number of Jetpack CLI improvements: see http://jetpack.me/support/jetpack-cli
 * New Jetpack admin page for connection management
 * New Social Media Icons widget
@@ -121,6 +123,7 @@ Feature Enhancements:
 * Protect: When your IP is blocked, use a math captcha as a fallback instead of a complete block
 
 Additional changes:
+
 * Enhancement: Custom CSS: Add more Flexbox support and other enhancements
 * Enhancement: Extra Sidebar Widgets: Top Posts Widget: Choose what Post Types to display
 * Enhancement: General: Save on some requests! print CSS inline when there isn't much of it
