@@ -3,7 +3,7 @@ Contributors: automattic, alternatekev, andy, apeatling, azaozz, barry, beaulebe
 Tags: WordPress.com, jet pack, comments, contact, gallery, performance, sharing, security, shortcodes, stats, subscriptions, widgets
 Stable tag: 3.6.1
 Requires at least: 4.1.1
-Tested up to: 4.2.2
+Tested up to: 4.2.3
 
 Your WordPress, Streamlined.
 
@@ -102,12 +102,12 @@ Learn more (and get detailed instructions) in our [contribute guide](http://jetp
 = 3.6.1 =
 Release Date: July 24, 2015
 
-Enhancement: Fully compatible with upcoming WordPress 4.3
-Enhancement: Site Icon: Start to deprecate Site Icon in favor of Core's version (if available)
-Bug Fix: Subscriptions: You can now use more than one Subscription form on a single page
-Bug Fix: Quieted PHP notices and warnings with the JSON API, Display Posts Widget and Gallery Widget (slideshow mode)
-Bug Fix: Correct permissions check for connection panel
-Hardening: Increase permissions checks
+* Enhancement: Fully compatible with upcoming WordPress 4.3
+* Enhancement: Site Icon: Start to deprecate Site Icon in favor of Core's version (if available)
+* Bug Fix: Subscriptions: You can now use more than one Subscription form on a single page
+* Bug Fix: Quieted PHP notices and warnings with the JSON API, Display Posts Widget and Gallery Widget (slideshow mode)
+* Bug Fix: Correct permissions check for connection panel
+* Hardening: Increase permissions checks
 
 = 3.6 =
 Release Date: July 6th, 2015
