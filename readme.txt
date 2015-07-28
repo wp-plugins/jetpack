@@ -111,8 +111,7 @@ Release Date: July 24, 2015
 
 = 3.6 =
 Release Date: July 6th, 2015
-
-Release Post: http://jetpack.me/2015/07/06/jetpack-3-6-updated-social-widgets-jetpack-cli-and-more
+Release Post: http://jetpack.me/2015/07/06/jetpack-3-6-updated-social-widgets-jetpack-cli-and-more/
 
 Feature Enhancements:
 
